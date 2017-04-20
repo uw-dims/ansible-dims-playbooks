@@ -70,11 +70,6 @@ vars_path: "{{ basedir }}/vars"
 vm: "/vm"
 dist_tag: unknown
 
-# This variable is used to define the major version of
-# the ansible-playbooks repository.
-
-ansibleplaybooks_repo_version: "v2"
-
 # These are global variables that are defined here for one
 # of two reasons: (1) To provide an undefined variable that
 # exists (to allow templating to not fail), or (2) to provide
@@ -102,7 +97,7 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "1.3.33"
+ansibleplaybooks_version: "2.0.0"
 
 # Set Python interpreter to be one from DIMS Python virtual
 # environment (the global one, although would be ideal to
