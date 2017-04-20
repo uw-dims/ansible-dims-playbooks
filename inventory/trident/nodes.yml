@@ -10,11 +10,11 @@ trident:
     #tridentIP: '192.168.29.12'
     tridentHTTPPort: 8333
     tridentSysAdminUser: 'trident'
-    tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
+    #tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
     
     tridentDBName: 'trident'
     tridentDBUser: 'trident'
-    tridentDBPass: '{{ vault_tridentDBPass }}'
+    #tridentDBPass: '{{ vault_tridentDBPass }}'
     tridentDBPort: 5432
     
     tridentNginxHTTPPort: 80

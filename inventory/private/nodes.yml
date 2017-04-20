@@ -1,0 +1,14 @@
+---
+
+# File: inventory/private/nodes.yml
+
+private:
+  vars:
+    vault_tridentDBPass: 'trident'
+    vault_tridentSysAdminPass: 'trident'
+    vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
+  hosts:
+    'yellow.devops.local':
+    'purple.devops.local':
+
+# vim: ft=ansible :
