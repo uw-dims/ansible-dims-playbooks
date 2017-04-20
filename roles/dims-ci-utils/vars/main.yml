@@ -1,0 +1,8 @@
+---
+
+# File: roles/dims-ci-utils/vars/main.yml
+
+# Required to be in vars/main.yml for deploy roles
+# This will not be overridden by other roles that are running
+# in the same task in a playbook
+repo_name: dims-ci-utils

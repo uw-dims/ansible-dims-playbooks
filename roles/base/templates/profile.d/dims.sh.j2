@@ -1,0 +1,14 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# Do not manually modify.
+#
+# This may be sourced by /bin/sh. Do not use Bash constructs.
+
+if [ $(whoami) != "root" ]; then
+    # Make sure these directories are added to PATH (if not
+    # there already)
+    for d in {{ dims_bin }} "$HOME/bin" /opt/cif/bin /sbin
+    do
+         if [ ":$PATH:" != *":${d}:"* ]; then PATH=${d}:${PATH}; fi
+    done
+fi
+# End added dims code

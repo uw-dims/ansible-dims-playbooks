@@ -1,0 +1,71 @@
+---
+
+# File: inventory/vagrants/nodes.yml
+
+vagrants:
+  vars:
+    ansible_port: 22
+    swarm_iface: "eth1"
+
+    swarm:
+      iface: "{{ swarm_iface }}"
+
+    # Custom rules for default networks
+    custom_rules: [
+       '-A INPUT -s 192.168.56.0/24 -j ACCEPT',
+       '-A INPUT -s  10.168.56.0/24 -j ACCEPT',
+       '-A INPUT -s     10.0.2.0/24 -j ACCEPT',
+    ]
+
+    # Defaults for Vagrants host-only and private_network
+    networking:
+      interfaces:
+      - device: "eth0"
+        inet: "dhcp"
+        auto_config: "true"
+        vagrant_net: "default"
+      - device: "eth1"
+        inet: "static"
+        auto_config: "{{ eth1.auto_config }}"
+        ip: "{{ eth1.ip }}"
+        network: "192.168.56.0"
+        netmask: "255.255.255.0"
+        cidr_bits: "24"
+        broadcast: "192.168.56.255"
+        gateway: "192.168.56.1"
+        dns_search: "{{ deployment }}"
+        dns_servers: "10.0.2.2"
+        vagrant_net: "private_network"
+    # - device: "eth2"
+    #   inet: "static"
+    #   auto_config: "{{ eth2.auto_config }}"
+    #   ip: "{{ eth2.ip }}"
+    #   network: "10.10.0.0"
+    #   netmask: "255.255.0.0"
+    #   broadcast: "10.10.255.255"
+    #   dns_search: "foobar"
+    #   dns_servers: "8.8.8.8"
+    #   vagrant_net: "public_network"
+    #   vagrant_bridge: "[ 'eth0', 'wlan0' ]"
+  hosts:
+    'red.devops.local':
+    'node01.devops.local':
+    'node02.devops.local':
+    'node03.devops.local':
+    'yellow.devops.local':
+    'purple.devops.local':
+    'blue14.devops.local':
+  children:
+    production:
+      hosts:
+        'red.devops.local':
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+        'yellow.devops.local':
+    development:
+      hosts:
+        'purple.devops.local':
+        'blue14.devops.local':
+
+# vim: ft=ansible :

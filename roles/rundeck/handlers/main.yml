@@ -1,0 +1,6 @@
+---
+
+# File: roles/rundeck/handlers/main.yml
+
+- include: "{{ handlers }}/restart_services.yml"
+  static: yes

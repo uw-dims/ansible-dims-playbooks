@@ -1,0 +1,38 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# Deployment "local" hosts
+
+# To see all options supported by dnsmasq, look at the default config file
+# included with dnsmasq. (Found in templates/dnsmasq.conf.j2 in this
+# Ansible playbook repository.) Only the options required are specified here.
+
+# Specify the domain to use for a given range.
+domain=ops.local,192.168.56.0/24
+domain=devops.local,192.168.56.0/24
+
+# Serve this domain and address range from this host.
+server=/ops.local/{{ dnsNameserver }}
+server=/devops.local/{{ dnsNameserver }}
+
+server=/56.168.192.in-addr.arpa/{{ dnsNameserver }}
+
+# Host definitions (contents may be derived from another
+# source, such as a database.)
+addn-hosts=/etc/hosts.local
+
+# Define aliases here as CNAME entries so that hosts only
+# have one name (with each distinct interface in a logically
+# separate DNS domain for certainty about routing.)
+#
+# cname=alias,target
+
+cname=ns.ops.local,vmhost.devops.local
+cname=ns.devops.local,vmhost.devops.local
+cname=hub.ops.local,hub.devops.local
+cname=rabbitmq.ops.local,red.devops.local
+cname=smtp.ops.local,vmhost.devops.local
+cname=smtp.devops.local,vmhost.devops.local
+cname=trident.ops.local,yellow.devops.local
+
+mx-host=ops.local,    vmhost.devops.local,10
+mx-host=devops.local, vmhost.devops.local,10

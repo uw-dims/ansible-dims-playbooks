@@ -1,0 +1,22 @@
+---
+
+# File: roles/hello/tasks/main.yml
+
+- name: Template a file to say hello
+  template:
+    src: '{{ item }}'
+    dest: /tmp/hello.txt
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - hello.txt.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/hello.txt/'
+        - hello.txt/
+
+- name: Say Hello
+  debug: msg="{{ lookup('file', '/tmp/hello.txt') }}"
+
+# vim: ft=ansible :

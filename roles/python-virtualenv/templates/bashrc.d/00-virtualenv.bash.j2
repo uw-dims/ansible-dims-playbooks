@@ -1,0 +1,78 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# Bash shell initialization hook for DIMS components Python
+# Virtual environments.
+#
+# Copyright (c) 2014-2015, University of Washington. All rights reserved.
+#
+
+# Default to only "dimsenv" as the virtualenv name. This causes a name clash,
+# so this may need to change to "systemdimsenv" and "userdimsenv" or something
+# like that.
+
+VENV=${VENV:-{{ venv_name }}}
+
+if [ -f $HOME/.DIMS_NO_DIMSENV_ACTIVATE ]; then
+    if [ ! -z "$PS1" ]; then
+        echo "[+] Automatic activation of Python virtual environment disabled."
+        echo "[+] (Remove file $HOME/.DIMS_NO_DIMSENV_ACTIVATE to enable.)"
+    fi
+    return
+elif [ -f $HOME/dims/envs/$VENV/bin/activate ]; then
+    # Prefer a user's local Python virtualenv if present.
+    VENVTYPE="USER"
+    BASEDIR=$HOME/dims
+elif [ -f $DIMS/envs/$VENV/bin/activate ]; then
+    VENVTYPE="SYSTEM"
+    BASEDIR=$DIMS
+fi
+
+# Virtualenv variables
+export WORKON_HOME=$BASEDIR/envs
+export PROJECT_HOME=$BASEDIR/devel
+export VIRTUALENVWRAPPER_PYTHON=$BASEDIR/bin/python
+[ -f $BASEDIR/bin/virtualenvwrapper.sh ] && source $BASEDIR/bin/virtualenvwrapper.sh
+
+# Force dimsenv virtual environment to be activated unless
+# user turns this off explicitly by touching a file in their
+# $HOME directory
+#
+if [ -f $WORKON_HOME/$VENV/bin/activate -a ! -f $HOME/.DIMS_NO_DIMSENV_ACTIVATE ]; then
+  # Only echo if this is an interactive shell.
+  if [ ! -z "$PS1" ]; then
+    echo "[+] Activating $VENVTYPE virtual environment ($BASEDIR/envs/$VENV) [ansible-playbooks v{{ ansibleplaybooks_version }}]"
+    echo "[+] (Create file $HOME/.DIMS_NO_DIMSENV_ACTIVATE to disable)"
+  fi
+  . $WORKON_HOME/$VENV/bin/activate
+
+  # Force running the postactivate script (which is only done by
+  # 'workon dimsenv', not by sourcing the activate script by itself.)
+  [ -f $WORKON_HOME/postactivate ] && source $WORKON_HOME/postactivate
+fi
+
+# Validate whether it appears that the user does not have a user 'dimsenv'
+# virtual environment, or that the user's 'dimsenv' virtual environment
+# is older than the system one. If so, warn the user that they may need to
+# create or update their virtual environment (and how to do it).
+if [[ $VENVTYPE == "SYSTEM" && ! -d $HOME/dims/envs/$VENV ]]; then
+    cat <<EOD
+[!]
+[!] You do not have a Python virtual environment "$VENV" installed in the
+[!] $HOME/dims/envs directory. To install one, run the "{{ venv_name }}.update" command.
+[!]
+EOD
+elif [[ "$WORKON_HOME/$VENV/bin/python" == "$DIMS/envs/{{ venv_name }}/bin/python" ||
+       $WORKON_HOME/$VENV/bin/python -ot $DIMS/envs/{{ venv_name }}/bin/python ]]; then
+    cat <<EOD
+[!]
+[!] It appears that your user virtual environment $WORKON_HOME/{{ venv_name }} is older than
+[!] the system virtual environment (or has not been created yet). To update your
+[!] user Python virtual environment, run the "{{ venv_name }}.update" command.
+[!]
+EOD
+fi
+
+if [ -f $HOME/.DIMS_SWAP_CAPSLOCK_CTRL ]; then
+  if [ "/$(which dims.swapcapslockctrl)/" != "//" ]; then
+    dims.swapcapslockctrl
+  fi
+fi

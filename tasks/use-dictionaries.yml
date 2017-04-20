@@ -1,0 +1,21 @@
+---
+
+# File: tasks/use-dictionaries.yml
+
+- include_vars: '{{ inventory_dir }}/group_vars/{{ deployment }}.yml'
+
+- debug: var=ansible_facts['trident']['admins']
+
+- name: Iterate over trident.admins
+  local_action: command echo {{ item }}
+  with_items: "{{ trident.admins }}"
+
+- name: Setup Trident admin
+  local_action: "command echo First, installing {{ trident.adminname }}"
+
+- name: Setup other admins
+  local_action: "command echo Then, installing {{ item.descr }}"
+  with_items: "{{ trident.admins }}"
+  when: item.ident != "trident"
+
+# vim: ft=ansible :

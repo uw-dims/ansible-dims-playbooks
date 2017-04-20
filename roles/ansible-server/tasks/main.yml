@@ -1,0 +1,106 @@
+---
+
+# File: roles/ansible-server/tasks/main.yml
+
+# Set up system to serve as an Ansible control host.
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ ansible-server ]
+
+- name: Make sure directory exists for ansible configurations
+  file:
+    path: /etc/ansible
+    state: directory
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0775 }}'
+  become: yes
+  tags: [ ansible-server, config ]
+
+- name: Make sure directory exists for ansible fact caching
+  file:
+    path: '{{ dims_data }}/facts.d/'
+    state: directory
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0770 }}'
+  become: yes
+  tags: [ ansible-server, config ]
+
+  # This is the default configuration file for the entire system. It cannot
+  # reference a user-customizable environment variable that is not set in
+  # the environment of other users who would be invoking Ansible command
+  # line programs. Keep this in mind when setting variables for Jinja
+  # templating in the source files in the ansible.cfg/ directory.
+
+- name: Generate default ansible config
+  template:
+    src: '{{ item }}'
+    dest: /etc/ansible/ansible.cfg
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_config }}'
+        - ansible.cfg.{{ inventory_hostname }}.j2
+        - ansible.cfg.category-{{ category }}.j2
+        - ansible.cfg.deployment-{{ deployment }}.j2
+        - ansible.cfg.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/ansible.cfg/'
+        - ansible.cfg/
+  become: yes
+  tags: [ ansible-server, config ]
+
+  # This only works for INI-style inventory files. The configuration file
+  # above may reference a directory, a dynamic inventory script, and/or a
+  # YAML inventory file (or combination thereof). Keep that in mind when
+  # altering or configuring this default file.
+
+- name: Generate default ansible hosts file
+  template:
+    src: '{{ item }}'
+    dest: /etc/ansible/hosts
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_hosts_file }}'
+        - hosts.{{ inventory_hostname }}.j2
+        - hosts.category-{{ category }}.j2
+        - hosts.deployment-{{ deployment }}.j2
+        - hosts.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/ansible-hosts/'
+        - ansible-hosts/
+  become: yes
+  tags: [ ansible-server, config ]
+
+- name: Create directory for additional (non-DIMS) ansible roles and plugins
+  file:
+    path: '{{ item }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    state: directory
+    mode: '{{ mode_0755 }}'
+  with_items:
+    - '{{ imported_plugins }}'
+    - '{{ imported_roles }}'
+  become: yes
+  tags: [ ansible-server, config ]
+
+- name: Ensure imported roles present (Git)
+  git:
+    repo: '{{ item }}'
+    dest: '{{ imported_roles }}/{{ item | basename }}'
+    force: true
+  become: yes
+  with_items: '{{ dims_ansible.roles_git }}'
+  tags: [ ansible-server ]
+
+- include: '{{ tasks }}/post_tasks.yml'
+  tags: [ ansible-server ]
+
+# vim: ft=ansible :

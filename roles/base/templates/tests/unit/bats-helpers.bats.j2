@@ -1,0 +1,140 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    # Make a file.
+    cat > /tmp/before.txt <<EOD
+This line is the same.
+This line is changed.
+This line is deleted.
+This line is the same.
+EOD
+    chmod 750 /tmp/before.txt
+    # Make a different file.
+    cat > /tmp/after1.txt <<EOD
+This line is the same.
+This line is different.
+This line is the same.
+This line is added.
+EOD
+    # Duplicate the first file.
+    cp /tmp/before.txt /tmp/after2.txt
+}
+
+function teardown() {
+    rm -f /tmp/{before,after1,after2}.txt
+}
+
+
+@test "[U][EV] assert 'something' echo 'something'" {
+    assert 'something' echo 'something'
+}
+
+@test "[U][EV] ! assert 'something' echo ''" {
+    ! assert 'something' echo ''
+}
+
+@test "[U][EV] assert '' echo ''" {
+    assert '' echo ''
+}
+
+@test "[U][EV] ! assert '' echo 'something'" {
+    ! assert '' echo 'something'
+}
+
+# To development test the following test, remove the negation:
+#
+# ✗ [U][EV] assert_files_identical with only one file (should fail)
+#   (from function `assert_files_identical' in file unit/helpers.bash, line 80,
+#    in test file unit/bats-helpers.bats, line 52)
+#     `assert_files_identical /tmp/before.txt /tmp/file_that_does_not_exist' failed
+#   File /tmp/file_that_does_not_exist does not exist
+
+@test "[U][EV] assert_files_identical with only one file (should fail)" {
+    ! assert_files_identical /tmp/before.txt /tmp/file_that_does_not_exist
+}
+
+# To development test the following test, remove the negation:
+#
+# ✗ [U][EV] assert_files_identical with two different files (should fail)
+#   (from function `assert_files_identical' in file unit/helpers.bash, line 88,
+#    in test file unit/bats-helpers.bats, line 56)
+#     `assert_files_identical /tmp/before.txt /tmp/after1.txt' failed
+#                                                          <<< /tmp/before.txt
+#                                                          /tmp/after1.txt >>>
+#
+#   This line is changed.                                           |  This line is different.
+#   This line is deleted.                                           <
+#                                                                   >  This line is added.
+#
+
+@test "[U][EV] assert_files_identical with two different files (should fail)" {
+    ! assert_files_identical /tmp/before.txt /tmp/after1.txt
+}
+
+@test "[U][EV] assert_files_identical with two identical files" {
+    assert_files_identical /tmp/before.txt /tmp/after2.txt
+}
+
+@test "[U][EV] assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/before.txt" {
+    assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/before.txt
+}
+
+# To development test the following test, remove the negation:
+#
+# ✗ [U][EV] assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/after1.txt (should fail)
+#   (from function `assert' in file unit/helpers.bash, line 18,
+#    from function `assert_sha256' in file unit/helpers.bash, line 26,
+#    in test file unit/bats-helpers.bats, line 68)
+#     `assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/after1.txt' failed
+#   expected: "9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041  /tmp/after1.txt"
+#   actual:   "511598dd1648ae7fa56837357669fc76cf75e8e9f8f21f244153c9b7697416d0  /tmp/after1.txt"
+
+@test "[U][EV] assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/after1.txt (should fail)" {
+    ! assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/after1.txt
+}
+
+# To development test the following test, remove the negation:
+#
+# ✗ [U][EV] assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/file_that_does_not_exist (should fail)
+#   (from function `assert_sha256' in file unit/helpers.bash, line 25,
+#    in test file unit/bats-helpers.bats, line 72)
+#     `assert_sha256 /tmp/before.txt /tmp/file_that_does_not_exist' failed
+
+@test "[U][EV] assert_sha256 9f7091e0bdeb689b10f411ffd74c7c4c1fed1d5dd17597c19fa674e75c644041 /tmp/file_that_does_not_exist (should fail)" {
+    ! assert_sha256 /tmp/before.txt /tmp/file_that_does_not_exist
+}
+
+@test "[U][EV] Call to 'center 10 test' results in '   test   '" {
+    assert '   test   ' center 10 test
+}
+
+@test "[U][EV] assert_ownerships 'root:root' /bin/ls" {
+    assert_ownerships "root:root" /bin/ls
+}
+
+@test "[U][EV] assert_ownerships 'toor:toor' /bin/ls (should fail)" {
+    ! assert_ownerships "toor:toor" /bin/ls
+}
+
+@test "[U][EV] assert_permissions_octal 750 /tmp/before.txt" {
+    assert_permissions_octal 750 /tmp/before.txt
+}
+
+@test "[U][EV] assert_permissions_octal 000 /tmp/before.txt (should fail)" {
+    ! assert_permissions_octal 000 /tmp/before.txt
+}
+
+@test "[U][EV] assert_permissions_human '-rwxr-x---' /tmp/before.txt" {
+    assert_permissions_human -rwxr-x--- /tmp/before.txt
+}
+
+@test "[U][EV] assert_permissions_human '----------' /tmp/before.txt (should fail)" {
+    ! assert_permissions_human ---------- /tmp/before.txt
+}
+

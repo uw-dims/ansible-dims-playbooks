@@ -1,0 +1,13 @@
+---
+
+# File: playbooks/hello.yml
+
+# Simple example of echoing output for demonstrating 'dimscli ansible playbook' command.
+
+- hosts: all
+
+  tasks:
+  - name: say hello
+    shell: "echo Hello from $(hostname)"
+
+# eof

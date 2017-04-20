@@ -1,0 +1,42 @@
+---
+
+# File: playbooks/hosts/ns.devops.local.yml
+#
+# Host file for provisioning development/testing using host "ns" (DNS server, at least).
+#
+
+- name: Dump all vars if debug enabled
+  hosts: ns.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "ns.devops.local"
+  hosts: ns.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: hosts }
+    - { role: dims-ci-utils }
+    - { role: postfix }
+    - { role: python-virtualenv, use_sphinx: true }
+    - { role: docker }
+    - { role: dns, zones: ['local'] }
+    - { role: consul }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+

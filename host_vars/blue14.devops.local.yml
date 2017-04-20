@@ -1,0 +1,39 @@
+---
+
+# File: host_vars/blue14.devops.local.yml
+
+name: "blue14"
+PORT: "22"
+
+dims_users: [ 'dittrich', 'mboggess', 'revere', 'msouthwe', ]
+
+tcp_ports: [ 53, 9999 ]
+udp_ports: [ 53 ]
+
+eth1:
+  ip: "192.168.56.14"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.14"
+  auto_config: "false"
+
+debian_vagrantfile: [
+  '  # Change the following to the ansible_dsa key on your machine',
+  '  # HOME comes from Makefile',
+  '  # vmKey comes from host_vars host file',
+  '  config.ssh.private_key_path = "{{ HOME }}/.ssh/{{ vmKey }}"',
+  '  config.ssh.forward_agent = true',
+]
+
+box_baseos: "ubuntu"
+box_osversion: "14.04.5"
+box_osnick: "trusty"
+box_type: "server"
+iso_source: "file:///vm/cache/isos"
+iso_arch: "amd64"
+iso_checksum_type: "sha256"
+iso_checksum: "dde07d37647a1d2d9247e33f14e91acb10445a97578384896b4e1d985f754cc1" # ubuntu-14.04.5-server-amd64.iso
+ssh_pass: "{{ vault_ssh_pass }}"
+installDesktop: "apt-get -y install ubuntu-desktop"
+
+# vim: ft=ansible :

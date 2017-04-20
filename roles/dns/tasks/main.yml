@@ -1,0 +1,164 @@
+---
+
+# File: roles/dns/tasks/main.yml
+
+# We are using Ansible 2 only features.
+- include: "{{ tasks }}/ansible2check.yml"
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ dns, packages, config ]
+
+# Install dnsmasq consistently from source.
+- include: "{{ tasks }}/dnsmasq.yml"
+  tags: [ dns, packages, config ]
+
+- name: Make sure additional user-supplied config directory exists
+  file:
+    state: directory
+    path: "/etc/dnsmasq.d"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ mode_0755 }}"
+  sudo: yes
+  tags: [ dns, packages, config ]
+
+- name: Update dnsmasq defaults on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/dnsmasq
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ dnsmasq_defaults }}'
+        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.category-{{ category }}.j2
+        - dnsmasq.deployment-{{ deployment }}.j2
+        - dnsmasq.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - default/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+- name: Make dnsmasq configuration file present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/dnsmasq.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ dnsmasq_conf }}'
+        - dnsmasq.conf.{{ ansible_fqdn }}.j2
+        - dnsmasq.conf.category-{{ category }}.j2
+        - dnsmasq.conf.deployment-{{ deployment }}.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
+        - dnsmasq.conf/
+      skip: true
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+- name: Make service defaults present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/dnsmasq
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ dnsmasq_default }}'
+        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.category-{{ category }}.j2
+        - dnsmasq.deployment-{{ deployment }}.j2
+        - dnsmasq.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - default/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+- name: Make service initialization script present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/init.d/dnsmasq
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+        - '{{ dnsmasq_init }}'
+        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.category-{{ category }}.j2
+        - dnsmasq.deployment-{{ deployment }}.j2
+        - dnsmasq.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/init.d/'
+        - init.d/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+- name: Create directory for additional user-supplied configurations
+  file:
+    state: directory
+    path: /etc/dnsmasq.d
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  sudo: yes
+  tags: [ dns, config ]
+
+- name: Add additional user-supplied configurations
+  template:
+    src: dnsmasq.d/{{ item }}.j2
+    dest: /etc/dnsmasq.d/{{ item }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_items:
+    - "{{ zones }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+# It isn't necessary to have a 1:1 configuration file to mapping file, so don't
+# require the hosts.* version. But load one if it is present.
+
+- name: Update dnsmasq hosts file for DIMS
+  template:
+    src: mappings/hosts.{{ item }}.j2
+    dest: /etc/hosts.{{ item }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_items:
+    - "{{ zones }}"
+  sudo: yes
+  ignore_errors: yes
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart dnsmasq on Debian
+  tags: [ dns, config ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ dns, packages, config ]
+
+# vim: ft=ansible :

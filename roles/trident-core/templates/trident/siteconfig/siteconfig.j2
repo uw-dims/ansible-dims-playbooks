@@ -1,0 +1,60 @@
+#
+# The name of the group that owns this installation.
+brand='{{ trident.welcome_text }}'
+#
+# A title which will appear on the portal's pages.
+title='{{ trident.welcome_text }}'
+#
+# Copyright by...
+coname='Trident'
+#
+# The portal host name.
+portalname='{{ tridentFQDN }}'
+#
+# The auth URL.
+authurl='{{ trident.url_public }}'
+#
+# The email domain to be used.
+domain='{{ trident.email_domain }}'
+#
+# URL to the wiki for a trustgroup. %s is replaced by the TrustGroup name.
+wiki='{{ trident.url_public }}/%s/bin/view'
+#
+# Regular expressions to be used in locating the support website or wiki.
+supportre='https://ops.!domain!/rt'
+wikire='https://wiki.!domain!/([a-z]+)/'
+
+# E-mail for support requests
+supportemail='{{ trident.adminemail }}'
+#
+# The location of the postgres DB, either a local instance or a hostname.
+pghost='/var/run/postgresql'
+pgport={{ tridentDBPort }}
+pguser='{{ tridentDBUser }}'
+#
+# The database name to be used.
+pgname='{{ tridentDBName }}'
+#
+# Paths to the running code once installed.
+portal='{{ trident.var }}'
+library='{{ trident.var }}/library'
+webroot='{{ trident.var }}/webroot'
+sitedir='{{ trident.var }}/webroot/site'
+mechdir='{{ trident.var }}/webroot/mech'
+webvar='{{ trident.var }}/webvar'
+#
+# User id (integer) and group id (integer) to be used for file ownership
+# and apache process configuration.
+wwwuid=33
+wwwgid=33
+#
+# Paths to SSL Key, Cert, Chainfile. To be used in the Apache configuration.
+{% if use_letsencrypt is not defined or not use_letsencrypt %}
+sslcertfile='{{ sslCertDir }}/trident.crt'
+sslkeyfile='{{ sslCertDir}}/trident.key'
+sslchainfile=''
+{% else %}
+sslcertfile='/etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem'
+sslkeyfile='/etc/letsencrypt/live/{{ tridentFQDN }}/privkey.pem'
+sslchainfile='/etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem'
+{% endif %}

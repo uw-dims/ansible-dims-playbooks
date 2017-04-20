@@ -1,0 +1,251 @@
+#cloud-config
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# This now starts all services, etcd2, fleet, docker, consul, swarm, creates
+# two overlay networks (app and data), and sets a variable for the consul leader
+# in /etc/consul-leader.
+#
+# Write files to config files before processing units
+write_files:
+  - path: /etc/sysctl.d/10-disable-ipv6.conf
+    #
+    # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+    #
+    # For some reason, permissions get translated from octal to something else
+    # and then the system complains about it, but quoting them keeps them.
+    # TODO(mboggess): Look up yaml file formatting
+    # This is an issue when some files are written as well; the formatting
+    # (whitespace) gets stripped. It might be a Vagrant -> CoreOS thing.
+    permissions: "0644"
+    owner: 'root:root'
+    content: |
+      net.ipv6.conf.all.disable_ipv6 = 1
+  # Adding section for user 'ansible' as switching over to using it for control
+  - path: /home/ansible/.ssh/config
+    permissions: "0644"
+    owner: ansible:ansible
+    content: |
+      host core-*.{{ category }}.{{ deployment }}
+          port 22
+          user ansible
+          Identityfile ~/.ssh/dims_ansible_rsa
+      host *.{{ category }}.{{ deployment }}
+          port {{ dims_ssh_port }}
+    # TODO(dittrich): Hard coded paths to files (ssh keys, etc.)
+  - path: /home/core/.ssh/config
+    permissions: "0644"
+    owner: core:core
+    content: |
+      host core-*.{{ category }}.{{ deployment }}
+          port 22
+          user core
+          Identityfile ~/.ssh/dims_core_rsa
+      host *.{{ category }}.{{ deployment }}
+          port {{ dims_ssh_port }}
+  - path: /etc/ntp.conf
+    content: |
+      #
+      # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+      #
+      # Common pool
+      server 0.pool.ntp.org
+      server 1.pool.ntp.org
+      # - Allow only time queries, at a limited rate.
+      # - Allow all localhost queries (IPv4, IPv6)
+      restrict default nomodify nopeer noquery limited kod
+      restrict 127.0.0.1
+      restrict [::1]
+  - path: /etc/ssh/sshd_config
+    # See https://coreos.com/os/docs/latest/customizing-sshd.html
+    permissions: 0600
+    owner: root:root
+    content: |
+      # Use most defaults for sshd configuration:
+      UsePrivilegeSeparation sandbox
+      Subsystem sftp internal-sftp
+
+      # TODO(dittrich): Work in how to switch to this for consistency with other hosts
+      #Port {{ dims_ssh_port }}
+      Port 22
+      ListenAddress 10.0.2.15
+      ListenAddress {{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}
+      PermitRootLogin no
+      AllowUsers core ansible
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+
+  # Add systemd-resolved configuration to get DNS working right.
+  # TODO(dittrich): Move this to with_first_found config file rather than user-data
+  - path: /etc/systemd/resolved.conf
+    permissions: 0644
+    owner: root
+    content: |
+      #
+      # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+      #
+      # /etc/systemd/resolved.conf
+      #
+      [Resolve]
+      DNS={{ lookup('dig', 'ns.{{ category }}.{{ deployment }}') }}
+      FallbackDNS=10.0.2.3
+      Domains=ops.{{ deployment }} devops.{{ deployment }}
+      #LLMNR=yes
+      #DNSSEC=allow-downgrade
+      Cache=yes
+  - path: /etc/nsswitch.conf
+    permissions: 0644
+    owner: root
+    content: |
+      #
+      # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+      #
+      # /etc/nsswitch.conf:
+      #
+      passwd:      files usrfiles
+      shadow:      files usrfiles
+      group:       files usrfiles
+      #
+      hosts:       files usrfiles resolv dns
+      networks:    files usrfiles dns
+      #
+      services:    files usrfiles
+      protocols:   files usrfiles
+      rpc:         files usrfiles
+      #
+      ethers:      files
+      netmasks:    files
+      netgroup:    files
+      bootparams:  files
+      automount:   files
+      aliases:     files
+      #
+
+# set coreos services configurations
+coreos:
+  update:
+    reboot-strategy: "{{ dims_etcd2_reboot_strategy }}"
+  locksmith:
+    window_start: "Sat 10:00"
+    window_length: "30h"
+  fleet:
+    public-ip: "$public_ipv4"
+    metadata: "region={{ deployment }},public_ip=$public_ipv4"
+  # For information on how units parameters work, see:
+  # http://coreos.com/os/docs/latest/cloud-config.html
+  # http://coreos.com/docs/launching-containers/launching/getting-started-with-systemd
+  units:
+  - name: iptables.service
+    runtime: true
+    enable: true
+  - name: iptables-restore.service
+    runtime: true
+    enable: true
+  - name: systemd-networkd.service
+    command: stop
+  - name: systemd-networkd.service
+    drop-ins:
+      - name: 10-debug.conf
+        content: |
+          [Service]
+          Environment=SYSTEMD_LOG_LEVEL=debug
+  # TODO(dittrich): Changed 'false' to 'true' 2016-11-16: validate?
+  - name: sshd.socket
+    # See https://coreos.com/os/docs/latest/customizing-sshd.html
+    command: restart
+    runtime: true
+    enable: true
+    content: |
+      [Unit]
+      Description=OpenSSH ServerSocket
+      Conflicts=sshd.service
+
+      [Socket]
+      # See https://github.com/coreos/bugs/issues/426
+      # TODO(dittrich): Work in how to switch to this for consistency with other hosts
+      #ListenStream={{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:8422
+      #ListenStream=10.0.2.15:8422
+      ListenStream={{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:22
+      ListenStream=10.0.2.15:22
+      ReusePort=true
+      FreeBind=true
+      Accept=yes
+
+      [Install]
+      WantedBy=sockets.target
+  - name: systemd-networkd.service
+    command: restart
+  - name: docker-tcp.socket
+    # For information on configuring Docker, see:
+    # https://coreos.com/os/docs/latest/customizing-docker.html
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
+
+      [Socket]
+      ListenStream=127.0.0.1:{{ dims_docker_port }}
+      Service=docker.service
+      BindIPv6Only=both
+
+      [Install]
+      WantedBy=sockets.target
+  - name: docker.service
+    drop-ins:
+      - name: 50-dims-docker.conf
+        content: |
+          [Service]
+          Environment="DOCKER_OPTS={{ docker_opts | regex_replace('\n',' ') }}"
+  # TODO(dittrich): Changed 'false' to 'true' 2016-11-16: validate?
+  - name: etcd2.service
+    command: start
+    runtime: true
+    enable: true
+    content: |
+      [Unit]
+      Description=etcd2
+      Conflicts=etcd.service
+
+      [Service]
+      Environment=ETCD_DATA_DIR=/var/lib/etcd2
+      EnvironmentFile=/etc/environment
+      # Saving a templated variable here, using %H instead of ETCD_HOST_NAME
+      ExecStart=/usr/bin/etcd2 \
+          -name %H \
+          -initial-advertise-peer-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2380 \
+          -listen-peer-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2380 \
+          -listen-client-urls http://0.0.0.0:2379 \
+          -advertise-client-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2379 \
+          -initial-cluster-token etcd-cluster-feature_dims-617 \
+          -initial-cluster {{ consul_servers|initial_cluster(category=category, deployment=deployment) }} \
+          -initial-cluster-state new
+      Restart=always
+      RestartSec=10s
+      LimitNOFILE=40000
+
+      [Install]
+      WantedBy=multi-user.target
+  # TODO(dittrich): Changed 'false' to 'true' 2016-11-16: validate?
+  # TODO(dittrich): Need 'enable: true'?
+  - name: fleet.service
+    command: start
+    runtime: true
+    # NOTE(mboggess): content necessary in Vagrant-run CoreOS cluster for some reason.
+    # It wouldn't start properly otherwise.
+    content: |
+      [Unit]
+      Description=fleet daemon
+      After=etcd2.service
+      Wants=fleet.socket
+      After=fleet.socket
+
+      [Service]
+      ExecStart=/usr/bin/fleetd
+      Restart=always
+      RestartSec=10s
+
+      [Install]
+      WantedBy=multi-user.target
+
+# EOF

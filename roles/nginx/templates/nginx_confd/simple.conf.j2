@@ -1,0 +1,19 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# This is a simple, placeholder server directive for
+# bootstrapping the nginx service. 
+# You can define other directives and place the files
+# holding those definitions in the /etc/nginx/conf.d dir.
+
+# The HTTP server that exposed Trident - development only
+
+server {
+  listen *:{{ nginx_health_check }} default_server;
+
+  error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+  access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+
+  server_name {{ ansible_fqdn }};
+
+  root /var/www/health_check;
+}

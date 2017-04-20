@@ -1,0 +1,126 @@
+---
+
+# File: roles/base/tasks/dnsmasq.yml
+
+# dnsmasq is run under NetworkManager on Debian systems. This can cause some
+# problems, as the basic install is restricted and NetworkManager causes
+# instability. To get around this, there are some options that involve
+# installing a full-blown dnsmasq server running locally, configured as
+# needed to get internal ("split-brain" or "split-horizon") DNS working.
+#
+# https://gist.github.com/magnetikonline/6236150
+#
+# Other references on configuration of resolvconf/NetworkManager/dnsmasq:
+#
+# http://askubuntu.com/questions/157154/how-do-i-include-lines-in-resolv-conf-that-wont-get-lost-on-reboot
+
+# Install dnsmasq consistently from source.
+- include: "{{ tasks }}/dnsmasq.yml"
+  tags: [ base, packages, config ]
+
+- name: Make dnsmasq configuration present on Debian
+  template:
+    src={{ item }}
+    dest=/etc/dnsmasq.conf
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  with_first_found:
+    - files:
+        - '{{ dnsmasq_conf }}'
+        - dnsmasq.conf.{{ inventory_hostname }}.j2
+        - dnsmasq.conf.category-{{ category }}.j2
+        - dnsmasq.conf.deployment-{{ deployment }}.j2
+        - dnsmasq.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
+        - dnsmasq.conf/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, dns ]
+
+- name: Restart dnsmasq
+  action: service name=dnsmasq state=restarted
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, dns ]
+
+- name: Make nsswitch.conf present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/nsswitch.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ nsswitch_conf }}'
+        - nsswitch.conf.{{ inventory_hostname }}.j2
+        - nsswitch.conf.{{ ansible_lsb.id }}.j2
+        - nsswitch.conf.category-{{ category }}.j2
+        - nsswitch.conf.deployment-{{ deployment }}.j2
+        - nsswitch.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nsswitch.conf/'
+        - nsswitch.conf/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Check to see if resolvconf package is installed
+  shell: "dpkg -l | grep -E '^ii' | grep resolvconf"
+  register: resolvconf_installed
+  ignore_errors: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# TODO(dittrich): We are trying to stop using resolvconf.
+# There are too many moving parts re: dns.
+- name: Make resolv.conf.d/head file present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/resolvconf/resolv.conf.d/head
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ resolvconf_head }}'
+        - head.{{ inventory_hostname }}.j2
+        - head.{{ ansible_lsb.codename }}.j2
+        - head.category-{{ category }}.j2
+        - head.deployment-{{ deployment }}.j2
+        - head.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - resolv.conf/
+  sudo: yes
+  when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
+  tags: [ base, config ]
+
+- name: Make resolv.conf.d/base file present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/resolvconf/resolv.conf.d/base
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ resolv_base }}'
+        - base.{{ inventory_hostname }}.j2
+        - base.{{ ansible_lsb.codename }}.j2
+        - base.category-{{ category }}.j2
+        - base.deployment-{{ deployment }}.j2
+        - base.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - resolv.conf/
+  sudo: yes
+  when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
+  tags: [ base, config ]
+
+- name: Update resolvconf file from base
+  shell: "resolvconf -u"
+  sudo: yes
+  when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
+  tags: [ base, config ]

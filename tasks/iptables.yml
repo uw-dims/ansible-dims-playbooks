@@ -1,0 +1,35 @@
+---
+
+# File: tasks/iptables.yml
+#
+# (Taken from Fedora Project ansible playbooks).
+#
+# IF YOU ARE USING $tasks/base.yml this is redundant 
+# this is split out only for some of the cloud boxes
+
+- name: install iptables if not installed
+  yum: name=iptables state=present
+  when: ansible_distribution == 'Ubuntu'
+  tags:
+  - iptables
+  - packages
+
+- name: Ensure iptables is running and enabled
+  service: name=iptables state=running enabled=yes
+  tags:
+  - iptables
+  - service
+
+- name: iptables
+  action: template src={{ item }} dest=/etc/sysconfig/iptables mode=0600 backup=yes
+  with_first_found:
+    - "{{ iptables }}"
+    - "{{ files }}/iptables/iptables.{{ ansible_fqdn }}"
+    - "{{ files }}/iptables/iptables.{{ host_group }}"
+    - "{{ files }}/iptables/iptables.{{ env }}"
+    - "{{ files }}/iptables/iptables"
+  notify:
+  - restart iptables
+  tags:
+  - iptables
+  - config

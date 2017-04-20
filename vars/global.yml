@@ -1,0 +1,267 @@
+---
+
+# File: vars/global.yml
+
+# Legacy DIMS directory path variables.
+# These complement the Fedora model set above. Be aware of
+# the existence of both sets when choosing to use (or add)
+# a variable to reference a location.
+
+dims: /opt/dims
+dims_bin:        "{{ dims }}/bin"
+dims_data:       "{{ dims }}/data"
+dims_deploy:     "{{ dims }}/deploy"
+dims_docs:       "{{ dims }}/docs"
+dims_etc:        "{{ dims }}/etc"
+dims_etc_bashrc: "{{ dims_etc }}/bashrc.dims.d"
+dims_git:        "{{ dims }}/git"
+dims_lib:        "{{ dims }}/lib"
+dims_tests:      "{{ dims }}/tests.d"
+dims_triggers:   "{{ dims }}/triggers.d"
+dims_logmon:     "{{ dims_data }}/logmon"
+dims_src:        "{{ dims }}/src"
+
+# dims_desktop_dirs = [ a,b,c,d ]
+#
+# Server directories
+# dims_server_dirs = [ a,b,c,d,s ]
+dims_srv:     "{{ dims }}/srv"
+#
+# Create a dims_dirs array with the above...
+# Note: Hasn't been broken out into desktop/server yet
+# Note: Make sure that the list of directories created here matches those
+# being tested for in $GIT/dims-ci-utils/dims/test.dims-ci-utils.envcheck.
+
+dims_dirs:
+  - "{{ dims_bin }}"
+  - "{{ dims_data }}"
+  - "{{ dims_deploy }}"
+  - "{{ dims_docs }}"
+  - "{{ dims_etc }}"
+  - "{{ dims_etc_bashrc }}"
+  - "{{ dims_git }}"
+  - "{{ dims_lib }}"
+  - "{{ dims_tests }}"
+  - "{{ dims_triggers }}"
+  - "{{ dims_logmon }}"
+  - "{{ dims_src }}"
+  - "{{ dims_srv }}"
+
+# Fedora project uses absolute paths. That works using a control host that is
+# separate from a development host (which the DIMS project developers were
+# doing.) The latter involves unique paths derived from $HOME (or including
+# different path components with the users' names, which makes things more
+# complicated in shared code, or with the way we create Vagrants.
+#basedir: /srv/web/infra/ansible
+basedir: "{{ playbooks_root | default(lookup('env', 'PBR'), inventory_dir) }}"
+# The private directory is handled differently than other DIMS directories.
+private: "{{ dims }}/private"
+bigfiles: "{{ basedir }}/bigfiles"
+files: "{{ basedir }}/files"
+roles: "{{ basedir }}/roles"
+imported_roles:  "{{ dims_etc }}/ansible_roles"
+imported_plugins: "{{ dims_etc }}/ansible_plugins"
+handlers: "{{ basedir }}/handlers"
+tasks: "{{ basedir }}/tasks"
+patches: "{{ basedir }}/files/patches"
+vars_path: "{{ basedir }}/vars"
+
+
+vm: "/vm"
+dist_tag: unknown
+
+# This variable is used to define the major version of
+# the ansible-playbooks repository.
+
+ansibleplaybooks_repo_version: "v2"
+
+# These are global variables that are defined here for one
+# of two reasons: (1) To provide an undefined variable that
+# exists (to allow templating to not fail), or (2) to provide
+# an truly global variable that applies to any DIMS instance
+# (regardless of who/what/where/when/why it exists: in other
+# words, these varialbes should have NO specificity at all.)
+#
+
+# Use this variable for checking for existence of an undefined
+# variable. (Differences in the way "undefined" is defined
+# can cause problems due to coupling of the value to the concept
+# of "undefined", which can vary from programmer to programmer.)
+
+UNDEFINED: "__UNDEFINED__"
+
+# Variables for testing and/or illustrating vars layering.
+test_undefined: '{{ UNDEFINED }}'
+test_color: 'gray'
+
+smtp_relayhost: no
+
+# "Serving zones" for dns
+zones: []
+
+# The following is managed using "bumpversion". See the
+# dims-ci-utils documentation.
+
+ansibleplaybooks_version: "1.3.33"
+
+# Set Python interpreter to be one from DIMS Python virtual
+# environment (the global one, although would be ideal to
+# over-ride this with user version for development and
+# testing).
+
+ansible_python_virtualenv: "/opt/dims/envs/dimsenv"
+
+# Put these here for now to allow Jenkins build jobs to work.
+verbose: false
+debug: false
+nolog: true
+
+#-- END FROM vars/global.yml --#
+
+# Set a default hostname base to transient. Override in host vars or command line.
+hostbase: transient
+
+# sudo: False by default so ansible doesn't try and check for it and hang
+sudo: False
+
+# dnsDynamic: False by default; actually set at deployment level (or below)
+dnsDynamic: False
+
+# TODO(dittrich): WIP
+# This array will be used to list physical hardware names.
+hardware_assets: []
+
+# Override on the command line to remove dims_tests dir with '-e dims_inititalize_tests=true'
+dims_initialize_tests: false
+
+# Set a default timezone so that the common role works properly.
+# Override on the command line for local install with '-e dims_timezone="US/New_York"'
+dims_timezone: "US/Pacific"
+
+dims_host: "{{ ansible_fqdn }}"
+dims_guid: "{{ ansible_cmdline.root }}"
+dims_marker: "{{ dims_deploy }}/LAST_PROVISIONED"
+dims_user: dims
+dims_group: dims
+# This array should be set on a per category+deployment and/or host level
+dims_users: [ ]
+
+# To calculate permissions masks or symbolic representations of same,
+# you can use http://permissions-calculator.org/symbolic/
+
+# TODO(dittrich): These are deprecated. Remove them in favor of below mode_ variables.
+mode_exec: 'u=rwx,g=rwx,o=rx'       # 0775
+mode_rwx_user: 'u=rwx,g=rx,o=rx'    # 0755
+mode_read: 'u=rw,g=rw,o=r'          # 0664
+mode_rw_user: 'u=rw,g=r,o=r'        # 0644
+mode_rws_group: 'u=rwx,g=rwxs,o=rx' # 2775
+
+# TODO(dittrich): Fill out the set of modes we might use.
+# Use these symbolic mode variables to avoid misinterpretation of
+# octal vs. decimal in Ansible.
+mode_2775: 'u=rwx,g=rwxs,o=rx'
+mode_1777: 'u=rwx,g=rwx,o=rwx,a+t'
+mode_0775: 'u=rwx,g=rwx,o=rx'
+mode_0770: 'u=rwx,g=rwx,o='
+mode_0755: 'u=rwx,g=rx,o=rx'
+mode_0750: 'u=rwx,g=rx,o='
+mode_0700: 'u=rwx,go='
+mode_0555: 'u=rx,g=rx,o=rx'
+mode_0550: 'u=rx,g=rx,o='
+mode_0500: 'u=rx,go='
+mode_0664: 'u=rw,g=rw,o=r'
+mode_0660: 'u=rw,g=rw,o='
+mode_0644: 'u=rw,g=r,o=r'
+mode_0640: 'u=rw,g=r,o='
+mode_0600: 'u=rw,go='
+mode_0444: 'u=r,g=r,o=r'
+mode_0440: 'u=r,g=r'
+mode_0400: 'u=r,go='
+
+# Python version for virtualenv
+dims_python_version: 2.7.12
+
+
+# Jenkins variables
+build_user: jenkins
+# Relative path from ansible-playbooks location in jenkins job workspace to the
+# root of the workspace. Will work in any workspace as long as ansible-playbooks
+# is cloned to the workspace in the job. Used to obtain an artifact from the
+# current jenkins workspace
+jenkins_relative_artifact_dir: ".."
+# Default value for whether or not to obtain Jenkins-built artifacts via http rather
+# than from the file system.
+use_http: true
+# "dev" for deploying artifacts created from "dev" branch of a repo, "prod" for
+# deploying artifacts created from "master" branch of a repo.
+# Used to construct a URL to obtain the artifact.
+deploy_type: dev
+
+# Leave this until we can refactor variables (see dims-230)
+deploy_dir: "{{ dims_deploy }}"
+jenkins_url: http://jenkins.prisem.washington.edu
+jenkins_jobs_dir: /var/lib/jenkins/jobs
+git_origin: git@git.prisem.washington.edu:/opt/git
+
+# Supervisor variables.
+dims_supervisord_conf: '/etc/supervisor/supervisord.conf'
+
+# Ansible variables.
+dims_remote_user: ansible
+
+# SSHFS configuration variables
+sshfs_cfg_path: gituser@git.prisem.washington.edu:cfg
+cfg_path: dims/cfg
+
+#-- END FROM vars/global.yml --#
+
+# ansible.cfg configuration variables
+ansibleForks: 5
+ansiblePollInterval: 15
+ansibleRemotePort: 8422
+ansibleModuleLang: "C"
+ansibleSSHTimeout: 10
+ansibleRemoteUser: "ansible"
+ansibleNoCows: 1
+ansibleSSHArgs: "-o UseRoaming=no"
+ansibleAcceleratePort: 5099
+ansibleAccelerateTimeout: 30
+ansibleAccelerateConnectTimeout: "5.0"
+ansibleAccelerateDaemonTimeout: 30
+
+# This is the set of Ansible variables, in the order
+# we wish to expose them, when 'debug' is set to 'true'.
+
+debug_vars: [
+  'inventory_hostname',
+  'inventory_hostname_short',
+  'inventory_dir',
+  'inventory_file',
+  'role_path',
+  'ansible_check_mode',
+  'ansible_hostname',
+  'delegate_to',
+  'play_hosts',
+  'group_names',
+  'groups',
+  'environment',
+  'defaults',
+  'hostvars[inventory_hostname]',
+  'vars'
+]
+
+# Defaults for rsyslog logging to facilitate central logging and
+# debugging services.
+syslog_facility: 'local0'
+syslog_severity: 'info'
+
+packer_ssh_timeout: '60m'
+
+root_user: 'root'
+root_group: 'root'
+
+# The following is for testing and validation of where this
+# variable gets (re)defined.
+was_defined_in: 'vars/global.yml'
+
+# vim: ft=ansible :

@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# This script generalizes creating and using a
+# blueprint for a given host using the "blueprint"
+# application.
+
+source $DIMS/bin/test_functions.sh
+
+ACTION=${1:-help}
+USAGE="usage: $BASE: call with 'list', 'create', 'show-packages', 'clean', 'clean-all', 'spotless', or 'help'."
+BLUEPRINT=$(which blueprint)
+
+# Validate 'blueprint' application exists
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+    echo "[-] blueprint not installed."
+    exit 1
+fi
+
+# Validate actions
+if [ "$ACTION" != "list" -a \
+     "$ACTION" != "create" -a \
+     "$ACTION" != "show-packages" -a \
+     "$ACTION" != "clean" -a \
+     "$ACTION" != "clean-all" -a \
+     "$ACTION" != "spotless" -a \
+     "$ACTION" != "help" ]; then
+   error_exit 1 "$USAGE"
+fi
+
+if [ "$ACTION" == "help" ]; then
+    cat <<EOD
+usage: $BASE ACTION
+
+where 'ACTION' is one of:
+    list            - list created blueprints
+    create          - create a new blueprint
+    show-packages   - show packages from a blueprint
+    clean           - remove packages output file
+    clean-all       - remove all packages output files
+    spotless        - remove all packages output files and available blueprints
+EOD
+    exit 0
+fi
+
+if [ "$ACTION" == "list" ]; then
+    echo "[+] Listing available blueprints."
+
+    $BLUEPRINT list 
+elif [ "$ACTION" == "create" ]; then
+    echo "[+] Creating new blueprint."
+    
+    HOST=$(hostname)
+    DATE=$(date +%F_%H%M%S%Z)
+
+    $BLUEPRINT create $HOST-$DATE
+elif [ "$ACTION" == "show-packages" ]; then
+    echo "[+] Type the blueprint name from which you'd like packages and press [ENTER]: "
+    $BLUEPRINT list
+
+    read BLUEPRINTNAME
+
+    if [ "x$BLUEPRINTNAME" == "x" ]; then
+        echo "[+] No blueprint name given, using first available from list."
+
+        BLUEPRINTNAME=$($BLUEPRINT list | head -n 1)
+    else
+        echo "[+] Showing packages for ${BLUEPRINTNAME}."
+    fi
+ 
+    ${BLUEPRINT} show-packages ${BLUEPRINTNAME} > /tmp/blueprint-pkgs-${BLUEPRINTNAME}.txt
+    sudo mv /tmp/blueprint-pkgs-${BLUEPRINTNAME}.txt /opt/dims/blueprint-pkgs-${BLUEPRINTNAME}.txt
+elif [ "$ACTION" == "clean" ]; then
+    echo "[+] Type the blueprint name for which you'd like to clean output and press [ENTER]: "
+    $BLUEPRINT list
+
+    read BLUEPRINTNAME
+
+    if [ "x$BLUEPRINTNAME" == "x" ]; then
+        echo "[+] No blueprint name given."
+
+        exit 1
+    else
+        echo "[+] Cleaning packages file output for ${BLUEPRINTNAME}."
+    fi
+
+    sudo rm /opt/dims/blueprint-pkgs-${BLUEPRINTNAME}.txt
+elif [ "$ACTION" == "clean-all" ]; then
+    echo "[+] Removing all blueprint packages output files."
+
+    sudo rm /opt/dims/blueprint-pkgs*.txt
+elif [ "$ACTION" == "spotless" ]; then
+    echo "[+] Removing all blueprint packages output files and available blueprints."
+
+    if [ -f /opt/dims/blueprint-pkgs-*.txt ]; then 
+        sudo rm /opt/dims/blueprint-pkgs-*.txt
+    fi
+
+    AVAILBLUEPRINTS=$($BLUEPRINT list)
+    for blueprint in $AVAILBLUEPRINTS; do
+        $BLUEPRINT destroy $blueprint
+    done
+else
+    error_exit 1 "$USAGE"
+fi
+
+exit $?
+

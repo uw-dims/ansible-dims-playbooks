@@ -1,0 +1,30 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] openvpn is running" {
+    skip "Disabled until generalized"
+    run bash -c "lsof | grep -q '^openvpn'"
+}
+
+{% if ansible_os_family == "Debian" %}
+# TODO(dittrich): This needs to be done with variables that are used by openvpn, too.
+@test "[S][EV] Interface tun0 exists and has an IP address" {
+    skip "Disabled until generalized"
+    [[ ! -z "$(ip_of_nic tun0)" ]]
+}
+
+{% endif -%}
+
+{% if ansible_os_family == "MacOSX" %}
+#TODO(dittrich): This needs to be done with variables that are used by openvpn, too.
+@test "[S][EV] Interface utun0 exists and has an IP address" {
+    skip "Disabled until generalized"
+    [[ ! -z "$(ip_of_nic utun0)" ]]
+}
+
+{% endif -%}

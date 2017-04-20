@@ -1,0 +1,19 @@
+---
+
+# requires --extra-vars="target=hostspec"
+
+- name: reboot hosts
+  hosts: "{{ target }}"
+  gather_facts: False
+  user: root
+  serial: 1
+
+  tasks:
+  - name: reboot the host
+    command: /sbin/shutdown -r 1
+
+  - name: wait for host to come back - up to 15 minutes
+    local_action: wait_for host={{ target }} port={{ dims_sshport }} delay=120 timeout=900 search_regex=OpenSSH
+
+  - name: sync time
+    command: ntpdate -u 1.rhel.pool.ntp.org

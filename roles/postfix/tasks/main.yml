@@ -1,0 +1,252 @@
+---
+
+# File: roles/postfix/tasks/main.yml
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ postfix, config, packages ]
+
+- name: Only "update_cache=yes" if >3600s since last update
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  tags: [ postfix, packages ]
+
+- name: Make related mail utilities present
+  apt:
+    name={{ item }}
+    state=present
+    force=yes
+    dpkg_options='force-confold,force-confdef'
+  with_items:
+    - mailutils
+    - alpine
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  tags: [ postfix, packages ]
+
+- name: Make /var/mail directory permissions present
+  file:
+    path=/var/mail
+    state=directory
+    owner=root
+    group=mail
+    mode={{ mode_1777 }}
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ postfix, packages ]
+
+- name: Make /etc/postfix/main.cf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/main.cf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_maincf }}'
+        - main.cf.{{ inventory_hostname }}.j2
+        - main.cf.{{ host_group }}.j2
+        - main.cf.{{ postfix_group }}.j2
+        - main.cf.deployment-{{ deployment }}.j2
+        - main.cf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/main.cf/'
+        - main.cf/
+  notify:
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/master.cf file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/master.cf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_mastercf }}'
+        - master.cf.{{ inventory_hostname }}.j2
+        - master.cf.{{ host_group }}.j2
+        - master.cf.{{ postfix_group }}.j2
+        - master.cf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/master.cf/'
+        - master.cf/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/aliases file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/aliases
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_aliases }}'
+        - aliases.{{ inventory_hostname }}.j2
+        - aliases.{{ host_group }}.j2
+        - aliases.{{ postfix_group }}.j2
+        - aliases.deployment-{{ deployment }}.j2
+        - aliases.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/aliases/'
+        - aliases/
+  notify:
+    - reload postfix
+    - rebuild postfix aliases
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/virtual file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/virtual
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_virtual }}'
+        - virtual.{{ inventory_hostname }}.j2
+        - virtual.{{ host_group }}.j2
+        - virtual.{{ postfix_group }}.j2
+        - virtual.deployment-{{ deployment }}.j2
+        - virtual.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/virtual/'
+        - virtual/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - reload postfix
+    - rebuild postfix virtual
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/transport file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/transport
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_transport }}'
+        - transport.{{ inventory_hostname }}.j2
+        - transport.{{ host_group }}.j2
+        - transport.{{ postfix_group }}.j2
+        - transport.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/transport/'
+        - transport/
+  notify:
+    - reload postfix
+    - rebuild postfix transport
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/generic file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/generic
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_generic }}'
+        - generic.{{ inventory_hostname }}.j2
+        - generic.{{ host_group }}.j2
+        - generic.{{ postfix_group }}.j2
+        - generic.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/generic/'
+        - generic/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - reload postfix
+    - rebuild postfix generic
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_access }}'
+        - access.{{ inventory_hostname }}.j2
+        - access.{{ host_group }}.j2
+        - access.{{ postfix_group }}.j2
+        - access.deployment-{{ deployment }}.j2
+        - access.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/access/'
+        - access/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - reload postfix
+    - rebuild postfix access
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/helo_access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/helo_access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_helo_access }}'
+        - helo_access.{{ inventory_hostname }}.j2
+        - helo_access.{{ host_group }}.j2
+        - helo_access.{{ postfix_group }}.j2
+        - helo_access.deployment-{{ deployment }}.j2
+        - helo_access.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/helo_access/'
+        - helo_access/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - reload postfix
+    - rebuild postfix helo_access
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/relay_recipients file present
+  template:
+    src={{ item }}
+    dest=/etc/postfix/relay_recipients
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  with_first_found:
+    - files:
+        - "{{ postfix_relay_recipients }}"
+        - relay_recipients.{{ inventory_hostname }}.j2
+        - relay_recipients.{{ host_group }}.j2
+        - relay_recipients.{{ postfix_group }}.j2
+        - relay_recipients.deployment-{{ deployment }}.j2
+        - relay_recipients.j2
+      paths:
+        - relay_recipients/
+  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
+  notify:
+    - rebuild postfix relay_recipients
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: enable postfix to start
+  service: name=postfix state=running enabled=yes
+  tags: [ postfix, config ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ postfix, config, packages ]
+
+# vim: ft=ansible :

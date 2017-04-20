@@ -1,0 +1,9 @@
+---
+
+# File: tasks/motd.yml
+
+- name: add motd to system
+  template: src=/opt/dims/etc/motd.j2 dest=/etc/motd
+  tags:
+  - motd
+  - base

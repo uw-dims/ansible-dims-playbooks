@@ -1,0 +1,15 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# See: https://trident.li/doc/#toc_32
+
+# Handle testing with real users prior to applying wildcard
+# that will send email to Trident.
+dittrich			dittrich@devops.develop
+mboggess			mboggess@devops.develop
+
+mail-handler@{{ trident.email_domain }}	trident-handler
+@{{ trident.email_domain }} trident-handler
+{% if trident.email_domain != trident.people_domain %}
+mail-handler@{{ trident.people_domain }} trident-handler
+@{{ trident.people_domain }} trident-handler
+{% endif %}

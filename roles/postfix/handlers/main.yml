@@ -1,0 +1,38 @@
+---
+
+# File: roles/postfix/handlers/main.yml
+
+- include: "{{ handlers }}/restart_services.yml"
+  static: yes
+
+- name: reload postfix
+  shell: "postfix reload"
+  become: yes
+
+- name: rebuild postfix aliases
+  shell: "newaliases"
+  become: yes
+
+- name: rebuild postfix virtual
+  shell: "postmap /etc/postfix/virtual"
+  become: yes
+
+- name: rebuild postfix transport
+  shell: "postmap /etc/postfix/transport"
+  become: yes
+
+- name: rebuild postfix generic
+  shell: "postmap /etc/postfix/generic"
+  become: yes
+
+- name: rebuild postfix access
+  shell: "postmap /etc/postfix/access"
+  become: yes
+
+- name: rebuild postfix helo_access
+  shell: "postmap /etc/postfix/helo_access"
+  become: yes
+
+- name: rebuild postfix relay_recipients
+  shell: "postmap /etc/postfix/relay_recipients"
+  become: yes

@@ -1,0 +1,4 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+host *.devops.{{ deployment }} *.ops.{{ deployment }}
+	port 8422
+	Identityfile ~/.ssh/dims_{{ item }}_rsa

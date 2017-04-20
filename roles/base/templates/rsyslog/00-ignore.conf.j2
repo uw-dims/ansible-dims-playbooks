@@ -1,0 +1,8 @@
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+{% if rsyslogd_ignore is defined %}
+{% for ignore in rsyslogd_ignore %}
+:msg,contains,"{{ ignore }}" stop
+{% endfor %}
+{% endif %}

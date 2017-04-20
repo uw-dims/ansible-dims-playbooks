@@ -1,0 +1,19 @@
+---
+
+# File: playbooks/rabbitmq-docker.yml
+
+# This playbook will install and configure a RabbitMQ Docker container.
+
+- name: Install and configure RabbitMQ Docker container
+  hosts: all
+  
+  vars_files:
+   - "vars/global.yml"
+   - "inventory/group_vars/deployment-dims.yml"
+   - "inventory/group_vars/category-devops.yml"
+   - "inventory/host_vars/dimsdev2.node.consul.yml"
+
+  roles:
+    - { role: rabbitmq-docker }
+
+# EOF

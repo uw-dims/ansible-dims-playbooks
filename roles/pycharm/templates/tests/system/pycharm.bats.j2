@@ -1,0 +1,29 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Pycharm is not an installed apt package." {
+    ! is_installed_package pycharm
+}
+
+@test "[S][EV] Pycharm Community edition is installed in /opt" {
+    results=$(ls -d /opt/pycharm-community-* | wc -l)
+    echo $results >&2
+    [ $results -ne 0 ]
+}
+
+@test "[S][EV] \"pycharm\" is {{ dims_bin }}/pycharm" {
+    assert "pycharm is {{ dims_bin }}/pycharm" type pycharm
+}
+
+@test "[S][EV] {{ dims_bin }}/pycharm is a symbolic link to installed pycharm" {
+    [ -L {{ dims_bin }}/pycharm ]
+}
+
+@test "[S][EV] Pycharm Community installed version number is {{ pycharm.version }}" {
+    assert "{{ pycharm.version }}" bash -c "file $(which pycharm) | sed 's|\(.*/pycharm-community-\)\([^/]*\)\(/.*$\)|\2|'"
+}

@@ -1,0 +1,111 @@
+---
+
+# File: inventory/trident/nodes.yml
+
+trident:
+  vars:
+    # TRIDENT (and POSTGRES/NGINX/POSTFIX)
+    tridentFQDN: 'trident.devops.local'
+    # TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
+    #tridentIP: '192.168.29.12'
+    tridentHTTPPort: 8333
+    tridentSysAdminUser: 'trident'
+    tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
+    
+    tridentDBName: 'trident'
+    tridentDBUser: 'trident'
+    tridentDBPass: '{{ vault_tridentDBPass }}'
+    tridentDBPort: 5432
+    
+    tridentNginxHTTPPort: 80
+    tridentNginxHTTPSPort: 443
+    sslCertDir: '/etc/nginx/ssl'
+    sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+    
+    trident:
+      version: '1.4.5'
+      name: 'LOCAL Trident Portal'
+      welcome_text: 'LOCAL Trident'
+      url_public: 'https://{{ tridentFQDN }}'
+      email_domain: '{{ deployment }}'
+      people_domain: '{{ deployment }}'
+      logo_image: '/gfx/logo.png'
+      header_image: '/gfx/header_image.jpg'
+      var: '/var/lib/trident'
+      mail_handler: '/var/lib/trident/library/mh-wrapper'
+      adminname: 'LOCAL Trident Administrator'
+      adminemail: 'admin@{{ category }}.{{ deployment }}'
+      admins:
+        - dittrich
+        - mboggess
+      primary_tg:
+        ident: 'main'
+        descr: 'Main TG'
+        additional_lists:
+          - ident: 'demo'
+            descr: 'LOCAL Trident Demonstration'
+        initial_users:
+          - ident: 'dims'
+            descr: 'DIMS Mail (no-reply)'
+            email: 'noreply@{{ category }}.{{ deployment }}'
+          - ident: 'dittrich'
+            descr: 'Dave Dittrich'
+            email: 'dittrich@{{ category }}.{{ deployment }}'
+          - ident: 'mboggess'
+            descr: 'Megan Boggess'
+            email: 'mboggess@{{ category }}.{{ deployment }}'
+      cli:
+        opts: ''
+        sha256_sum: '15f11c986493a67e85aa9cffe6719a15a8c6a65b739a2b0adf62ce61e53f4203' #trident-cli_1.4.5_amd64.deb
+      server:
+        opts: '--syslog'
+        sha256_sum: 'a8af27833ada651c9d15dc29d04451250a335ae89a0d2b66bf97a787dced9956' #trident-server_1.4.5_amd64.deb
+      wikiexport:
+        sha246_sum: '4d2f9d62989594dc5e839546da596094c16c34d129b86e4e323556f1ca1d8805' #trident-wikiexport_1.4.5_amd64.deb
+      all:
+        sha246_sum: '67f57337861098c4e9c9407592c46b04bbc2d64d85f69e8c0b9c18e8d5352ea6' #trident_1.4.5_all.deb
+    
+    trident_perl:
+      version: '0.1.0'
+    
+    pitchfork:
+      version: '1.9.4'
+      sha256_sum: '5b06ae4a20a16a7a5e59981255ba83818f67224b68f6aaec014acf51ca9d1a44' #pitchfork-data_1.9.4_all.deb
+    
+    trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident.version }}'
+    trident_release:
+      '1.4.5':
+        pitchfork_artifact: '{{ trident_download_dir }}/pitchfork-data_1.9.4_all.deb'
+        trident_server_artifact: '{{ trident_download_dir }}/trident-server_1.4.5_amd64.deb'
+        trident_cli_artifact: '{{ trident_download_dir }}/trident-cli_1.4.5_amd64.deb'
+        trident_all_artifact: '{{ trident_download_dir }}/trident_1.4.5_all.deb'
+        trident_wikiexport_artifact: '{{ trident_download_dir }}/trident-wikiexport_1.4.5_amd64.deb'
+    #
+    # Usage:
+    #   when: tcli[trident.version]['api_method'] == "tcli"
+    #
+    #   'tcli {{ tcli[trident.version]['tg_SUB'] }} list'
+    #
+    #   $ ansible -m debug -i $PBR/inventory/local -a "var=tcli['1.3.8']['tg_SUB']" \
+    #   > -e @$PBR/vars/trident.yml yellow.devops.local
+    #   yellow.devops.local | SUCCESS => {
+    #       "tcli['1.3.8']['tg_SUB']": "tg"
+    #   }
+    tcli:
+      '1.3.8':
+        api_method: 'tcli'
+        tg_SUB: 'tg'
+        addmem: 'nominate'
+      '1.4.2':
+        api_method: 'tsetup'
+        tg_SUB: 'group'
+        addmem: 'add'
+      '1.4.5':
+        api_method: 'tsetup'
+        tg_SUB: 'group'
+        addmem: 'add'
+  hosts:
+    'yellow.devops.local':
+    'purple.devops.local':
+
+# vim: ft=ansible :

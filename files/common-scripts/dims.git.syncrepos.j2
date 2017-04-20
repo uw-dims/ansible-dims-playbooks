@@ -1,0 +1,390 @@
+#!/bin/bash
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Copyright (C) 2014, 2016, University of Washington.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This script is used to sync repos from the DIMS local Git repo
+# (and eventually GitHub) to the directory tree specified by $GIT.
+
+DIMS_DEBUG=${DIMS_DEBUG:-0}
+GITSERVER=${GITSERVER:-git@git.devops.{{ deployment }}}
+{%- raw %}
+
+. $DIMS/bin/dims_functions.sh
+
+
+# Trap CTRL-C to break out of loop in main body.
+trap ctrl_c INT
+
+
+function ctrl_c() {
+        echo "[!] Trapped CTRL-C: exiting"
+	exit 1
+}
+
+
+function get_current_branch()
+{
+	(cd $1/$2 && git rev-parse --abbrev-ref HEAD)
+}
+
+
+function get_current_rev()
+{
+	(cd $1/$2 && git rev-parse HEAD)
+}
+
+[ $DIMS_DEBUG -eq 0 ] || (echo "[+] DEBUG enabled" && version) >&2
+
+declare -a AVAILABLEREPOS
+declare -a LOCALREPOS
+declare -a ADDEDREPOS
+declare -a SKIPPEDREPOS
+declare -a UNKNOWNREPOS
+
+function checkout()
+{
+	# Note that you can't checkout just one repo (it will check
+	# for all registered repos that do not exist and check them
+	# all out at once.
+
+	(cd $1 && mr checkout)
+}
+
+
+function update()
+{
+	[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] update($1, $2)"
+	(cd $1/$2 && mr update | egrep -v '^mr |^Fetching|^Summary|^- |^$')
+}
+
+
+function print_status_nountracked()
+{
+	# Return short description of repo status.
+	(cd $1/$2 && git status -s --untracked-files=no)
+}
+
+
+function print_status()
+{
+	# Return short description of repo status.
+	(cd $1/$2 && git status -s)
+}
+
+
+function has_untracked_files()
+{
+	local RESULT="$(print_status $1 $2)"
+	if [ ! -z "$RESULT" ]; then
+		# Something means repo is dirty; See something, say something.
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] has_untracked_files($1, $2) returning 0"
+		return 0
+	else
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] has_untracked_files($1, $2) returning 1"
+		return 1
+	fi
+}
+
+
+
+function isdirty()
+{
+	# Only show untracked files that would possibly prevent "git hf update"
+	# from completing.
+	local RESULT="$(print_status_nountracked $1 $2)"
+	if [ ! -z "$RESULT" ]; then
+		# Something means repo is dirty; See something, say something.
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] isdirty($1, $2) returning 0"
+		return 0
+	else
+		# Nothing means repo is clean (not isdirty())
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] isdirty($1, $2) returning 1"
+		return 1
+	fi
+}
+
+
+function isclean()
+{
+	# Show any files that would let the user know that they had something
+	# else in the repo that may need attention.
+	local RESULT=$(print_status $1 $2)
+	if [ ! -z "$RESULT" ]; then
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] isclean($1, $2) returning 1"
+		return 1
+	else
+		[ $DIMS_DEBUG -eq 0 ] || echo >&2 "[!] isclean($1, $2) returning 0"
+		return 0
+	fi
+}
+
+# Make sure GIT is set.
+if [ "x$GIT" == "x" ]; then
+	error_exit 1 "Environment variable GIT is not set"
+fi
+
+# Make sure the directory exists.
+if [ ! -d "$GIT" ]; then
+	error_exit 1 "Directory $GIT does not exist"
+fi
+
+# Make sure its parent exists, as this is where the .mrconfig
+# file lives.
+GITPARENT=`dirname $GIT`
+if [ ! -d $GITPARENT ]; then
+	error_exit 1 "Directory $GITPARENT does not exist"
+fi
+
+# Get list of available repos.
+AVAILABLEREPOS=( $(ssh $GITSERVER list 2>/dev/null | sed 's/.git//' | sort | uniq) )
+
+N=${#AVAILABLEREPOS[@]}
+if [ $N -lt 1 ]; then
+	error_exit 1 "Could not get list of available repos from $GITSERVER"
+else
+	S="s" && [[ $N -eq 1 ]]  && S=""
+	echo "[+] Found $N available repo${S} at $GITSERVER"
+fi
+
+# Does .mrconfig file exist?
+MRCONFIG="$GITPARENT/.mrconfig"
+if [ ! -f $MRCONFIG ]; then
+	echo "[+] $MRCONFIG not found"
+fi
+
+# Make sure the .mrconfig file is in .mrtrust (since this file
+# is outside of the home directory.
+if [ ! -f ~/.mrtrust ]; then
+	echo "$MRCONFIG" > ~/.mrtrust
+else
+	# Don't add if it is already in the file.
+	grep -q "$MRCONFIG" ~/.mrtrust
+	if [ $? -ne 0 ]; then
+		# But do add if it isn't.
+		echo "$MRCONFIG" >> ~/.mrtrust
+	fi
+fi
+
+# Are there any directories here yet, or is this a brand # new directory?
+LOCALREPOS=( $(cd $GIT; find * -maxdepth 0 -type d | sort) )
+
+if [ ${#LOCALREPOS[@]} -eq 0 ]; then
+	echo "[+] $GIT is empty: cloning all DIMS repos"
+	# Can only use "bootstrap" when loading a full .mrconfig file when
+	# one does not already exist. If it does, you get this:
+	# $ ssh git@git.prisem.washington.edu mrconfig fuse4j | mr --trust-all bootstrap -
+	# mr bootstrap: .mrconfig file already exists, not overwriting with -
+	# mr bootstrap: finished (45 skipped)
+	(cd $GITPARENT &&
+		ssh $GITSERVER mrconfig | mr --trust-all bootstrap -
+	)
+	exit 0
+fi
+
+# Now we know what local repos exist ($LOCALREPOS) and what
+# remote repos ($AVAILABLEREPOS) need checking.
+
+# http://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash
+function diff() {
+  awk 'BEGIN{RS=ORS=" "}
+       {NR==FNR?a[$0]++:a[$0]--}
+       END{for(k in a)if(a[k])print k}' <(echo -n "${!1}") <(echo -n "${!2}")
+}
+
+# Remember which repos are here now, but are not found on the remote
+# repo server (since adding missing repos will throw things off
+for r in $(diff LOCALREPOS[@] AVAILABLEREPOS[@])
+do
+	if [ -d $GIT/$r ]; then
+		UNKNOWNREPOS+=($r)
+	fi
+done
+
+# Do "mr status" and parse output. Repos that are clean
+# are candidates for "git hf update". Repos that are
+# dirty are not, so just point out the files that are
+# in need of attention and don't try to update (as
+# it would fail anyway.)
+# See Jira ticket DIMS-432:
+# http://jira.prisem.washington.edu/browse/DIMS-432
+
+# Repos that are clean and ready for possible update look
+# like this (i.e., "mr status:", followed by repo path,
+# followed by a single empty line before the next
+# ...
+# mr status: /Users/dittrich/dims/git/pygraph
+#
+# mr status: /Users/dittrich/dims/git/rwfind
+#
+# ...
+
+
+# Repos that are not clean, have non-empty lines immediately
+# following the "mr status:" line, like this:
+# ...
+# mr status: /Users/dittrich/dims/git/dims-ci-utils
+#  M dims/dims.buildvirtualenv
+#  M dims/dims.nas.mount
+#  M dims/pydims/__init__.py
+#  M dims/pydims/host.py
+#  M docs/source/conf.py
+#  M docs/source/index.rst
+#  M ubuntu-14.04.2/notes.txt
+# ?? .idea/
+# ?? dims/.dims.git.syncrepos.swp
+# ?? dims/dims.git.repoversion
+# ?? dims/dims.nas.mount.dad
+# ?? dims/dims.remote.ansibleplaybooks
+# ?? dims/dims.setup.devops
+# ?? dims/dims.shutdown
+# ?? dims/dimsdemo1/
+# ?? dims/doinstall
+# ?? dims/id_dimsdev1_rsa
+# ?? dims/manifest.dat
+# ?? docs/docset.txt
+# ?? docs/source/pydims.rst
+# ?? ubuntu-14.04.2/.notes.txt.swp
+#
+# mr status: /Users/dittrich/dims/git/dims-dashboard
+#
+# (Filter out the lines starting with "??" (those are
+# local files that are not tracked by Git) and if there
+# are >=1 lines left that repo should be skipped for
+# update and the user told something to the effect,
+# "Repo $REPONAME is not clean; skipping update"
+
+# Keep track of start time for elapsed time conversation at end.
+STIME=$(date +%s)
+
+_this=1
+_updated=0
+_added=0
+for _repo in ${AVAILABLEREPOS[@]}
+do
+	if [ ! -d $GIT/$_repo ]; then
+		# Add .mrconfig contents for this repo to .mrconfig file
+		echo "[+] Adding Repo[$_this] ${_repo} to $MRCONFIG and checking it out."
+		# Can only use "bootstrap" when loading a full .mrconfig file when
+		# one does not already exist. If it does, you get this:
+		# $ ssh git@git.prisem.washington.edu mrconfig fuse4j | mr --trust-all bootstrap -
+		# mr bootstrap: .mrconfig file already exists, not overwriting with -
+		# mr bootstrap: finished (45 skipped)
+		(cd $GITPARENT &&
+			cp $MRCONFIG ${MRCONFIG}.bak &&
+			ssh $GITSERVER mrconfig ${_repo} >> $MRCONFIG &&
+			checkout "$GIT" "$_repo"
+		)
+		# Put one blank line out to visually separate
+		# repos that are dirty and may need attention.
+		echo ""
+		ADDEDREPOS+=("$_repo")
+		((_updated++))
+	else
+		BRANCH=$(get_current_branch "$GIT" "$_repo")
+		OLDREV=$(get_current_rev "$GIT" "$_repo")
+		isdirty "$GIT" "$_repo"
+		if [ $? -eq 0 ]; then
+			echo "[-] Repo[$_this] \"$GIT/$_repo\" (on branch '$BRANCH') is dirty"
+			print_status "$GIT" "$_repo"
+			# Put one blank line out to visually separate
+			# repos that are dirty and may need attention.
+			echo ""
+			SKIPPEDREPOS+=("$_repo")
+		else
+			echo "[+] Repo[$_this] \"$GIT/$_repo\" (on branch '$BRANCH')"
+			print_status "$GIT" "$_repo"
+			update "$GIT" "$_repo"
+			has_untracked_files "$GIT" "$_repo" && echo ""
+			((_updated++))
+		fi
+		NEWREV=$(get_current_rev "$GIT" "$_repo")
+		if [ "$NEWREV" != "$OLDREV" ]; then
+			# Put one blank line out to visually separate
+			# repos that were updated.
+			echo ""
+		fi
+	fi
+	((_this++))
+done
+_added=${#ADDEDREPOS[@]}
+
+S="s" && [[ $_updated == 1 ]]  && S=""
+cat << EOD
+[+]
+[+] Updated ${_updated} of ${#AVAILABLEREPOS[@]} available repo${S}
+EOD
+
+# Report on newly added repos (if any)
+if [ $_added -gt 1 ]; then
+	S="s" && [[ $_added -eq 1 ]]  && S=""
+	echo "[+] Added ${_added} new repo${S}: ${ADDEDREPOS[@]}"
+fi
+
+# Report on skipped repos (if any)
+N=${#SKIPPEDREPOS[@]}
+if [ $N -gt 0 ]; then
+	S="s" && [[ $N -eq 1 ]]  && S=""
+	echo "[+] Could not update ${N} repo${S}: ${SKIPPEDREPOS[@]}"
+fi
+
+N=${#UNKNOWNREPOS[@]}
+if [ $N -gt 0 ]; then
+	T="These" && [[ $N -eq 1 ]]  && T="This"
+	S="s were" && [[ $N -eq 1 ]]  && S=" was"
+	echo "[+] $T $N local repo${S} not found at $GITSERVER: ${UNKNOWNREPOS[@]}"
+fi
+
+if [ $_updated -gt 0 ]; then
+	cat <<EOD
+[+]
+[+] Summary of actions for repos that were updated:
+[+] - Any changes to branches at origin have been downloaded to your local repository
+[+] - Any branches that have been deleted at origin have also been deleted from your local repository
+[+] - Any changes from origin/master have been merged into branch 'master'
+[+] - Any changes from origin/develop have been merged into branch 'develop'
+[+] - Any resolved merge conflicts have been pushed back to origin
+[+]
+[+] !!!  Do you now need to install commands by either (a) running
+[+] !!!  'dims.install.dimscommands -v' to install commands into the currently
+[+] !!!  active Python virtual environment $(basename $VIRTUAL_ENV) and/or
+[+] !!!  (b) by running 'dims.ansible-playbook --runplaybook' to install
+[+] !!!  commands installed by Ansible roles?
+EOD
+fi
+
+# Now print total elapsed time for Git sync.
+ETIME=$(date +%s)
+DTIME=$((ETIME-STIME))
+printf "[+]\n[+] Updating repos took %02d:%02d:%02d\n" $(($DTIME / 3600)) $((($DTIME % 3600) / 60)) $(($DTIME % 60))
+
+# Buh, bye.
+exit 0
+{%- endraw -%}

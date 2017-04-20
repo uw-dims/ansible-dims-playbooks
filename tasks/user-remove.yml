@@ -1,0 +1,27 @@
+---
+
+# file: tasks/user-remove.yml
+
+- fail: msg="Must define a user to remove with \"username\""
+  when: username is not defined
+
+- shell: "date -u '+%Y-%m-%dT%H:%M:%S%z'"
+  register: date
+
+# TODO(dittrich): This should be a module option; add and pull request?
+- name: Archive user account to preserve any files
+  shell: "(cd /home; tar -czf {{ dims_data }}/{{ username }}-home-{{ ansible_hostname }}-archive-{{ date.stdout }}.tgz {{ username }})"
+
+- name: Make user account absent
+  user:
+    name={{ username }}
+    state=absent
+    remove=yes
+
+- name: Make user's SSH key absent from 'ansible' and 'dims' accounts
+  authorized_keys:
+    user={{ item }}
+    state=absent
+    key={{ sshkey }}
+  with_items: [ 'dims', 'ansible' ]
+

@@ -1,0 +1,47 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# This is the default file installed via v2/roles/base and
+# is just to make the system run and configurable, if no
+# other template for a host can be found.
+
+# TODO(dittrich): This seems to work to force config to stick:
+#
+# nmcli con add type ethernet con-name static2 ifname eth1 ip4 192.168.29.13/24 gw4 192.168.29.1
+#
+# See:
+# http://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The following logic allows definition of multiple interfaces
+# via the array 'networking' containing dictionaries of interface
+# definitions. If no dictionary exists, a minimalist interfaces
+# file allowing DHCP for all unspecified interfaces is produced.
+
+{% if networking is defined %}
+{%  for interface in networking.interfaces %}
+{%   if interface.inet == 'dhcp' %}
+
+allow-hotplug {{ interface.device }}
+auto {{ interface.device }}
+iface {{ interface.device }} inet {{ interface.inet }}
+
+{%   else %}
+
+allow-hotplug {{ interface.device }}
+auto {{ interface.device }}
+iface {{ interface.device }} inet {{ interface.inet }}
+      address {{ interface.ip }}
+      netmask {{ interface.netmask }}
+      broadcast {{ interface.broadcast }}
+{%    if interface.gateway is defined %}
+      gateway {{ interface.gateway }}
+{%    endif %}
+      dns-search {{ interface.dns_search }}
+      dns-servers {{ interface.dns_servers }}
+
+{%   endif %}
+{%  endfor %}
+{% endif %}

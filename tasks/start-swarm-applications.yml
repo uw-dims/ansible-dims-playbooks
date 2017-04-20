@@ -1,0 +1,59 @@
+---
+
+# File: tasks/start-swarm-applications.yml
+
+- hosts: manager
+  become: true
+
+  vars_files:
+    - "{{ playbooks_root }}/vars/global.yml"
+
+  tasks:
+    # Determine the swarm status of each production node.
+    # If any production node is not part of the swarm,
+    # immediately fail.
+    - name: determine swarm status
+      shell: >
+        docker info | egrep '^Swarm: ' | cut -d ' ' -f2
+      register: swarm_status
+
+    - fail:
+        msg: "Node {{ item }} not in swarm"
+      with_items: "{{ ansible_play_hosts | default(play_hosts) }}"
+      when: "'active' not in hostvars[item].swarm_status.stdout_lines"
+      run_once: true
+
+    # Services must be started via a manager node
+    - name: Pick random host from manager group
+      set_fact:
+        random_manager: "{{ groups.manager | random }}"
+      run_once: true
+
+    - name: Make stack app directories present
+      file:
+        path: "{{ dims_etc }}/stack/{{ item }}"
+        state: directory
+        mode: "{{ mode_0755 }}"
+      with_items: "{{ start_apps }}"
+      run_once: true
+      delegate_to: "{{ random_manager }}"
+
+    - name: Make stack app docker-compose file present
+      template:
+        src: "{{ playbooks_root }}/stack/{{ item }}/docker-compose.yml.j2"
+        dest: "{{ dims_etc }}/stack/{{ item }}/docker-compose.yml"
+        owner: "{{ dims_user }}"
+        group: "{{ dims_group }}"
+        mode: "{{ mode_0755 }}"
+      with_items: "{{ start_apps }}"
+      run_once: true
+      delegate_to: "{{ random_manager }}"
+
+    - name: Deploy the stack on a node
+      shell: >
+        docker stack deploy -c {{ dims_etc }}/stack/{{ item }}/docker-compose.yml {{ item }}
+      with_items: "{{ start_apps }}"
+      run_once: true
+      delegate_to: "{{ random_manager }}"
+
+# vim: ft=ansible :

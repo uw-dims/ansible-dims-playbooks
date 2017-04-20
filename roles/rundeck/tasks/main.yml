@@ -1,0 +1,77 @@
+---
+
+# File: roles/rundeck/tasks/main.yml
+
+# Prepare system for using rundeck
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ rundeck, packages ]
+
+- name: Stop rundeckd daemon
+  service: name=rundeckd state=stopped
+  sudo: yes
+  notify: restart rundeckd
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+  tags: [ rundeck ]
+
+- name: Import repository signing key
+  shell: "wget --quiet -O - {{ rundeck.gpg_key_url }} | sudo apt-key add -"
+  sudo: yes
+  args:
+    warn: false
+  when: ansible_os_family == "Debian"
+  tags: [ rundeck, packages ]
+
+- name: Get rundeck deb file 
+  get_url:
+    url={{ rundeck.dist_url }}/{{ rundeck.artifact }}
+    dest={{ dims_deploy }}/{{ role_name }}
+    sha256sum={{ rundeck.sha256_sum}}
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ rundeck, packages ]
+
+- name: Install
+  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ rundeck.artifact }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify: restart rundeckd
+  tags: [ rundeck, packages ]
+
+- name: Make realm.properties present
+  template:
+    src: '{{ item }}'
+    dest: /etc/rundeck/realm.properties
+    owner: rundeck
+    group: rundeck
+    mode: '{{ mode_0640 }}'
+  with_first_found:
+    - files:
+        - '{{ realm_properties }}'
+        - realm.properties.{{ inventory_hostname }}.j2
+        - realm.properties.category-{{ category }}.j2
+        - realm.properties.deployment-{{ deployment }}.j2
+        - realm.properties.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/realm.properties/'
+        - realm.properties/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify: restart rundeckd
+  tags: [ rundeck, config ]
+
+- name: Ensure rundeckd is running and enabled
+  service: name=rundeckd state=running enabled=yes
+  sudo: yes
+  tags: [ rundeck, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ rundeck ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ rundeck, packages ]
+
+# vim: ft=ansible :

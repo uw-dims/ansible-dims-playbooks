@@ -1,0 +1,63 @@
+---
+
+# File: vars/jessie.yml
+
+dist_tag: u'{{ ansible_distribution_version }}'
+
+packages_install:
+  Debian: [
+    'apt-transport-https',
+    'bash-completion',
+    'ca-certificates',
+    'cpanminus',
+    'curl',
+    'dconf-tools',
+    'git-core',
+    'gitk',
+    'htop',
+    'hunspell',
+    'iptables-persistent',
+    'ifstat',
+    'make',
+    'netcat',
+    'nfs-common',
+    'chrony',
+    'ntpdate',
+    'openssh-server',
+    'patch',
+    'perl',
+    'postfix',
+    'python',
+    'python-apt',
+    'remake',
+    'rsync',
+    'rsyslog',
+    'sshfs',
+    'strace',
+    'tree',
+    'vim',
+    'xsltproc',
+    'chrony',
+    'smartmontools',
+  ]
+
+packages_remove:
+  Debian: [
+    'modemmanager',
+    'resolvconf',
+    'sendmail',
+  ]
+
+services_disabled: [ ]
+services_enabled: [
+  'auditd',
+]
+
+root_user: 'root'
+root_group: 'root'
+
+# The following is for testing and validation of where this
+# variable gets (re)defined.
+was_defined_in: 'vars/jessie.yml'
+
+# vim: ft=ansible :

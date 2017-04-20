@@ -1,0 +1,51 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Directory {{ ansible_python_virtualenv }} exists" {
+    [[ -d {{ ansible_python_virtualenv }} ]]
+}
+
+@test "[U][EV] Directory {{ ansible_python_virtualenv }} is not empty" {
+    [[ $(ls -1 {{ ansible_python_virtualenv }} | wc -l) -gt 0 ]]
+}
+
+@test "[U][EV] Directories {{ ansible_python_virtualenv }}/{bin,lib,man,share} exist" {
+    ls -1d {{ ansible_python_virtualenv }}/{bin,lib,man,share} 2>/dev/null >/dev/null
+}
+
+{% for item in [ 'python', 'pip', 'easy_install', 'wheel', 'python-config' ] %}
+@test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/{{ item }} exists" {
+    [[ -x {{ ansible_python_virtualenv }}/bin/{{ item }} ]]
+}
+
+{% endfor -%}
+
+@test "[U][EV] Program {{ dims_bin }}/virtualenvwrapper.sh exists" {
+    [[ -f {{ dims_bin }}/virtualenvwrapper.sh ]]
+}
+
+@test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/activate exists" {
+    [[ -f {{ ansible_python_virtualenv }}/bin/activate ]]
+}
+
+{% for item in [ 'logmon', 'blueprint', 'mr', 'dimscli', 'sphinx-autobuild', 'ansible' ] %}
+@test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/{{ item }} exists" {
+    [[ -x {{ ansible_python_virtualenv }}/bin/{{ item }} ]]
+}
+
+{% endfor -%}
+
+# This is a duplicate of a system test.
+@test "[U][EV] {{ ansible_python_virtualenv }}/bin/dimscli version is {{ dimscli_version }}" {
+    assert "dimscli {{ dimscli_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/dimscli --version 2>&1"
+}
+
+# This is a duplicate of a system test.
+@test "[U][EV] {{ ansible_python_virtualenv }}/bin/ansible version is {{ dims_ansible_version }}" {
+    assert "ansible {{ dims_ansible_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/ansible --version 2>&1 | head -n1"
+}

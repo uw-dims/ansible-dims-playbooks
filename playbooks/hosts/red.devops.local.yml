@@ -1,0 +1,38 @@
+---
+
+# File: playbooks/hosts/red.devops.local.yml
+
+- name: Dump all vars if debug enabled
+  hosts: red.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/trusty.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "red.devops.local"
+  hosts: red.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/trusty.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: hosts }
+    - { role: dims-ci-utils }
+    - { role: dns, zones: ['local']}
+    - { role: python-virtualenv, use_sphinx: false, https_proxy: "https://10.0.2.2:8000" }
+    - { role: postfix }
+    - { role: docker }
+    - { role: consul }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"

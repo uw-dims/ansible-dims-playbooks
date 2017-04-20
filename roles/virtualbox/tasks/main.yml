@@ -1,0 +1,144 @@
+---
+
+# File: roles/virtualbox/tasks/main.yml
+
+# https://www.virtualbox.org/wiki/Linux_Downloads
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ virtualbox, packages ]
+
+- name: Enforce that no virtual machine guests are running
+  shell: "ps auxwww | grep -v grep | grep -i virtualbox/VirtualBox"
+  ignore_errors: true
+  register: result
+  tags: [ virtualbox, packages ]
+
+- debug: msg="{{ result.stdout }}"
+  when: result.stdout != ''
+  tags: [ virtualbox, packages ]
+
+- fail: msg="Please shut down all virtual machine guests"
+  when: result.stdout != ''
+  tags: [ virtualbox, packages ]
+
+- name: Make deb sources for virtualbox present
+  shell: echo "deb http://download.virtualbox.org/virtualbox/{{ ansible_os_family|lowercase }} {{ ansible_distribution_release }} contrib" > /etc/apt/sources.list.d/virtualbox.list
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ virtualbox, packages ]
+
+- name: Download repository signing key (Debian < 8 and Ubuntu < 16 )
+  get_url:
+    url: https://www.virtualbox.org/download/oracle_vbox.asc
+    dest: "{{ dims_deploy }}/{{ role_name }}/oracle_vbox.asc"
+    timeout: 60
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
+  sudo: yes
+  tags: [ virtualbox, packages ]
+
+- name: Download repository signing key (Debian > 7 and Ubuntu > 14 )
+  get_url:
+    url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    dest: "{{ dims_deploy }}/{{ role_name }}/oracle_vbox_2016.asc"
+    timeout: 60
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
+  sudo: yes
+  tags: [ virtualbox, packages ]
+
+- name: Import repository signing key (Debian < 8 and Ubuntu < 16 )
+  shell: apt-key add {{ dims_deploy }}/{{ role_name }}/oracle_vbox.asc
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
+  sudo: yes
+  tags: [ virtualbox, packages ]
+
+- name: Import repository signing key (Debian > 7 and Ubuntu > 14 )
+  shell: apt-key add {{ dims_deploy }}/{{ role_name }}/oracle_vbox_2016.asc
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
+  sudo: yes
+  tags: [ virtualbox, packages ]
+
+
+# Validate the GPG key fingerprint?
+#
+#  The key fingerprint for oracle_vbox_2016.asc is
+#
+# B9F8 D658 297A F3EF C18D  5CDF A2F6 83C5 2980 AECF
+# Oracle Corporation (VirtualBox archive signing key) <info@virtualbox.org>
+#
+# The key fingerprint for oracle_vbox.asc is
+#
+# 7B0F AB3A 13B9 0743 5925  D9C9 5442 2A4B 98AB 5139
+# Oracle Corporation (VirtualBox archive signing key) <info@virtualbox.org>
+
+- name: Get virtualbox deb file
+  get_url:
+    url={{ virtualbox_dist_url }}/{{ virtualbox_artifact }}
+    dest={{ dims_deploy }}/{{ role_name }}
+    sha256sum={{ virtualbox_deb_sha256sum }}
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ virtualbox, packages ]
+
+- name: Install
+  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ virtualbox_artifact }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ virtualbox, packages ]
+
+- name: Force APT cache update in case needed
+  apt: update_cache=yes
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  tags: [ virtualbox, packages ]
+
+- name: Determine if older dkms package is present
+  shell: "dpkg -l | grep virtualbox-dkms | awk '{ print $2; }'"
+  ignore_errors: true
+  register: result
+  tags: [ virtualbox, packages ]
+
+- name: Remove obsolete virtualbox-dkms package if present
+  apt: state=absent name={{ item }} force=yes
+  sudo: yes
+  with_items:
+    - virtualbox-dkms
+    - virtualbox-guest-dkms
+  when: result.stdout.find('virtualbox-dkms') != -1
+  tags: [ virtualbox, packages ]
+
+#- name: Stop virtualbox if it is active
+#  service: name=virtualbox state=stopped
+#  notify: restart virtualbox
+#  sudo: yes
+#  tags: [ virtualbox, packages ]
+
+#- name: Make virtualbox present
+#  apt: state=present name={{ item }} force=yes
+#  with_items:
+#    - "virtualbox-{{ virtualbox_major_version }}"
+#    - dkms
+#  sudo: yes
+#  when: ansible_os_family == "Debian"
+#  tags: [ virtualbox, packages ]
+
+- name: Prevent virtualbox from being upgraded
+  dpkg_selections:
+    name: virtualbox-{{ virtualbox_major_version }}
+    selection: hold
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ virtualbox, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ virtualbox, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ virtualbox, packages ]
+
+# vim: ft=ansible :

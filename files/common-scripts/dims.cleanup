@@ -1,0 +1,114 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# Copyright (C) 2014-2016, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Source shflags
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
+
+# Define command line options
+DEFINE_boolean 'debug'        false             'enable debug mode'        'd'
+DEFINE_boolean 'usage'        false             'print usage information'  'u'
+DEFINE_boolean 'verbose'      false             'be verbose'               'v'
+
+FLAGS_HELP="usage: $BASE [options] args"
+
+# Define functions
+
+usage() {
+    flags_help
+    cat << EOD
+
+This script is intended to facilitate cleaning up non-backward compatible
+system changes in Ansible playbooks, which would result in a broken system.
+Ansible is great for making sure a file exists with specific content in
+a playbook, but if one of the files that is created in a plugin-style
+directory (e.g., /etc/profile.d/) is later renamed, things get complicated.
+
+One of the two will happen:
+
+1. You have to include plays in the playbook that make sure the old file is
+   absent, followed by inclusion of the file with the new name, or
+
+2. You have to tell everyone who was using the playbook to manually delete
+   the old file, or use ansible as a remote shell to run a command to
+   remove the obsolete file.
+
+Option 1 makes the playbooks longer, more complicated, and full of tasks
+that only really need to be run once.
+
+Option 2 has the problem that not everyone will get the message (casusing
+some developer systems to be clean, but others not, resulting in
+divergence of systems and possibly broken systems. Trying to use
+ansible as a remote shell only works on the hosts that are currently
+accessible, which means it has to be done more than once to be sure
+that the cleanup occurs.
+
+Of course you could wipe and reinstall systems all the time, kind of
+like Vagrant, so that Ansible playbooks are run against clean systems.
+
+This script can be used to periodically (manually, or scheduled with
+cron or similar services) to check for and perform these cleanup
+actions.
+
+EOD
+    exit 0
+}
+
+should_not_exist() {
+    if [[ -f $1 ]]; then
+        verbose "File \"$1\" exists: deleting it"
+        rm $1
+    elif [[ -d $1 ]]; then
+        verbose "Directory \"$1\" exists: recursively deleting it"
+        rm -rf $1
+    else
+        verbose "File or directory \"$1\" does not exist"
+    fi
+    return 0
+}
+
+main()
+{
+    dims_main_init
+
+    should_not_exist /etc/profile.d/dims.sh
+
+    debug "Returning from main()"
+    on_exit
+    return $?
+}
+
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?

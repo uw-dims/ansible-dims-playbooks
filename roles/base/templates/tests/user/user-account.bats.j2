@@ -1,0 +1,47 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Environment variable GIT is set" {
+    [[ ! -z "$GIT" ]]
+}
+
+@test "[S][EV] GIT points into user's home directory" {
+    [[ $USER == "ansible" ]] && skip "User 'ansible'"
+    [[ $USER == "dims" ]] && skip "User 'dims'"
+    [[ $USER == "root" ]] && skip "User 'root'"
+    [[ "$GIT" =~ "$HOME" ]]
+}
+
+@test "[S][EV] Environment variable PBR is set" {
+    [[ ! -z "$PBR" ]]
+}
+
+@test "[S][EV] Environment variable PBR aligns with GIT" {
+    [[ "$PBR" =~ "$GIT" ]]
+}
+
+@test "[S][EV] Environment variable PBR is set" {
+    [[ ! -z "$PBR" ]]
+}
+
+@test "[S][EV] Environment variable PBR aligns with GIT" {
+    [[ "$PBR" =~ "$GIT" ]]
+}
+
+@test "[S][EV] Directory pointed to by \$GIT exists" {
+    [[ -d $GIT ]]
+}
+
+@test "[S][EV] Directory pointed to by \$GIT has subdirectories" {
+    dirs=$(find $GIT -maxdepth 1 -type d | wc -l)
+    [[ $dirs -gt 1 ]]
+}
+
+@test "[S][EV] User Python virtual enviornment is activated" {
+    [[ "$VIRTUAL_ENV" =~ "$HOME" ]]
+}

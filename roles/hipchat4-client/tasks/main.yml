@@ -1,0 +1,41 @@
+---
+
+# File: roles/hipchat4-client/tasks/main.yml
+
+# Install hipchat4 client
+
+# Instructions found on Atlassian website. Roughly: 
+# https://gist.github.com/stephanetimmermans/4a4f83d6d973a1999a76
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ hipchat4-client, packages ]
+
+- name: Add Atlassian PPA
+  apt_repository:
+    repo: 'deb https://atlassian.artifactoryonline.com/atlassian/hipchat-apt-client {{ ansible_lsb.codename }} main'
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ hipchat4-client, packages ]
+
+- name: Import repository signing key
+  shell: >
+    wget --quiet -O - https://atlassian.artifactoryonline.com/atlassian/api/gpg/key/public | apt-key add -
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ hipchat4-client, packages ]
+
+- name: Install hipchat
+  apt:
+    name: hipchat4
+    state: latest
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ hipchat4-client, packages ]
+
+- include: '{{ tasks }}/post_tasks.yml'
+  tags: [ hipchat4-client, packages ]
+
+# vim: ft=ansible :

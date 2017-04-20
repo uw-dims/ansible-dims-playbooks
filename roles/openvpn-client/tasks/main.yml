@@ -1,0 +1,30 @@
+---
+
+# File: roles/openvpn-client/tasks/main.yml
+
+# Tasks for setting up an OpenVPN client endpoint.
+#
+# See:
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-an-openvpn-server-on-ubuntu-16-04
+# https://github.com/Stouts/Stouts.openvpn
+# https://github.com/kyl191/ansible-role-openvpn
+# https://rbgeek.wordpress.com/2015/08/17/install-openvpn-server-using-ansible-over-aws-vpc/
+# https://kyle.io/2016/04/improving-openvpn-ansible-playbook/
+# http://michlstechblog.info/blog/openvpn-set-a-static-ip-address-for-a-client/
+# http://beenje.github.io/blog/posts/installing-openvpn-on-a-raspberry-pi-with-ansible/
+
+- include: "{{ tasks }}/ansible2check.yml"
+  tags: [ always ]
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ openvpn-client ]
+
+# Tasks for setting up an OpenVPN service endpoint.
+
+# ...
+
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ openvpn-client ]
+
+# vim: ft=ansible :

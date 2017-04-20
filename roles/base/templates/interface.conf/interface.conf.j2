@@ -1,0 +1,8 @@
+# 
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+{% if dnsmasq_interfaces is defined %}
+{% for interface in dnsmasq_interfaces %}
+interface={{ interface }}
+{% endfor %}
+{% endif %}

@@ -1,0 +1,128 @@
+Look carefully through v2/base/main.yml.pre703 for tasks 
+that might need to be included (a lot from Fedora stuff).
+
+# NOTE(mboggess): from base-os
+- name: Install required perl libraries
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - libnet-netmask-perl
+   - libjson-perl
+   - libperl4-corelibs-perl
+   - libyaml-libyaml-perl
+  when: ansible_os_family == "Debian"
+  tags:
+  - packages
+  - base
+
+[dimsenv] mboggess@dimsdev2:/dims/git/ansible-playbooks/v2 (feature/dims-703*) $ git commit -m "Renamed 'base' to move out of the way."
+[feature/dims-703 c46b13b] Renamed 'base' to move out of the way.
+ 29 files changed, 0 insertions(+), 0 deletions(-)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/conditional-reload.sh (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/conditional-restart.sh (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/hardware-reinstall (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/lock-wrapper (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/nag-once (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/needs-reboot.py (100%)
+ rename v2/roles/{base => fedoramodel}/files/common-scripts/syncFiles.sh (100%)
+ rename v2/roles/{base => fedoramodel}/files/resolv.conf/resolv.conf (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.app.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.default (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.foswiki.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.hub.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.jenkins.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.jira.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.lapp.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.linda-vm1.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.rabbitmq.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.sso.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.u12-dev-ws-1.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/files/ssh/sshd_config.wellington.vlan1.dims (100%)
+ rename v2/roles/{base => fedoramodel}/handlers/main.yml (100%)
+ rename v2/roles/{base => fedoramodel}/handlers/restart_services.yml (100%)
+ rename v2/roles/{base => fedoramodel}/tasks/main.yml (100%)
+ rename v2/roles/{base => fedoramodel}/tasks/main.yml.pre703 (100%)
+ rename v2/roles/{base => fedoramodel}/templates/iptables/ip6tables (100%)
+ rename v2/roles/{base => fedoramodel}/templates/iptables/ip6tables.laptop (100%)
+ rename v2/roles/{base => fedoramodel}/templates/iptables/iptables (100%)
+ rename v2/roles/{base => fedoramodel}/templates/iptables/iptables.laptop (100%)
+ rename v2/roles/{base => fedoramodel}/templates/ntp/ntp.conf.j2 (100%)
+
+
+[dimsenv] mboggess@dimsdev2:git/ansible-playbooks/v2/roles (feature/dims-703*) $ git commit -m "Working base role."
+[feature/dims-703 c389320] Working base role.
+ 23 files changed, 0 insertions(+), 0 deletions(-)
+ rename v2/roles/{fakebase => base}/README.txt (100%)
+ rename v2/roles/{fakebase => base}/checkdns.sh (100%)
+ rename v2/roles/{fakebase => base}/handlers/main.yml (100%)
+ rename v2/roles/{fakebase => base}/tasks/main.yml (100%)
+ rename v2/roles/{fakebase => base}/templates/default/dnsmasq.core1.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/default/dnsmasq.core2.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/default/dnsmasq.dimsdev99.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/default/dnsmasq.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/default/dnsmasq.ns.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.conf/core1.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.conf/core2.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.conf/dimsdev99.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.conf/dnsmasq.conf.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.conf/ns.devops.local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.d/consul.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/dnsmasq.d/dims.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/hosts/hosts.dims.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/hosts/hosts.dnsmasq.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/iptables/rules.v4.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/iptables/rules.v6.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/network/interfaces.deployment-local.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/network/interfaces.j2 (100%)
+ rename v2/roles/{fakebase => base}/templates/sshd/sshd_config.j2 (100%)
+
+
+**Further files brought over from pull from Dave's WIP stuff**
+ create mode 100644 v2/files/common/20auto-upgrades
+ create mode 100644 v2/files/common/ntp.conf
+ create mode 100644 v2/files/common/sysadmin-main
+ create mode 100644 v2/files/iptables/iptables
+ create mode 100644 v2/files/iptables/iptables.sign
+ create mode 100644 v2/files/iptables/iptables.staging
+ create mode 100644 v2/files/openvpn/client.conf.fedoraansible
+ create mode 100644 v2/files/scripts/confine-ssh.sh
+ create mode 100644 v2/library/README
+ create mode 100644 v2/master.yml
+ create mode 100644 v2/playbooks/groups/dns.yml
+ create mode 100644 v2/playbooks/groups/packages.yml
+ create mode 100644 v2/playbooks/groups/virthost.yml
+ create mode 100644 v2/playbooks/host_reboot.yml
+ create mode 100644 v2/playbooks/set_root_auth_keys.yml
+ create mode 100644 v2/playbooks/ssh_host_keys.yml
+ create mode 100644 v2/roles/base/files/common-scripts/conditional-reload.sh
+ create mode 100644 v2/roles/base/files/common-scripts/conditional-restart.sh
+ create mode 100755 v2/roles/base/files/common-scripts/hardware-reinstall
+ create mode 100755 v2/roles/base/files/common-scripts/lock-wrapper
+ create mode 100755 v2/roles/base/files/common-scripts/nag-once
+ create mode 100755 v2/roles/base/files/common-scripts/needs-reboot.py
+ create mode 100755 v2/roles/base/files/common-scripts/syncFiles.sh
+ create mode 100644 v2/roles/base/files/resolv.conf/resolv.conf
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.app.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.default
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.foswiki.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.hub.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.jenkins.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.jira.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.lapp.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.linda-vm1.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.rabbitmq.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.sso.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.u12-dev-ws-1.vlan1.dims
+ create mode 100644 v2/roles/base/files/ssh/sshd_config.wellington.vlan1.dims
+ create mode 100644 v2/roles/base/handlers/restart_services.yml
+ create mode 100644 v2/roles/base/templates/iptables/ip6tables
+ create mode 100644 v2/roles/base/templates/iptables/ip6tables.laptop
+ create mode 100644 v2/roles/base/templates/iptables/iptables
+ create mode 100644 v2/roles/base/templates/iptables/iptables.laptop
+ create mode 100644 v2/roles/base/templates/ntp/ntp.conf.j2
+ create mode 100644 v2/roles/manage-user/tasks/main.yml
+ create mode 100644 v2/tasks/aptrepos.yml
+ create mode 100644 v2/tasks/motd.yml
+ create mode 100644 v2/tasks/postfix_basic.yml
+ create mode 100644 v2/tasks/rdiff_backup_server.yml
+ create mode 100644 v2/tasks/virt_instance_create.yml
+ create mode 100644 v2/tasks/yumrepos.yml

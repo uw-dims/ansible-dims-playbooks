@@ -1,0 +1,9 @@
+vagrant_provision*
+*.sublime*
+~$*
+.DS_Store
+logmon.log
+*.pyc
+*.retry
+*.orig
+*.rej

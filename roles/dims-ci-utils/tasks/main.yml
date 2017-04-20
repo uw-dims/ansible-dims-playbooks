@@ -1,0 +1,103 @@
+---
+
+# file: roles/dims-ci-utils/tasks/main.yml
+
+# This role installs the dims-ci-utils artifact.
+# One of the following variables should be
+# passed to the playbook calling this role. If neither variable is defined, the job will fail.
+
+# artifact_path: path on the local system to the artifact - use for Jenkins
+#     downstream deploy job or a local script where you've created the archive.
+
+# artifact_branch: branch to use to get artifact from http if artifact_path not
+#     defined.
+#
+# On Jenkins downstream job, call via the following (could be part of a script)
+# ansible-playbook -i $WORKSPACE/ansible-inventory/<hostfile> $WORKSPACE/dims-ci-utils-install.yml -e artifact_path=$WORKSPACE/dims-ci-utils.tgz
+#
+# To get the artifact from http archive generated from the develop branch, use
+# RUNHOST=<target> ansible-playbook -i ./dyn_inv.py dims-ci-utils.yml -e artifact_branch=develop
+# This command assumes you are in ansible-playbooks directory when running it.
+# It also uses the dyn_inv.py dynamic inventory script - <target> is the
+# routable name or IP of the target machine.
+#
+# The default for the role when obtaining the artifact via http is to get it from
+# the public artifacts server. If you want to force it to get the artifact from the
+# private sources server behind the VPN, use -e artifact_visibility=private
+#
+# This role will always install the scripts in dims-ci-utils/dims. If the
+# host is in the "jenkins" group, it will also install the scripts in
+# dims-ci-utils/jenkins. If the host is in the "git" group, it will also install
+# the scripts in dims-ci-utils/git.
+#
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ dims-ci-utils, packages ]
+
+# Include file to retrieve and unpack artifact
+# Run fix.adddeploylinks to put symlink to this file in the tasks directory
+- include: deploy_artifact_tasks.yml
+  tags: [ dims-ci-utils, packages ]
+
+# Set permissions so user and group (dims:dims) can read and write so that
+# DIMS dev users can read and write
+- name: Set file permissions of dims-ci-utils artifacts
+  shell: "chmod -R ug+rwX,o-w {{ dims_deploy }}/{{ role_name }}"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  tags: [ dims-ci-utils, packages ]
+
+# Rsync dims-ci-utils to {{ dims_src }}. Note we are installing the source in
+# /opt/dims/src/dims-ci-utils, rather than on /opt/dims/src/git/dims-ci-utils.
+# This is because we are not cloning the git repo. This can be changed if this
+# behavior is not desired.
+- name: rsync to source directory
+  shell: "rsync -avh --delete {{ dims_deploy }}/{{ role_name }}/* {{ dims_src }}/"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  tags: [ dims-ci-utils, packages ]
+
+# On ubuntu systems, we can execute commands as sudo and will still have access to the
+# environment vars for that user - doesn't work on debian, MacOS. Using su is an
+# alternative, but that doesn't work yet on Ansible for local connections
+# (as of v1.9.1 - planned for future versions)
+# So we will explictly set $GIT and $DIMS in the command so these won't fail on those
+# hosts
+
+- name: Install dims ci utilities always
+  shell:
+    cd {{ dims_src }}/{{ repo_name }}/dims &&
+    make bootstrap &&
+    GIT={{ dims_git }} DIMS={{ dims }} make install
+  sudo: yes
+  tags: [ dims-ci-utils, packages ]
+
+- name: Install dims ci jenkins scripts when host in jenkins group
+  shell: "cd {{ dims_src }}/{{ repo_name }}/jenkins && make install"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  when: "groups['jenkins'] is defined and inventory_hostname in groups['jenkins']"
+  tags: [ dims-ci-utils, packages ]
+
+- name: Install git scripts into /opt/dims/bin when host in git group
+  shell: "cd {{ dims_src }}/{{ repo_name }}/git && make install-bin"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  when: "groups['git'] is defined  and inventory_hostname in groups['git']"
+  tags: [ dims-ci-utils, packages ]
+
+- name: Install git hooks and gitshell when host in git group
+  shell: "cd {{ dims_src }}/{{ repo_name }}/git && make install-hooks && make install-gitshell"
+  sudo_user: git
+  sudo: yes
+  when: "groups['git'] is defined and inventory_hostname in groups['git']"
+  tags: [ dims-ci-utils, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  tags: [ base, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ dims-ci-utils, packages ]
+
+# vim: ft=ansible :

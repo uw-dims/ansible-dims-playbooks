@@ -1,0 +1,30 @@
+---
+
+# File: roles/byobu/tasks/main.yml
+
+# Install byobu on debian/ubuntu 
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ byobu, packages ]
+
+- name: Add PPA for Byobu
+  apt_repository: repo='ppa:byobu/ppa' state=present
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ byobu, packages ]
+
+- name: Force updating cache since we just added a new PPA
+  apt: update_cache=yes
+  when: ansible_os_family == "Debian"
+  tags: [ byobu, packages ]
+
+- name: Install byobu
+  apt: name=byobu state=latest update_cache=yes
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ byobu, packages ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ byobu, packages ]
+
+# vim: ft=ansible :

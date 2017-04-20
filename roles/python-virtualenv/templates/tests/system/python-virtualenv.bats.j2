@@ -1,0 +1,26 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] {{ ansible_python_virtualenv }}/bin/python version is {{ dims_python_version }}" {
+    assert "Python {{ dims_python_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/python --version 2>&1"
+}
+
+@test "[S][EV] {{ ansible_python_virtualenv }}/bin/dimscli version is {{ dimscli_version }}" {
+    assert "dimscli {{ dimscli_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/dimscli --version 2>&1"
+}
+
+@test "[S][EV] {{ ansible_python_virtualenv }}/bin/ansible version is {{ dims_ansible_version }}" {
+    assert "ansible {{ dims_ansible_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/ansible --version 2>&1 | head -n1"
+}
+
+{% for item in [ '00-virtualenv', '10-network' ] %}
+@test "[S][EV] Shell initialization file {{ dims_etc_bashrc }}/{{ item }}.bash exists" {
+    [ -f {{ dims_etc_bashrc }}/{{ item }}.bash ]
+}
+
+{% endfor -%}

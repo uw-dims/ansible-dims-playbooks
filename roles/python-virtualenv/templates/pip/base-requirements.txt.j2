@@ -1,0 +1,12 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# The order of packages is significant, because pip processes them in the order
+# of appearance. Changing the order has an impact on the overall integration
+# process, which may cause wedges in the gate later.
+
+pip==9.0.1
+pylint==1.4.3
+virtualenv==15.1.0
+virtualenv-clone==0.2.6
+virtualenvwrapper==4.7.2
+wheel==0.30.0a0

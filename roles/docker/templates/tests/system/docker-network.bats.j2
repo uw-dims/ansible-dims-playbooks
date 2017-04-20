@@ -1,0 +1,20 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+	source $DIMS/bin/dims_functions.sh
+}
+
+@test "[S][EV] interface docker0 exists" {
+    ip addr | egrep -q '^[0-9][0-9]*: docker0'
+}
+
+@test "[S][EV] interface docker0 is UP" {
+    ip addr | egrep '^[0-9][0-9]*: docker0' | grep -q UP
+}
+

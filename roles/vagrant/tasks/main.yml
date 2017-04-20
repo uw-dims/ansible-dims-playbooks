@@ -1,0 +1,81 @@
+---
+
+# File: roles/vagrant/tasks/main.yml
+
+# Prepare system for using Vagrant
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ vagrant, packages ]
+
+- name: Get vagrant deb file 
+  get_url:
+    url: "{{ vagrant_dist_url }}/{{ vagrant_artifact }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}"
+    sha256sum: "{{ vagrant_deb_64bit_sum }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ vagrant, packages ]
+
+- name: Install
+  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ vagrant_artifact }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ vagrant, packages ]
+
+- name: Ensure configure_networks.rb patch is present
+  copy:
+    src: "{{ patches }}/diffs.vagrant_configure_networks"
+    dest: "{{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks"
+    mode: "{{ mode_0644 }}"
+  when: ansible_os_family == "Debian"
+  tags: [ vagrant, packages ]
+
+- name: Hot patch CoreOS configure_networks.rb
+  shell: >
+    patch \
+      /opt/vagrant/embedded/gems/gems/vagrant-1.8.6/plugins/guests/coreos/cap/configure_networks.rb \
+      {{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks
+  sudo: yes
+  tags: [ vagrant, packages ]
+
+- name: Ensure Vagrant working directories exist
+  file:
+    path: "{{ vm_dir }}/{{ item }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    state: directory
+    mode: "{{ mode_2775 }}"
+  with_items:
+   - 'run'
+   - 'box'
+   - 'ovf'
+   - 'vbox'
+   - 'cache'
+   - 'cache/sources'
+   - 'cache/isos'
+  sudo: yes
+  tags: [ vagrant ]
+
+# This is related to the squid_deb_proxy Docker container we are using for
+# APT caching. This play is coupled with the configuration of that container.
+- name: Create special proxy directory
+  file:
+    path: "{{ vm_dir }}/{{ item }}"
+    owner: "proxy"
+    group: "proxy"
+    state: directory
+    mode: "{{ mode_0775 }}"
+  with_items:
+   - 'cache/apt'
+  sudo: yes
+  tags: [ vagrant ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ vagrant ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ vagrant, packages ]
+
+# vim: ft=ansible :

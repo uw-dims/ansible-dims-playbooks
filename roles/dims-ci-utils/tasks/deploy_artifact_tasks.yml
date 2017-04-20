@@ -1,0 +1,158 @@
+---
+
+# File: dims/deploy_artifact_tasks.yml
+#
+# A.k.a. roles/$some_role/tasks/deploy_artifact_tasks.yml
+#
+# Use example (where some_role = "prisem-scripts-deploy"):
+# [dimsenv] dittrich@27b:ms/git/ansible-playbooks/roles (develop) $ tree prisem-scripts-deploy/
+# prisem-scripts-deploy/
+# ├── meta
+# │   └── main.yml
+# ├── tasks
+# │   ├── deploy_artifact_tasks.yml -> ../../../dims/deploy_artifact_tasks.yml
+# │   ├── main.yml
+# │   ├── post_tasks.yml -> ../../../dims/post_tasks.yml
+# │   └── pre_tasks.yml -> ../../../dims/pre_tasks.yml
+# └── vars
+#     └── main.yml
+#
+# Note: Comments are under construction
+# This is an include file which can be put at the beginning of a role that
+# deploys an artifact that has been built from one of our git repos. The role's
+# defaults/main.yml should provide the following variables:
+#
+# repo_name - name of git repo
+#
+# This file is intended to be used with roles that following the pattern of
+# dims-ci-utils.
+#
+# Workflow is like this:
+# Jenkins build job clones the source from {{ artifact_branch }} into the
+# directory $WORKSPACE/{{ repo_name }}. The job then packages the
+# directory and its contents in a file named
+# {{ repo_name }}-{{ artifact_branch }}.tgz (can also handle .tar.gz suffix for
+# legacy builds). If the job is successful, the artifact is pushed by the Jenkins job to our
+# sources server {{ sources_url }} (behind the VPN).
+#
+# A script, jenkins.artifactsrsync, syncs all the files on the sources server with the
+# public artifacts server, which can be reached outside the VPN. {{ artifacts_url }}
+# is globally defined in group_vars/all.
+#
+# Input Variables:
+#
+# artifact_path - local path to artifact. Used by Jenkins deploy jobs
+# artifact_branch - branch of repo_name the artifact is derived from. Used when
+#     the artifact is to be retrived from the sources or artifacts server.
+#
+# If artifact_path is defined, it takes precedence
+# If neither artifact_path or artifact_branch is defined, the job fails
+#
+# artifact_server_visibility - optional - possible values are "public" or "private". Default
+#     is "public" and is defined in group_vars/all. Set to "private" if you want to
+#     force retrieval of the artifact from the sources server (behind the VPN).
+#
+# Ansible roles that include this file are named some_name-deploy. Usually some_name
+# matches the git repo whose source is being deployed, but not always if the name
+# needs to be more descriptive. Some examples for calling the role's playbook follow:
+#
+# To deploy artifact from develop branch, stored on the public artifacts server:
+# REMOTE=target_host ansible-playbook -i ./dyn_inv.py some_name-deploy.yml -e artifact_branch=develop
+#
+# To deploy artifact from master branch, stored on the public artifacts server:
+# REMOTE=target_host ansible-playbook -i ./dyn_inv.py some_name-deploy.yml -e artifact_branch=master
+#
+# To deploy artifact from develop branch, stored on the private sources server behind the VPN:
+# REMOTE=target_host ansible-playbook -i ./dyn_inv.py some_name-deploy.yml -e artifact_branch=develop -e artifact_server_visibility=private
+#
+# To deploy the file located at $USER/some_name.tgz :
+# REMOTE=target_host ansible-playbook -i ./dyn_inv.py some_name-deploy.yml -e artifact_path=$HOME/some_name.tgz
+#
+# On Jenkins, to deploy the artifact provided by upstream job to all or subset of hosts
+# in the development inventory:
+# ansible-playbook -i $WORKSPACE/ansible-inventory/development some_name-deploy.yml -e artifact_path=$WORKSPACE/some_name-<branch>.tgz
+
+
+- name: check for missing variables
+  fail: msg="artifact_path not defined and artifact_branch not defined - need at least one"
+  when: artifact_path is not defined and artifact_branch is not defined
+
+- name: debug repo_name
+  debug: var=repo_name
+
+# We delete the download directory (if it exists) since a prior failure may have failed to delete it.
+- name: Delete download directory to clean up (in case prior runs failed)
+  file: "state=absent path={{ dims_deploy }}/{{ role_name }}"
+  sudo: yes
+
+# Create the directory to copy the document artifact to
+- name: Create the download directory for the document artifact
+  file: "state=directory path={{ dims_deploy }}/{{ role_name }}"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+
+# Copy and unzip the artifact if on the file system
+- name: Copy the artifact to the deploy directory and unpack
+  copy: "src={{ artifact_path }} dest={{ dims_deploy }}/{{ role_name }}"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  when: artifact_path is defined
+
+# TODO(dittrich): Temporary fix
+#  get_url:
+#    url={{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
+#    dest={{ dims_deploy }}/{{ role_name }}
+#    use_proxy=yes
+#    force=yes
+# sudo_user: "{{ dims_user }}"
+# sudo: yes
+# when: artifact_path is not defined and artifact_branch is defined and artifact_server_visibility == "private"
+# Returns: "failed to create temporary content file: 'NoneType' object has no attribute 'read'"
+# See: https://github.com/ansible/ansible-modules-core/issues/4269
+
+# TODO(dittrich): Temporary fix
+#  get_url:
+#    url={{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
+#    dest={{ dims_deploy }}/{{ role_name }}
+#    use_proxy=yes
+#    force=yes
+# when: artifact_path is not defined and artifact_branch is defined and artifact_server_visibility == "private"
+# Returns: "failed to create temporary content file: 'NoneType' object has no attribute 'read'"
+# See: https://github.com/ansible/ansible-modules-core/issues/4269
+
+# Get the artifact from http on private sources server instead
+#- name: Get artifact via url
+# shell:
+#   chdir={{ dims_deploy }}/{{ role_name }}
+#   curl -s -O {{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
+# sudo_user: "{{ dims_user }}"
+# sudo: yes
+# when: artifact_path is not defined and artifact_branch is defined and artifact_server_visibility == "private"
+
+# Get the artifact from http on public artifacts server instead
+- name: Get artifact via URL
+  shell:
+    chdir={{ dims_deploy }}/{{ role_name }}
+    curl -s -O {{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  when: artifact_path is not defined and artifact_branch is defined
+
+- name: Unpack and remove artifact
+  shell: >
+    cd {{ dims_deploy }}/{{ role_name }} &&
+    tar -xzf {{ repo_name }}-{{ artifact_branch }}.tgz &&
+    rm -f {{ repo_name }}-{{ artifact_branch }}.tgz
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+
+- name: Set ownership of unpacked files to dims:dims
+  file: "state=directory path={{ dims_deploy }}/{{ role_name }} recurse=yes owner={{ dims_user }} group={{ dims_group }}"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+
+# We won't alter permissions here since some apps might need RW for dims group and others
+# might need R only for dims group. We'll let the role determine that after doing
+# its rsync.
+
+# vim: ft=ansible :

@@ -1,0 +1,21 @@
+---
+
+# optionally can take --extra-vars="hostbase=hostnamebase root_auth_users='user1 user2 user3'"
+- name: set auth keys
+  hosts: "{{ target }}"
+  user: root
+  gather_facts: False
+
+  # ansible_distribution: "Ubuntu", "CentOS", "Fedora", "RedHat", etc.
+  vars_files: 
+   - /opt/dims/ansible/vars/global.yml
+   - "/opt/dims/private/ansible/vars.yml"
+   - /opt/dims/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+   - root_auth_users: ''
+
+#  tasks:
+#   - name: add root keys for sysadmin-main and other allowed users
+#     action: authorized_key user=root key={{ item }}
+#     with_lines: 
+#     - "{{ auth_keys_from_fas}} @sysadmin-main {{ root_auth_users }}"

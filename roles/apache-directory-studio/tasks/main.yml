@@ -1,0 +1,50 @@
+---
+
+# File: roles/apache_directory_studio/tasks/main.yml
+
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ apache-directory-studio, packages, ldap ]
+
+- name: Make ADS (64-bit) archive present
+  get_url:
+    url: "{{ apache_directory_studio.dist_url }}/{{ apache_directory_studio.archive }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}"
+    sha256sum: "{{ apache_directory_studio.sha256_sum }}"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ apache-directory-studio, packages, ldap ]
+
+- name: Unpack ADS archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ apache_directory_studio.archive }}"
+    dest: /opt
+    copy: no
+  tags: [ apache-directory-studio, packages, ldap ]
+
+- name: Make symlink to the latest version present
+  file:
+    src: "/opt/ApacheDirectoryStudio/ApacheDirectoryStudio"
+    path: "{{ dims_bin }}/apache-directory-studio"
+    state: link
+  tags: [ apache-directory-studio, ldap ]
+
+- name: Make ADS launcher present
+  copy:
+    src: files/apache_directory_studio.desktop
+    dest: /usr/share/applications/apache_directory_studio.desktop
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ mode_0644 }}"
+  sudo: yes
+  tags: [ apache-directory-studio, packages, ldap ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ apache-directory-studio, ldap, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ apache-directory-studio, packages, ldap ]
+
+# vim: ft=ansible :

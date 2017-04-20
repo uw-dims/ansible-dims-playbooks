@@ -1,0 +1,310 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Copyright (C) 2014-2016, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Source shflags
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
+
+# Tracks with bumpversion
+DIMS_VERSION=2.0.0
+
+DIMS_ETC=${DIMS_ETC:-{{ dims_etc }}}
+DIMS_BIN=${DIMS_BIN:-{{ dims_bin }}}
+DIMS_SRC=${DIMS_SRC:-{{ dims_src }}}
+PYTHONVER="{{ python.version }}"
+PYTHONBASE="Python-{{ python.version }}"
+PRISEM_ARTIFACT="{{ prisem.artifact }}"
+# Force this to be system directory, in case user already has it set.
+WORKON_HOME="{{ dims }}/envs"
+VENV=${VENV:-{{ venv_name }}}
+export VIRTUALENVWRAPPER_PYTHON="${DIMS_BIN}/python"
+# Need to set this since it might already be set in user's environment
+export VIRTUALENVWRAPPER_HOOK_DIR="${WORKON_HOME}"
+
+# Get a default for proxy from Ansible vars
+HTTPS_PROXY="{{ https_proxy | default('') }}"
+
+# Define command line options
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_string  'venv' "${VENV}" 'virtual environment name' 'n'
+DEFINE_string  'proxy' "${HTTPS_PROXY}" 'proxy to use for downloading files' 'p'
+DEFINE_string  'workon-home' "${WORKON_HOME}" 'virtual environments (WORKON_HOME) directory' 'w'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+
+ANSIBLE_OPTIONS="${ANSIBLE_OPTIONS}"
+FLAGS_HELP="usage: ${BASE} [options] args"
+
+
+# Define functions
+
+function usage() {
+    flags_help
+    cat << EOD
+
+This script builds the initial "system" Python virtual environment
+(default name "${VENV}") to the ${WORKON_HOME} directory.
+
+Using --verbose enables verbose output during the execution of this script.
+Using --debug enables debugging output during the execution of this script.
+Using both --verbose and --debug gives maximum output.
+
+EOD
+    exit 0
+}
+
+function main()
+{
+    dims_main_init
+
+    verbose "Starting ${PROGRAM}"
+    retval=0
+
+    # If this is not being run by Ansible (in a temporary
+    # deploy directory), then create/use a temp directory.
+    if [[ "$(pwd)" != "{{ deploy_dir }}/{{ role_name }}" ]]; then
+        TMPDIR=$(get_temp_dir)
+        cd ${TMPDIR} ||
+            error_exit $? "Could not cd to ${TMPDIR}"
+        add_on_exit rm -rf ${TMPDIR}
+    fi
+
+    if [[ ! -z "${FLAGS_proxy}" ]]; then
+        # Make sure proxy environment variables are set correctly
+        export https_proxy="${FLAGS_proxy}"
+        export HTTPS_PROXY="${FLAGS_proxy}"
+        USE_PROXY="--proxy=${FLAGS_proxy}"
+    else
+        USE_PROXY=""
+    fi
+
+    # Ensure WORKON_HOME is defined in environment
+    export WORKON_HOME="${FLAGS_workon_home}"
+
+    if [[ ! -x ${DIMS_BIN}/python ]]; then
+        verbose "${DIMS_BIN}/python does not exist"
+        INSTPYTHONVER=""
+    else 
+        INSTPYTHONVER="$(${DIMS_BIN}/python --version 2>/dev/null)"
+    fi
+    if [ "${INSTPYTHONVER}" == "Python ${PYTHONVER}" ]; then
+        verbose "Python ${PYTHONVER} already installed in ${DIMS_BIN}: skipping installation"
+    else
+        OS=$(uname -s)
+        if [ "${OS}" == "Darwin" ]; then
+            CXX="CXX=/usr/bin/gcc"
+        elif [ "${OS}" == "Linux" ]; then
+            CXX=""
+        else
+            CXX=""
+        fi
+        [[ -f ${DIMS_SRC}/${PYTHONBASE}.tgz ]] ||
+            error_exit 1 "File not found: ${DIMS_SRC}/${PYTHONBASE}.tgz"
+        if [ ! -d ${DIMS_SRC}/${PYTHONBASE} ]; then
+            verbose "Unpacking ${DIMS_SRC}/${PYTHONBASE}.tgz archive"
+            tar -xzf ${DIMS_SRC}/${PYTHONBASE}.tgz
+        fi
+        RESULT=$?
+        if [ ${RESULT} -ne 0 ]; then
+            error_exit ${RESULT} "Failed to unpack ${PYTHONBASE}.tgz"
+        fi
+        if [ ! -f ${PYTHONBASE}/Makefile ]; then
+            verbose "Configuring/compiling ${PYTHONBASE}"
+            (cd ${PYTHONBASE}/; \
+                ./configure --prefix=${DIMS} ${CXX} && \
+                make && \
+                make install)
+            RESULT=$?
+            if [ ${RESULT} -ne 0 ]; then
+                error_exit ${RESULT} "${PYTHONBASE} compilation/installation failed"
+            fi
+            INCLUDEDIR=$(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
+            if [ -z ${INCLUDEDIR} ]; then
+              error_exit ${RESULT} "Can't determine python-config --include directory path"
+            fi
+            if [ ! -f ${DIMS_BIN}/python-config ]; then
+                error_exit ${RESULT} "File not found: ${DIMS_BIN}/python-config"
+            else
+                mkdir -p ${DIMS}/include/python && \
+                cp ${PYTHONBASE}/Include/* \
+                    $(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
+                RESULT=$?
+                if [ ${RESULT} -ne 0 ]; then
+                  error_exit ${RESULT} "Installation of include files for ${PYTHONBASE} failed"
+                fi
+            fi
+        fi
+    fi
+
+    [[ -f ${DIMS_SRC}/get-pip/get-pip.py ]] ||
+        error_exit $? "File not found: ${DIMS_SRC}/get-pip/get-pip.py"
+    verbose "Executing ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py"
+    ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py ||
+        error_exit $? "Execution of ${DIMS_SRC}/get-pip/get-pip.py failed"
+
+    verbose "Installing 'distribute' with easy_install"
+    ${DIMS_BIN}/easy_install distribute ||
+        error_exit $? "Command \"${DIMS_BIN}/easy_install distribute\" failed."
+
+    verbose "Attempting to upgrade pip"
+    ${DIMS_BIN}/pip install ${USE_PROXY} --upgrade pip ||
+        error_exit $? "Upgrade of pip failed"
+
+    verbose "Running: ${DIMS_BIN}/pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt"
+    ${DIMS_BIN}/pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt ||
+        error_exit $? "pip install from ${DIMS_ETC}/base-requirements.txt failed"
+
+    if [[ -d ${WORKON_HOME}/${VENV} ]]; then
+        verbose "${WORKON_HOME}/${VENV} exists: Creating backup"
+        if [[ -d ${WORKON_HOME}/.${VENV}.old ]]; then
+            if ! rm -rf ${WORKON_HOME}/.${VENV}.old; then
+                error_exit $? "Failed to delete previous backup (${WORKON_HOME}/.${VENV}.old)"
+            fi
+        fi
+        if ! mv ${WORKON_HOME}/${VENV} ${WORKON_HOME}/.${VENV}.old; then
+            error_exit $? "Failed to mv ${WORKON_HOME}/${VENV} to ${WORKON_HOME}/.${VENV}.old"
+        else
+            verbose "Saved ${WORKON_HOME}/${VENV} to ${WORKON_HOME}/.${VENV}.old"
+        fi
+    fi
+
+    # See the "Setup" description of tasks in virtualenvwrapper.sh
+    # for steps being followed here.
+    [[ -f ${DIMS_BIN}/virtualenvwrapper.sh ]] ||
+        error_exit $? "File not found: ${DIMS_BIN}/virtualenvwrapper.sh"
+    verbose "Invoking ${DIMS_BIN}/virtualenvwrapper.sh"
+    source ${DIMS_BIN}/virtualenvwrapper.sh
+
+    [[ "$(type mkvirtualenv | head -n 1 2>/dev/null)" == "mkvirtualenv is a function" ]] ||
+        error_exit $? "mkvirtualenv() function not defined"
+
+    verbose "Making virtual environment ${VENV}"
+    mkvirtualenv --python=${DIMS_BIN}/python -r ${DIMS_ETC}/${VENV}-requirements.txt ${VENV} ||
+        error_exit $? "mkvirtualenv failed"
+
+    verbose "Calling 'workon ${VENV}'"
+    workon ${VENV} ||
+        error_exit $? "Could not \"workon ${VENV}\""
+
+    # # Upgrade pip
+    # echo "[+] Running: ${WORKON_HOME}/${VENV}/bin/pip install --upgrade ${USE_PROXY} pip"
+    # if ! ${WORKON_HOME}/${VENV}/bin/pip install --upgrade ${USE_PROXY} pip; then
+    # RESULT=$?
+    # echo "[-] Could not upgrade pip"
+    # exit ${RESULT}
+    # fi
+
+    # From here on out, we're using the bin/ directory of the just-activated
+    # virtual environment.
+
+    verbose "Using easy_install to instal ${DIMS_SRC}/${PRISEM_ARTIFACT}"
+    ${WORKON_HOME}/${VENV}/bin/easy_install --zip-ok ${DIMS_SRC}/${PRISEM_ARTIFACT} ||
+        error_exit $? "easy_install of ${DIMS_SRC}/${PRISEM_ARTIFACT} failed"
+
+    verbose "Installing git"
+    (cd ${DIMS_SRC}/git && \
+     make configure && \
+        ./configure \
+            --prefix=${WORKON_HOME}/${VENV} \
+            NO_CURL=1 \
+            NO_MSGFMT=YesPlease \
+            NO_TCLTK=YesPlease \
+            NO_GETTEXT=YesPlease && \
+         make install) ||
+        error_exit $? "Installation of git failed"
+
+    verbose "Installing hub-flow"
+    (cd ${DIMS_SRC}/gitflow && \
+        INSTALL_INTO=${WORKON_HOME}/${VENV}/bin ./install.sh && \
+        git hf version) ||
+        error_exit $? "Installation of hub-flow failed"
+
+    verbose "Installing mr"
+    cp ${DIMS_SRC}/myrepos/mr ${WORKON_HOME}/${VENV}/bin/mr ||
+        error_exit $? "Installation of mr failed"
+    chmod {{ mode_0755 }} ${WORKON_HOME}/${VENV}/bin/mr
+
+    verbose "Installing git-crypt"
+    (cd ${DIMS_SRC}/git-crypt && \
+        make PREFIX=${WORKON_HOME}/${VENV} ENABLE_MAN=yes && \
+        make PREFIX=${WORKON_HOME}/${VENV} ENABLE_MAN=yes install) ||
+        error_exit $? "Installation of git-crypt failed"
+
+    verbose "Installing git-big-picture"
+    (cd ${DIMS_SRC}/git-big-picture && \
+        python setup.py install) ||
+        error_exit $? "Installation of git-big-picture failed"
+
+    # Install post-activate script. (Note: This can't be done
+    # easily using Ansible, since the WORKON_HOME environment variable
+    # isn't available to Ansible. We'd have to force installation t
+
+    # (Note: Quoting the end of data marker prevents Bash from
+    #  interpretting variables at this time.)
+
+    cat >${WORKON_HOME}/postactivate <<EOD
+#!/bin/bash
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# This hook is run after every virtualenv is activated.
+#
+
+# Only do certain things if interactive shell.
+if [ ! -z "${PS1}" ]; then
+	echo "[+] Virtual environment '$(basename ${VIRTUAL_ENV})' activated [ansible-playbooks v{{ ansibleplaybooks_version }}]"
+fi
+
+# Always make sure the NAS file system is mounted.
+# (Disabled due to NFS bugs causing "hangs" in shell
+# startup and system shutdown. 2015-08-09 dittrich)
+#
+#if [ "/$(which dims.nas.mount)/" != "//" ]; then
+#	dims.nas.mount
+#fi
+EOD
+
+    verbose "Installation of system Python virtual environment complete!"
+
+    result="$(workon)"
+    verbose "Virtual environments: ${result}"
+
+    return ${retval}
+}
+
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?

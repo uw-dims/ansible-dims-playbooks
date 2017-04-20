@@ -1,0 +1,6 @@
+---
+
+# File: roles/base/handlers/main.yml
+
+- include: "{{ handlers }}/restart_services.yml"
+  static: yes

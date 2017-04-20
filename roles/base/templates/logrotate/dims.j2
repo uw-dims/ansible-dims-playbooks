@@ -1,0 +1,15 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# vim: set ts=4 sw=4 tw=0 noet :
+
+/var/log/dims/*.log {
+    weekly
+    missingok
+    rotate 4
+    notifempty
+    nocreate
+    sharedscripts
+    postrotate
+    reload rsyslog >/dev/null 2>&1 || true
+    endscript
+}

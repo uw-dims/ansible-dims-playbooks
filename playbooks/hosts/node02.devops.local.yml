@@ -1,0 +1,33 @@
+---
+
+# File: playbooks/hosts/node02.devops.local.yml
+
+- name: Dump all vars if debug enabled
+  hosts: node02.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/coreos.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "node02.devops.local"
+  hosts: node02.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/coreos.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: docker }
+    - { role: consul }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"

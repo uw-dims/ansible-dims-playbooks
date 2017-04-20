@@ -1,0 +1,18 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# The Trident Daemon Upstream
+include /etc/trident/nginx/trident-upstream.inc;
+
+
+# The HTTP server that exposed Trident - development only
+
+server {
+  listen {{ tridentNginxHTTPPort }} default_server;
+
+  server_name _default_;
+
+  access_log /var/log/nginx/trident-access.log;
+
+  # Include the config for making Trident work
+  include /etc/trident/nginx/trident-server.inc;
+}

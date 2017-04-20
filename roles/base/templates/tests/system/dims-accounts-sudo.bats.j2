@@ -1,0 +1,16 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+
+{% if valid_users is defined %}
+{% for user in valid_users %}
+@test "[S][EV] User {{ user }}'s bashrc does not source DIMS files" {
+	run grep -q DIMS/etc/bashrc.dims /home/{{ user }}/.bashrc
+	[ $status -eq 1 ]
+}
+
+{% endfor %}
+{% endif %}

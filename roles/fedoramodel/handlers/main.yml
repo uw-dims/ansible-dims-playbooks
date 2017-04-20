@@ -1,0 +1,52 @@
+---
+
+# File: fedoramodel/handlers/main.yml
+
+# TODO(dittrich): Making this similar to other v2 roles
+#- include: "{{ handlers }}/restart_services.yml"
+#  static: yes
+
+# NOTE(mboggess): from 'v1' common handlers/main.yml
+- name: update timezone
+  command: dpkg-reconfigure --frontend noninteractive tzdata
+
+# NOTE(mboggess): from 'v2' fakebase handlers/main.yml
+- name: restart dnsmasq on Debian
+  sudo: yes
+  service: name=dnsmasq state=restarted
+
+- name: restart network-manager on Debian
+  sudo: yes
+  service: name=network-manager state=restarted
+
+- name: restart iptables
+  shell: /sbin/iptables-restore /etc/iptables/rules.v4
+
+- name: restart ip6tables
+  shell: /sbin/ip6tables-restore /etc/iptables/rules.v6
+
+- name: restart jenkins
+  action: service name=jenkins state=restarted
+
+- name: restart mailman
+  action: service name=mailman state=restarted
+
+- name: restart network
+  action: service name=network state=restarted
+
+- name: restart ntpd
+  action: service name=ntpd state=restarted
+
+- name: restart rsyslog
+  action: service name=rsyslog state=restarted
+
+- name: restart ssh
+  action: service name=ssh state=restarted
+
+- name: restart supervisord
+  service: name=supervisord state=restarted
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+

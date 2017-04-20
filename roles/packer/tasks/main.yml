@@ -1,0 +1,40 @@
+---
+
+# file: roles/packer/tasks/main.yml
+
+# Install Packer on Linux 
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ packer, packages ]
+
+- name: Get packer zip 
+  get_url:
+    url: "{{ packer.dist_url }}"
+    sha256sum: "{{ packer.sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}/{{ packer.archive }}"
+    validate_certs: true
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ packer, packages ]
+
+- name: Unpack packer archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ packer.archive }}"
+    dest: "{{ dims_bin }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: 0755
+    remote_src: True
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ packer, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ packer, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ packer, tests ]
+
+# vim: ft=ansible :

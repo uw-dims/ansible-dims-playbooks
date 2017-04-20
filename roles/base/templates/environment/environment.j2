@@ -1,0 +1,28 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Environment settings for system-wide use.
+# Note that variable expansion does not work when using /etc/environment.
+
+# Directory paths
+PATH='{{ dims_bin }}:/opt/cif/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+GIT='{{ dims_git }}'
+DIMS='{{ dims }}'
+NAS='{{ dims }}/nas'
+CFG='{{ dims }}/nas/scd'
+# Changing name of variable from "vm" to VMDIR here.
+VMDIR='{{ vm }}'
+PRIVATE='{{ private }}'
+
+# System organization and naming variables.
+DIMS_CATEGORY='{{ category }}'
+DIMS_DEPLOYMENT='{{ deployment }}'
+DIMS_DOMAIN='{{ category }}.{{ deployment }}'
+
+# For 'dimscli' default selection of configuration settings from
+# $HOME/.config/openstack/clouds.yml
+OS_CLOUD="{{ deployment }}"
+
+# Reset this in user rc files to change default
+DIMS_VAGRANT_DEPLOYMENT='{{ deployment }}'
+
+# EOF

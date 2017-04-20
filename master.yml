@@ -1,0 +1,26 @@
+---
+
+# File: master.yml
+#
+# This is the master playbook. It includes all the other playbooks. 
+# Usually you would call it with a -t tagname to only run a specific tag 
+# over all machines. 
+#
+# (This playbook is based on master.yml in the Fedora Project
+# Ansible playbook Git repository.)
+#
+# -t packages   fedmsgconfig -> runs fedmsg/base config over all playbooks
+# -t apache -> run when tasks/apache.yml changes. 
+#
+#
+# group playbooks
+#
+#- include: /opt/dims/ansible/playbooks/groups/dns.yml
+#- include: /opt/dims/ansible/playbooks/groups/packages.yml
+#- include: /opt/dims/ansible/playbooks/groups/virthost.yml
+- include: playbooks/swarm.yml
+
+#
+# host playbooks
+#
+#- include: /opt/dims/ansible/playbooks/hosts/dnsmaq.local.yml

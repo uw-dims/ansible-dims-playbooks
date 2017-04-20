@@ -1,0 +1,60 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+# This test needs to be run with sudo as iptables requires root
+# privileges.
+
+@test "[S][EV] iptables: Chain INPUT exists" {
+    [ "iptables -L INPUT 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] iptables: Chain FORWARD exists" {
+    [ "iptables -L FORWARD 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] iptables: Chain OUPUT exists" {
+    [ "iptables -L OUTPUT 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] iptables: Default INPUT policy DROP" {
+	[ "$(iptables -L INPUT | head -n1)" == "Chain INPUT (policy DROP)" ]
+}
+
+@test "[S][EV] iptables: Default FORWARD policy DROP" {
+	[ "$(iptables -L FORWARD | head -n1)" == "Chain FORWARD (policy DROP)" ]
+}
+
+@test "[S][EV] iptables: Default OUTPUT policy ACCEPT" {
+	[ "$(iptables -L OUTPUT | head -n1)" == "Chain OUTPUT (policy ACCEPT)" ]
+}
+
+@test "[S][EV] ip6tables: Chain INPUT exists" {
+    [ "ip6tables -L INPUT 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] ip6tables: Chain FORWARD exists" {
+    [ "ip6tables -L FORWARD 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] ip6tables: Chain OUPUT exists" {
+    [ "ip6tables -L OUTPUT 2>&1 >/dev/null" ]
+}
+
+@test "[S][EV] ip6tables: Default INPUT policy DROP" {
+	[ "$(ip6tables -L INPUT | head -n1)" == "Chain INPUT (policy DROP)" ]
+}
+
+@test "[S][EV] ip6tables: Default FORWARD policy DROP" {
+	[ "$(ip6tables -L FORWARD | head -n1)" == "Chain FORWARD (policy DROP)" ]
+}
+
+@test "[S][EV] ip6tables: Default OUTPUT policy DROP" {
+	[ "$(ip6tables -L OUTPUT | head -n1)" == "Chain OUTPUT (policy DROP)" ]
+}
+
+@test "[S][EV] iptables: Chain DOCKER exists" {
+    [ "iptables -L DOCKER 2>&1 >/dev/null" ]
+}

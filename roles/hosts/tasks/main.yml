@@ -1,0 +1,28 @@
+---
+
+# File: roles/hosts/tasks/main.yml
+#
+# (Taken from Fedora Project ansible playbooks).
+#
+# This task sets up /etc/hosts on a machine. 
+#
+# This should only be used in rare cases
+#
+# This will move a /etc/hosts in place if it's setup in files for that host/domain
+# Note that if it's not set it will just skip this play and do nothing. 
+
+- name: Setup /etc/hosts for some clients
+  action: copy src={{ item }} dest=/etc/hosts
+  with_first_found:
+    - files:
+        - hosts.{{ inventory_hostname }}
+        - hosts.{{ ansible_fqdn }}
+        - hosts.{{ ansible_hostname }}
+        - hosts.{{ host_group }}
+        - hosts.{{ ansible_domain }}
+        - hosts.{{ datacenter }}
+        - hosts
+      skip: true
+  tags: [ hosts, config ]
+
+# vim: ft=ansible :

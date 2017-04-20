@@ -1,0 +1,46 @@
+---
+
+# File: host_vars/blue16.devops.local.yml
+
+name: "blue16"
+PORT: "22"
+
+dims_users: [ 'dittrich', 'mboggess', 'revere', 'msouthwe', ]
+
+tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
+udp_ports: [ 53, 4789, 7946 ]
+
+eth1:
+  ip: "192.168.56.10"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.10"
+  auto_config: "false"
+
+debian_vagrantfile: [
+  '  # Change the following to the ansible_dsa key on your machine',
+  '  # HOME comes from Makefile',
+  '  # vmKey comes from host_vars host file',
+  '  config.ssh.private_key_path = "{{ HOME }}/.ssh/{{ vmKey }}"',
+  '  config.ssh.forward_agent = true',
+]
+
+# Variables for building "ovf" and "box" files
+box_baseos: "ubuntu"
+box_osversion: "16.04.1"
+box_osnick: "xenial"
+box_type: "server"
+iso_source: "file:///vm/cache/isos"
+iso_arch: "amd64"
+iso_checksum_type: "sha256"
+# NOTE(mboggess): Checksum for Ubuntu 16.04.1 server iso (below) is different
+# from standard distribution Ubuntu 16.04.1 server iso because of edits made to "install"
+# and "expert" labels which declare the boot command.
+iso_checksum: "7149746193adf7290eaf0b006c9abe94be5a1b7313293d61510fc2984bb3351a" #ubuntu-16.04.1-server-amd64.iso
+headless: "false"
+ssh_pass: "{{ vault_ssh_pass }}"
+installDesktop: "apt-get -y install ubuntu-desktop"
+
+swarm_node_type: "manager"
+
+# vim: ft=ansible :

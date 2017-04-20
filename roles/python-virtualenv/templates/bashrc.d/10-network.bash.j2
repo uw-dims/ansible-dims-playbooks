@@ -1,0 +1,44 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# file: bashrc.dims.network
+
+# This file is sourced by Bash at startup. DO NOT use 'exit'
+#
+# Check to see if OpenVPN has started required VPN(s).
+
+if [ "$OS" == "Darwin" ]; then
+	if [[ -d "$HOME/Library/Application Support/Tunnelblick/Configurations" ]]; then
+		VPNS=$(cd "$HOME/Library/Application Support/Tunnelblick/Configurations" && echo *.tblk | sed 's/.tblk//g')
+		if [ "x$VPNS" != "*.tlbk" ]; then
+			for vpn in $VPNS; do
+				# Just find out if Tunnelblick is actively running configured VPNs.
+				# Can't start them as this point. (Need to work that out.)
+				ps auxxx | grep openvpn | grep -q $vpn
+				if [ $? -eq 0 ]; then
+					# Match the syntax of Ubuntu 'service openvpn status' output
+					echo " * VPN $vpn is running"
+				else
+					echo " * VPN $vpn is not running"
+				fi
+			done
+		fi
+	else
+		echo "[-] Tunnelblick does not appear to be configured for VPNs (that's all we support)."
+	fi
+else
+	if [ ! -d /etc/openvpn ]; then
+		echo "[-] OpenVPN not installed: no tunnels available."
+	else
+		echo "[+] OpenVPN status:"
+		sudo service openvpn status
+		if [ $? -ne 0 ]; then
+			echo "[-] OpenVPN not running. Attempting to restart:"
+			sudo service openvpn restart
+			if [ $? -ne 0 ]; then
+				echo "[-] Failed to start OpenVPN."
+			fi
+		fi
+	fi
+fi
+
+# Do not 'exit' - sourced script

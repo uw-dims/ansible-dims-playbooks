@@ -1,0 +1,19 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+# This test assumes it is being run in the context of
+# the playbook 'trident-configure' (which logs into 'tcli'
+# at the beginning of the playbook) within the TTL for
+# the JSON web token (JWT). If run outside of this context
+# and the account is not logged in, the test will fail.
+
+load helpers
+
+@test "[S][EV] System primary trust group name is {{ trident.primary_tg.ident }}" {
+    assert "{{ trident.primary_tg.ident }}" tcli {{ tcli[trident.version]['tg_SUB'] }} list | grep "^{{ trident.primary_tg.ident }}" | awk '{ print $1; }'
+}
+
+#EOF

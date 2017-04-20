@@ -1,0 +1,32 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+#  Rules for doing log consolidation using remote rsyslog logging from DIMS
+#  clients to a central server. This configuration file must exist on the
+#  consolidation server.
+#
+#  Logs for each sending client will be stored in the /var/log/dims/
+#  directory using the hosts' configured $LocalHostName (see rsyslog.conf).
+#
+# See:
+#
+#  http://www.rsyslog.com/storing-messages-from-a-remote-system-into-a-specific-file/
+#  http://www.rsyslog.com/sending-messages-to-a-remote-syslog-server/
+#  http://serverfault.com/questions/274625/how-do-i-get-rsyslogd-to-log-a-servers-fqdn-instead-of-its-short-hostname
+
+{% if rsyslog_server is defined %}
+$ModLoad imtcp
+$InputTCPServerRun {{ rsyslog_port }}
+
+# do this in FRONT of the local/regular rules
+
+$template PerHostLog,"/var/log/dims/%HOSTNAME%.log"
+
+{% if rsyslog_domains is defined %}
+{% for domain in rsyslog_domains %}
+
+if $fromhost != $hostname and $hostname contains '.{{ deployment }}' then -?PerHostLog
+& stop
+
+{% endfor %}
+{% endif %}
+{% endif %}

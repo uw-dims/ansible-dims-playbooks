@@ -1,0 +1,11 @@
+{
+    "server": {{ consulServer | to_json }},
+    "datacenter": "{{ consulDataCenter }}",
+    "data_dir": "{{ consulDataDir }}",
+    "ui_dir": "{{ consulUIDir }}",
+    "encrypt": "",
+    "log_level": "{{ consulLogLevel }}",
+    "enable_syslog": {{ consulEnableSyslog | to_json }},
+    "start_join": [{{ consul_servers | add_domain(category=category, deployment=deployment) | list_to_string_args }}],
+    "leave_on_terminate": true
+}

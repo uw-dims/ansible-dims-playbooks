@@ -1,0 +1,13 @@
+127.0.0.1       localhost
+140.142.29.113  time.prisem.washington.edu      time
+172.28.234.234  wellington
+172.28.234.235  wellington3
+172.28.240.137 walter
+10.142.29.119  nas1g
+10.29.0.119  nas nas10g
+172.28.234.182 stirling
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters

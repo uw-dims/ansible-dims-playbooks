@@ -1,0 +1,79 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] PATH set in /etc/environment" {
+    grep -q '^PATH=' /etc/environment
+}
+
+@test "[S][EV] PATH contains '/sbin' directory" {
+    echo $PATH | grep -q ':*/sbin:*'
+}
+
+@test "[S][EV] DIMS_* variables set in /etc/environment" {
+    grep -q '^DIMS_[A-Z][A-Z]*=' /etc/environment
+}
+
+@test "[S][EV] Environment variable DIMS is set to {{ dims }}" {
+    [ ! -z "$DIMS" ]
+    assert "{{ dims }}" echo ${DIMS}
+}
+
+@test "[S][EV] Directory pointed to by \$DIMS exists" {
+    [ -d $DIMS ]
+}
+
+@test "[S][EV] DIMS group exists" {
+    run groups dims
+    [ $status -eq 0 ]
+}
+
+@test "[S][EV] DIMS account exists" {
+    run id dims
+    [ $status -eq 0 ]
+}
+
+@test "[S][EV] Directory pointed to by \$DIMS owned by user {{ dims_user }}" {
+    assert "{{ dims_user }}" stat -c %U "{{ dims }}"
+}
+
+@test "[S][EV] Directory pointed to by \$DIMS owned by group {{ dims_group }}" {
+    assert "{{ dims_group }}" stat -c %G "{{ dims }}"
+}
+
+{% for dir in dims_dirs %}
+@test "[S][EV] Directory {{ dir }} exists" {
+    [ -d {{ dir }} ]
+}
+
+@test "[S][EV] Directory {{ dir }} is readable" {
+    [ -r {{ dir }} ]
+}
+
+{% endfor %}
+
+@test "[S][EV] File bashrc.dims is referenced in /etc/bash.bashrc" {
+    is_coreos && skip "Not applicable on CoreOS"
+    run grep -q bashrc.dims /etc/bash.bashrc
+    [ $status -eq 0 ]
+}
+
+@test "[S][EV] File /etc/profile.d/dims.sh exists" {
+    [ -f /etc/profile.d/dims.sh ]
+}
+
+@test "[S][EV] File {{ dims_bin}}/dims_functions.sh is present" {
+    [ -f {{ dims_bin }}/dims_functions.sh ]
+}
+
+@test "[S][EV] File {{ dims_lib }}/shflags is present" {
+    [ -f {{ dims_lib }}/shflags ]
+}
+
+@test "[S][EV] Operating system release codename is available" {
+    ! assert "$UNAVAILABLE" get_codename_release
+}

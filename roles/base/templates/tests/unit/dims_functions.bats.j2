@@ -1,0 +1,250 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+    touch --reference=/bin/ls /tmp/bats.ls-marker
+    VMPRIVATE=$(get_vagrant_run_dir test)/private
+    cat <<EOD > /tmp/bats.varsdefs
+A=1
+C=3
+B=2
+EOD
+    cat <<EOD > /tmp/bats.reqvars.1
+B
+A
+C
+EOD
+    cat <<EOD > /tmp/bats.reqvars.2
+A
+D
+B
+C
+EOD
+    for name in A B; do
+        mkdir -p /tmp/bats.tmp/${name}.dir
+        touch /tmp/bats.tmp/${name}.txt
+    done
+}
+
+function teardown() {
+    rm -f /tmp/bats.ls-marker /tmp/bats.varsdefs /tmp/bats.reqvars.{1,2}
+    rm -rf /tmp/bats.tmp
+}
+
+@test "[U][EV] say() strips whitespace properly" {
+    assert '[+] unce, tice, fee times a madie...' say 'unce, tice,  fee    times a madie...      '
+}
+
+@test "[U][EV] say_raw() does not strip whitespace" {
+    assert '[+] unce, tice,  fee   times a madie...      ' say_raw 'unce, tice,  fee   times a madie...      '
+}
+
+# This test needs to directly source dims_functions in bash command string because of multi-command structure.
+@test "[U][EV] add_on_exit() saves and get_on_exit() returns content properly" {
+    assert "'([0]=\"cat /dev/null\")'" bash -c ". $DIMS/bin/dims_functions.sh; touch /tmp/foo; add_on_exit cat /dev/null; get_on_exit"
+}
+
+@test "[U][EV] get_hostname() returns hostname" {
+    assert "$(hostname)" get_hostname
+}
+
+@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1 succeeds" {
+    validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1
+}
+
+@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2 fails" {
+    ! validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2
+}
+
+@test "[U][EV] is_fqdn host.category.deployment returns success" {
+    is_fqdn host.category.deployment
+}
+
+@test "[U][EV] is_fqdn host.subdomain.category.deployment returns success" {
+    is_fqdn host.subdomain.category.deployment
+}
+
+@test "[U][EV] is_fqdn 12345 returns failure" {
+    ! is_fqdn 12345
+}
+
+@test "[U][EV] get_dims_private_dir returns '{{ private }}'" {
+    assert "{{ private }}" get_dims_private_dir
+}
+
+@test "[U][EV] parse_fqdn host.category.deployment returns 'host category deployment'" {
+    assert "host category deployment" parse_fqdn host.category.deployment
+}
+
+@test "[U][EV] get_deployment_from_fqdn host.category.deployment returns 'deployment'" {
+    assert "deployment" get_deployment_from_fqdn host.category.deployment
+}
+
+@test "[U][EV] get_category_from_fqdn host.category.deployment returns 'category'" {
+    assert "category" get_category_from_fqdn host.category.deployment
+}
+
+@test "[U][EV] get_hostname_from_fqdn host.category.deployment returns 'host'" {
+    assert "host" get_hostname_from_fqdn host.category.deployment
+}
+
+@test "[U][EV] plural_s returns 's' for 0" {
+    assert "s" plural_s 0
+}
+
+@test "[U][EV] plural_s returns '' for 1" {
+    assert "" plural_s 1
+}
+
+@test "[U][EV] plural_s returns 's' for 42" {
+    assert "s" plural_s 42
+}
+
+@test "[U][EV] get_time_diff 0 1 => '00:00:01'" {
+    assert "00:00:01" get_time_diff 0 1
+}
+
+@test "[U][EV] get_time_diff 0 60 => '00:01:00'" {
+    assert "00:01:00" get_time_diff 0 60
+}
+
+@test "[U][EV] get_time_diff 0 3600 => '01:00:00'" {
+    assert "01:00:00" get_time_diff 0 3600
+}
+
+@test "[U][EV] get_time_diff 0 99999 => '27:46:39'" {
+    assert "27:46:39" get_time_diff 0 99999
+}
+
+@test "[U][EV] get_vagrantd_home_dir returns '$HOME/.vagrant.d'" {
+    assert "$HOME/.vagrant.d" get_vagrantd_home_dir
+}
+
+@test "[U][EV] get_vagrant_home_dir returns '$HOME/.vagrant'" {
+    assert "$HOME/.vagrant" get_vagrant_home_dir
+}
+
+@test "[U][EV] get_vbox_home_dir returns '$HOME/VirtualBox\ VMs'" {
+    assert "$HOME/VirtualBox\ VMs" get_vbox_home_dir
+}
+
+@test "[U][EV] get_vagrant_run_dir host returns '{{ vm_dir }}/run/host'" {
+    assert "{{ vm_dir }}/run/host" get_vagrant_run_dir host
+}
+
+@test "[U][EV] get_packer_ovf_dir ubuntu 14.04.5 returns '{{ vm_dir }}/ovf/ubuntu-14.04.5'" {
+    assert "{{ vm_dir }}/ovf/ubuntu-14.04.5" get_packer_ovf_dir ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_box_dir ubuntu 14.04.5 returns '{{ vm_dir }}/box/ubuntu-14.04.5'" {
+    assert "{{ vm_dir }}/box/ubuntu-14.04.5" get_packer_box_dir ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_ovf_name ubuntu 14.04.5 returns 'ubuntu-14.04.5'" {
+    assert "ubuntu-14.04.5" get_packer_ovf_name ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_box_name ubuntu 14.04.5 returns 'packer_ubuntu-14.04.5_box_virtualbox'" {
+    assert "packer_ubuntu-14.04.5_box_virtualbox" get_packer_box_name ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_box_name coreos 1262.0.0 returns 'packer_coreos-1262.0.0_box_virtualbox'" {
+    assert "packer_coreos-1262.0.0_box_virtualbox" get_packer_box_name coreos 1262.0
+}
+
+@test "[U][EV] get_packer_ovf_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.4_base'" {
+    assert "ubuntu-14.04.5_base" get_packer_ovf_json_name ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_box_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.4_box'" {
+    assert "ubuntu-14.04.5_box" get_packer_box_json_name ubuntu 14.04.5
+}
+
+@test "[U][EV] get_packer_json_dir ubuntu 14.04.5 returns '$GIT/dims-packer/ubuntu_64_vagrant'" {
+    assert "$GIT/dims-packer/ubuntu_64_vagrant" get_packer_json_dir ubuntu 14.04.5
+}
+
+@test "[U][EV] canonicalize /opt/dims/etc/foo returns '_opt_dims_etc_foo'" {
+    assert "_opt_dims_etc_foo" canonicalize /opt/dims/etc/foo
+}
+
+# This test needs to directly source dims_functions in bash command string because of multi-command structure.
+@test "[U][EV] debug() with DIMS_DEBUG=0 doesn't output something" {
+    assert "" bash -c "export DIMS_DEBUG=0; . $DIMS/bin/dims_functions.sh; debug 'something' 2>&1"
+}
+
+# This test needs to directly source dims_functions in bash command string because of multi-command structure.
+# Note: debug puts out text on stderr, so we need to redirect to stdout.
+@test "[U][EV] debug() with DIMS_DEBUG=1 outputs \"[+] DEBUG: something\"" {
+    assert "[+] DEBUG: something" bash -c "export DIMS_DEBUG=1; . $DIMS/bin/dims_functions.sh; debug 'something' 2>&1"
+}
+
+# This test needs to directly source dims_functions in bash command string because of multi-command structure.
+@test "[U][EV] verbose() with DIMS_VERBOSE=0 doesn't output something" {
+    assert "" bash -c "export DIMS_VERBOSE=0; . $DIMS/bin/dims_functions.sh; verbose 'something' 2>&1"
+}
+
+# This test needs to directly source dims_functions in bash command string because of multi-command structure.
+# Note: debug puts out text on stderr, so we need to redirect to stdout.
+@test "[U][EV] verbose() with DIMS_VERBOSE=1 outputs \"[+] something\"" {
+    assert "[+] something" bash -c "export DIMS_VERBOSE=1; . $DIMS/bin/dims_functions.sh; verbose 'something' 2>&1"
+}
+
+@test "[U][EV] get_true 0 returns 'true'" {
+    assert "true" get_true 0
+}
+
+@test "[U][EV] get_true 1 returns 'false'" {
+    assert "false" get_true 1
+}
+
+@test "[U][EV] get_true 42 returns 'false' (sorry, Douglas Adams)" {
+    assert "false" get_true 42
+}
+
+@test "[U][EV] get_true with no arg returns 'false'" {
+    assert "false" get_true
+}
+
+@test "[U][EV] \$(get_file_timestamp /bin/ls) -eq \$(get_file_timestamp /tmp/bats.ls-marker)" {
+    tf1=$(get_file_timestamp /bin/ls)
+    tf2=$(get_file_timestamp /tmp/bats.ls-marker)
+    [[ $tf1 -eq $tf2 ]]
+}
+
+
+@test "[U][EV] escape_spaces turns 'this line has spaces' to 'this\ line\ has\ spaces'" {
+    assert 'this\ line\ has\ spaces' escape_spaces 'this line has spaces'
+}
+
+@test "[U][EV] get_inventory /path/to/playbooks deploymentA returns \"/path/to/playbooks/inventory/deploymentA\"" {
+    assert "/path/to/playbooks/inventory/deploymentA" get_inventory /path/to/playbooks deploymentA
+}
+
+@test "[U][EV] get_inventory /path/to/playbooks host.cat.deploymentA returns \"/path/to/playbooks/inventory/deploymentA\"" {
+    assert "/path/to/playbooks/inventory/deploymentA" get_inventory /path/to/playbooks host.cat.deploymentA
+}
+
+@test "[U][EV] get_directories_in_directory /tmp/bats.tmp returns \"A.dir B.dir\"" {
+    assert "A.dir B.dir" get_directories_in_directory /tmp/bats.tmp
+}
+
+@test "[U][EV] get_directories_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+    ! get_directories_in_directory /a/path/that/does/not/exist
+    [[ $(get_directories_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+}
+
+@test "[U][EV] get_files_in_directory /tmp/bats.tmp returns \"A.txt B.txt\"" {
+    assert "A.txt B.txt" get_files_in_directory /tmp/bats.tmp
+}
+
+@test "[U][EV] get_files_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+    ! get_files_in_directory /a/path/that/does/not/exist
+    [[ $(get_files_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+}

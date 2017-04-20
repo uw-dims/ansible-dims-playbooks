@@ -1,0 +1,45 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Directory /etc/trident exists" {
+    [ -d /etc/trident ]
+}
+
+@test "[S][EV] Assert ownerships root:trident for /etc/trident" {
+    assert "root:trident" stat --printf "%U:%G" /etc/trident
+}
+
+@test "[S][EV] Assert permissions 755 for /etc/trident" {
+    assert 755 stat --printf "%a" /etc/trident
+}
+
+@test "[S][EV] Directory /usr/share/trident exists" {
+    [ -d /usr/share/trident ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /usr/share/trident" {
+    assert "root:root" stat --printf "%U:%G" /usr/share/trident
+}
+
+@test "[S][EV] Assert permissions 755 for /usr/share/trident" {
+    assert 755 stat --printf "%a" /usr/share/trident
+}
+
+@test "[S][EV] Directory /var/lib/trident exists" {
+    [ -d /var/lib/trident ]
+}
+
+@test "[S][EV] Assert ownerships trident:trident for /var/lib/trident" {
+    assert "trident:trident" stat --printf "%U:%G" /var/lib/trident
+}
+
+@test "[S][EV] Assert permissions 755 for /var/lib/trident" {
+    assert 755 stat --printf "%a" /var/lib/trident
+}
+
+# EOF

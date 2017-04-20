@@ -1,0 +1,352 @@
+---
+
+# File: inventory/all.yml
+
+deployment: 'local'
+
+# Variables for testing and/or illustrating vars layering.
+test_color: 'Salmon'
+
+debug: true
+verbose: true
+
+# file name of Vault password file. Path is created in Vagrantfile.
+dims_vault_password_file: '{{ private }}/vault_pass_{{ deployment }}.txt'
+
+dims_ansible_version: 2.3.0.0
+
+dimscli_version: 0.26.0
+
+rpc_version: 0.5.10
+
+mxserver: '192.168.56.11'
+
+dnsNameserver: '192.168.56.11'
+dnsSearch: 'local'
+dnsNetworks: [ '192.168.56.0', ]
+
+# TODO(dittrich): Resolve difference between these sets of vars
+# DNS settings
+#dims_dns_domain: 'local'
+#dims_dns_server: 'ns.devops.local'
+#dims_dns_ip: ''
+
+# TODO(dittrich): Prototyping new name server configuration via dhclient/resolvconf
+dns_nameservers: [
+  '127.0.0.1',
+  '192.168.56.11',
+  '10.0.2.2',
+]
+
+dims_timezone: 'US/Pacific'
+locale: 'en_US.UTF-8'
+
+rsyslog_server: '10.0.2.2'
+rsyslog_port: 10514
+rsyslog_domains: [
+    '.{{ deployment }}',
+]
+
+dims_etcd2_reboot_strategy: 'off'
+
+# Imported Ansible Git repos
+dims_ansible:
+  roles_git:
+      - https://github.com/nextrevision/ansible-swarm-playbook
+
+# Vagrant
+vagrant_version: 1.8.6
+vagrant_deb_64bit_sum: 'e6d83b6b43ad16475cb5cfcabe7dc798002147c1d048a7b6178032084c7070da'
+vagrant_artifact: 'vagrant_{{ vagrant_version }}_x86_64.deb'
+vagrant_dist_url: 'https://releases.hashicorp.com/vagrant/{{ vagrant_version }}'
+
+# Variables specific to creating host playbook for Ansible provisioning
+remoteUser: '{{ ansible_user_id }}'
+
+# Variables for running different Ansible roles
+artifact_branch: 'develop'
+install_type: 'install'
+install_mode: 'system'
+
+consul_servers: [
+  'node01',
+  'node02',
+  'node03',
+]
+
+consul_startup_method: upstart
+consul_version: '0.7.0'
+consul_os: 'linux'
+consul_artifact: 'consul_{{ consul_version }}_{{ consul_os }}_amd64.zip'
+# TODO(dittrich): We use "XXX_url" elsewhere to point to directory, not full URL path to file
+consul_dist_url: 'https://releases.hashicorp.com/consul/{{ consul_version }}'
+consul_sha256sum: 'b350591af10d7d23514ebaa0565638539900cdb3aaa048f077217c4c46653dd8'
+consul_deploy_folder: '/opt/dims/bin'
+consul_basename: 'consul'
+consul_agent_type: 'client'
+# TODO(dittrich): Fix these to be consistent
+consulBindInterface: 'eth1'
+consulInetInterface: 'eth0'
+# Default is '0.0.0.0'
+consulBindAddress: '0.0.0.0'
+# Default is '127.0.0.1'
+consulClientAddress: '127.0.0.1'
+consulDnsPort: 8600
+# TODO(dittrich): This should align with dimscli (it handles fallback)
+consulDataCenter: 'local'
+# TODO(dittrich): Why both "DataCenter" and "DnsDomain"? Shouldn't these be the same?
+consulDnsDomain: 'local'
+# TODO(dittrich): This should align with dimscli (it handles fallback)
+consulStartJoin: '192.168.56.21'
+# TODO(dittrich): This should align with dimscli (it handles fallback)
+consulRetryJoin: '192.168.56.21'
+# TODO(dittrich): Why both a "Mode" and a "Server" boolean? Isn't second derivable from first? (consulMode != 'client')
+consulMode: 'client'
+consulServer: false
+consulDataDir: '/tmp/consul'
+# NOTE(mboggess): syslog is for Linux machines; it doesn't play nice with Docker containers.
+consulEnableSyslog: false
+consulLogFile: '/var/log/consul.log'
+consulLogLevel: 'INFO'
+# NOTE(mboggess): If you don't set the client address, then it defaults to 'localhost'
+# which messes with the user-data file to bootstrap CoreOS nodes. If you set it to the
+# 'eth1' interface, this messes with the RPC services which uses localhost. So, for
+# this deployment, we have the "client" services address be 0.0.0.0.
+consulUIDir: '{{ consulDataDir }}/dist'
+
+
+# TODO(dittrich): Docker engine is updated differently than compose or machine
+docker_engine_pool: 'main'
+docker_engine_version: '17.03.1~ce-0'
+docker_compose_version: '1.11.2'
+docker_machine_version: '0.8.2'
+docker_registry: hub.devops.local:5000
+
+# TODO(dittrich): This should be derived from (a) more global variable(s)
+docker_insecure_registry_net: 192.168.56.0/24
+docker_opts: |
+  -H=tcp://{{ inventory_hostname }}:2376
+  -H=unix:///var/run/docker.sock
+  --log-driver json-file
+  --log-opt max-size=10m
+  --log-opt max-file=10
+  --insecure-registry {{ docker_registry }}
+  --insecure-registry {{ docker_insecure_registry_net }}
+
+swarm:
+  iface: '{{ swarm_iface }}'
+  service_delay_seconds: 30
+  services:
+    viz:
+      nets: []
+      ports: [
+        {
+          host: 9090,
+          client: 8080
+        },
+      ]
+      limit_cpu: 0.5
+      env_vars: [
+        {
+          name: 'PORT',
+          value: 9090
+        },
+      ]
+      constraints: [
+        'node.role == manager',
+      ]
+      mounts: [
+        '/var/run/docker.sock:/var/run/docker.sock',
+      ]
+      image_name: 'manomarks/visualizer'
+      replicas: 1
+
+# Manually authenticate via GPG key, then generated SHA256 sum (they don't
+# provide anything but GPG signature and MD5 hash on their web site.)
+apache_directory_studio:
+  version:                                                          '2.0.0'
+  build:                                                                  'v20161101-M12'
+  release_version:                                                  '2.0.0.v20161101-M12'
+  archive:                                    'ApacheDirectoryStudio-2.0.0.v20161101-M12-linux.gtk.x86_64.tar.gz'
+  dist_url: 'http://mirrors.ocf.berkeley.edu/apache/directory/studio/2.0.0.v20161101-M12'
+  sha256_sum: 'aac2790d9cdb0e134cba544e0e387dfd6673023bf1cbaec9a0ed3b58f4105861'
+
+dnsmasq:
+  version:                                           '2.76'
+  archive:                                   'dnsmasq-2.76.tar.gz'
+  dist_url: 'http://thekelleys.org.uk/dnsmasq/dnsmasq-2.76.tar.gz'
+  sha256_sum: '777c4762d2fee3738a0380401f2d087b47faa41db2317c60660d69ad10a76c32'
+
+# sha256_sum for pycharm was generated by downloading artifact, using SHA1 hash to validate,
+# then generating SHA256 hash for internal use.
+pycharm:
+  version:                                                          '2016.3.2'
+  archive:                                        'pycharm-community-2016.3.2.tar.gz'
+  dist_url: 'https://download.jetbrains.com/python/pycharm-community-2016.3.2.tar.gz'
+  sha256_sum: 'e1092d3692118f9097e4182edfccc76159160353b7d7379cada3249b9e2d4f39'
+
+go:
+  version:                                          '1.6.1'
+  archive:                                        'go1.6.1.linux-amd64.tar.gz'
+  dist_url: 'https://storage.googleapis.com/golang/go1.6.1.linux-amd64.tar.gz'
+  sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988'
+
+# sha256_sum for python was generated by downloading artifact, using SHA1 hash to validate,
+# then generating SHA256 hash for internal use.
+# $ gpg --verify ~/Downloads/Python-2.7.12.tgz.asc Python-2.7.12.tgz
+# gpg: Signature made Sat 25 Jun 2016 02:56:15 PM PDT using RSA key ID 18ADD4FF
+# gpg: Good signature from "Benjamin Peterson <bp@benjamin.pe>"
+# gpg:                 aka "Benjamin Peterson <benjamin@python.org>"
+# gpg:                 aka "Benjamin Peterson <bp@benjamin-peterson.org>"
+# gpg: WARNING: This key is not certified with a trusted signature!
+# gpg:          There is no indication that the signature belongs to the owner.
+# Primary key fingerprint: C01E 1CAD 5EA2 C4F0 B8E3  5715 04C3 67C2 18AD D4FF
+python:
+  version:                                                  '2.7.12'
+  archive:                                           'Python-2.7.12.tgz'
+  dist_url: 'https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz'
+  sha256_sum: '3cb522d17463dfa69a155ab18cffa399b358c966c0363d6c8b5b3bf1384da4b6'
+  gpg_sig_url: 'https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz.asc'
+
+# sha256_sum for rundeck was generated by downloading artifact, using SHA1 hash to validate,
+# then generating SHA256 hash for internal use.
+rundeck:
+  version:          '2.6.9-1-GA'
+  artifact: 'rundeck-2.6.9-1-GA.deb'
+  dist_url: 'http://dl.bintray.com/rundeck/rundeck-deb'
+  sha256_sum: '363c64a7643ae2e52db6b9d019c8593835123327959ae35c95050708d122066f'
+  gpg_key_url: 'https://gist.githubusercontent.com/gschueler/6142c7c4eaa759b59da1/raw/757641f1d9f79d01afac8df29ffd11d9aeb8df92/BUILD-GPG-KEY-Rundeck.org.key'
+
+prisem:
+  version:                                 '0.5.10'
+  artifact:                     'prisem-rpc-0.5.10.tar.gz'
+  dist_url: '{{ artifacts_url }}/prisem-rpc-0.5.10.tar.gz'
+
+# TODO(dittrich): Force use of a single method for obtaining artifacts
+artifacts_url: 'file:///home/ansible/sources'
+artifact_server_visibility: 'public'
+
+# Default to using a local squid proxy on the virtual machine host (e.g., dev laptop)
+https_proxy: 'https://10.0.2.2:8000'
+
+# Bash automated testing system
+bats_version: 'v0.4.0'
+
+git_version: 'v2.8.4'
+
+dims_docker_port: 2375
+dims_kibana_port: 8480
+dims_ssh_port: 8422
+dims_ssl_port: 8443
+dims_elasticsearch_kibana_port: 9200
+dims_allowed_ports: '[ {{ dims_kibana_port }}, {{ dims_ssl_port }}, {{ dims_ssh_port }} ]'
+# Default browser page
+dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.json'
+dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
+dims_firefox_default_homepage: '{{ dims_owf_url }}'
+
+# SQUID
+squidLogFile: '/var/log/squid.log'
+squidContainerName: 'squid-proxy'
+squidBasename: 'squid'
+
+# TRIDENT (and POSTGRES/NGINX/POSTFIX)
+tridentFQDN: 'trident.devops.local'
+# TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
+#tridentIP: '192.168.29.12'
+tridentHTTPPort: 8333
+tridentSysAdminUser: 'trident'
+tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
+
+tridentDBName: 'trident'
+tridentDBUser: 'trident'
+tridentDBPass: '{{ vault_tridentDBPass }}'
+tridentDBPort: 5432
+
+tridentNginxHTTPPort: 80
+tridentNginxHTTPSPort: 443
+sslCertDir: '/etc/nginx/ssl'
+sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+
+trident:
+  version: '1.4.5'
+  name: 'LOCAL Trident Portal'
+  welcome_text: 'LOCAL Trident'
+  url_public: 'https://{{ tridentFQDN }}'
+  email_domain: '{{ deployment }}'
+  people_domain: '{{ deployment }}'
+  logo_image: '/gfx/logo.png'
+  header_image: '/gfx/header_image.jpg'
+  var: '/var/lib/trident'
+  mail_handler: '/var/lib/trident/library/mh-wrapper'
+  adminname: 'LOCAL Trident Administrator'
+  adminemail: 'admin@{{ category }}.{{ deployment }}'
+  admins:
+    - dittrich
+    - mboggess
+  primary_tg:
+    ident: 'main'
+    descr: 'Main TG'
+    additional_lists:
+      - ident: 'demo'
+        descr: 'LOCAL Trident Demonstration'
+    initial_users:
+      - ident: 'dims'
+        descr: 'DIMS Mail (no-reply)'
+        email: 'noreply@{{ category }}.{{ deployment }}'
+      - ident: 'dittrich'
+        descr: 'Dave Dittrich'
+        email: 'dittrich@{{ category }}.{{ deployment }}'
+      - ident: 'mboggess'
+        descr: 'Megan Boggess'
+        email: 'mboggess@{{ category }}.{{ deployment }}'
+  cli:
+    opts: ''
+    sha256_sum: '15f11c986493a67e85aa9cffe6719a15a8c6a65b739a2b0adf62ce61e53f4203' #trident-cli_1.4.5_amd64.deb
+  server:
+    opts: '--syslog'
+    sha256_sum: 'a8af27833ada651c9d15dc29d04451250a335ae89a0d2b66bf97a787dced9956' #trident-server_1.4.5_amd64.deb
+  wikiexport:
+    sha246_sum: '4d2f9d62989594dc5e839546da596094c16c34d129b86e4e323556f1ca1d8805' #trident-wikiexport_1.4.5_amd64.deb
+  all:
+    sha246_sum: '67f57337861098c4e9c9407592c46b04bbc2d64d85f69e8c0b9c18e8d5352ea6' #trident_1.4.5_all.deb
+
+trident_perl:
+  version: '0.1.0'
+
+pitchfork:
+  version: '1.9.4'
+  sha256_sum: '5b06ae4a20a16a7a5e59981255ba83818f67224b68f6aaec014acf51ca9d1a44' #pitchfork-data_1.9.4_all.deb
+
+trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident.version }}'
+trident_release:
+  '1.4.5':
+    pitchfork_artifact: '{{ trident_download_dir }}/pitchfork-data_1.9.4_all.deb'
+    trident_server_artifact: '{{ trident_download_dir }}/trident-server_1.4.5_amd64.deb'
+    trident_cli_artifact: '{{ trident_download_dir }}/trident-cli_1.4.5_amd64.deb'
+    trident_all_artifact: '{{ trident_download_dir }}/trident_1.4.5_all.deb'
+    trident_wikiexport_artifact: '{{ trident_download_dir }}/trident-wikiexport_1.4.5_amd64.deb'
+
+nginx_version: '1.6.2-5+deb8u3'
+nginx_health_check: 8888
+
+# Postgresql
+postgresql_version: '9.4'
+
+# TODO(dittrich): Remove once we switch to using dictionary below.
+threeD: 'off'
+CPUs: 2
+memory: 2048
+vm_dir: '/vm'
+vmUser: 'ansible'
+vmKey: 'dims_ansible_rsa'
+
+vm:
+  threeD: 'off'
+  CPUs: 2
+  memory: 2048
+  root: '/vm'
+  vmUser: 'ansible'
+  vmKey: 'dims_ansible_rsa'
+
+# vim: ft=ansible :

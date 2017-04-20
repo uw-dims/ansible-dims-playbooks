@@ -1,0 +1,40 @@
+---
+
+# File: tasks/install-bashpass.yml
+
+- name: Check out bashpass repo
+  git:
+    repo: https://github.com/joshuar/bashpass.git
+    dest: "{{ dims_deploy }}/bashpass"
+    force: true
+    update: yes
+    version: "{{ bashpass_version | default('master') }}"
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]
+
+- name: Ensure patch is present
+  copy:
+    src: "{{ patches }}/diffs.hunspell"
+    dest: "{{ dims_deploy }}/bashpass/diffs.hunspell"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: "{{ mode_0644 }}"
+  become: yes
+  tags: [ base, packages ]
+
+- name: Install into DIMS bin directory
+  shell: >
+    cd {{ dims_deploy }}/bashpass &&
+    patch -p1 < diffs.hunspell &&
+    make install
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]
+
+- name: Remove deploy directory
+  file: "state=absent path={{ dims_deploy }}/bashpass"
+  become: yes
+  tags: [ base, packages ]
+
+# vim: ft=ansible :

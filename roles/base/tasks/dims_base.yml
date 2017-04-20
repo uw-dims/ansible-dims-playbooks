@@ -1,0 +1,181 @@
+---
+
+# File: roles/base/tasks/dims_base.yml
+
+# Use group= rather than groups= otherwise primary group is users [LP]
+- name: Ensure dims group exists
+  group: "name={{ dims_group }} state=present system=no"
+  sudo: yes
+  tags: [ base, config ]
+
+- name: Ensure ansible user is in dims group
+  user:
+    name: ansible
+    append: yes
+    groups: '{{ dims_group }}'
+  sudo: yes
+  tags: [ base, config ]
+
+
+- name: Ensure dims service account exists
+  user:
+    name: '{{ dims_user }}'
+    append: yes
+    group: '{{ dims_group }}'
+    home: '{{ dims }}'
+    shell: /bin/bash
+    comment: 'DIMS Service Account'
+  sudo: yes
+  tags: [ base, config ]
+
+- name: Ensure dims top level directory exists
+  file:
+    path={{ dims }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode={{ mode_0775 }}
+  sudo: yes
+  tags: [ base, config ]
+
+- name: Ensure tests directory absent if initializing clean-up
+  file:
+    state=absent
+    path={{ dims_tests }}
+  sudo: yes
+  when: dims_initialize_tests
+  tags: [ base, config, tests ]
+
+- name: Ensure dims (system-level) subdirectories exist
+  file:
+    path={{ item }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode={{ mode_0775 }}
+  with_items: '{{ dims_dirs }}'
+  sudo: yes
+  tags: [ base, config ]
+
+- name: Ensure private directory ("secrets" storage) is present
+  file:
+    path={{ private }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode={{ mode_0770 }}
+  sudo: yes
+  tags: [ base, config ]
+
+# Note that /etc/environment is not read on CoreOS the same way that
+# it is done on Debian based Linux systems. See the tasks/coreos.yml
+# file for learning how they are applied.
+
+- name: Populate /etc/environment (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/environment
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  with_first_found:
+    - files:
+        - '{{ dims_environment }}'
+        - environment.{{ ansible_fqdn }}.j2
+        - environment.category-{{ category }}.j2
+        - environment.deployment-{{ deployment }}.j2
+        - environment.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/environment/'
+        - environment/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ base, config ]
+
+# TODO(dittrich): Do this for Darwin as well
+#- name: Populate /etc/environment on Darwin
+#  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode={{ mode_0644 }}"
+#  when: ansible_os_family == "Darwin"
+#  sudo: yes
+#  tags: [ base, config ]
+
+# These are used by tests, so the 'tests' tag is applied specifically for this library.
+- name: Make DIMS bash shell functions present
+  copy:
+    src=dims_functions.sh
+    dest={{ dims_bin }}/dims_functions.sh
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0644 }}
+  sudo: yes
+  tags: [ base, config, tests ]
+
+- name: Ensure DIMS system shell init hook is present (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/bash.bashrc
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0755 }}
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc }}'
+        - bash.bashrc.{{ ansible_fqdn }}.j2
+        - bash.bashrc.category-{{ category }}.j2
+        - bash.bashrc.deployment-{{ deployment }}.j2
+        - bash.bashrc.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/bash.bashrc/'
+        - bash.bashrc/
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make DIMS system level profile present
+  template:
+    src={{ item }}
+    dest=/etc/profile.d/dims.sh
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  with_first_found:
+    - files:
+        - '{{ dims_profile }}'
+        - dims.sh.{{ ansible_fqdn }}.j2
+        - dims.sh.category-{{ category }}.j2
+        - dims.sh.deployment-{{ deployment }}.j2
+        - dims.sh.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
+        - profile.d/
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make directory for DIMS bashrc plugins present
+  file: "state=directory path={{ dims_etc }}/bashrc.dims.d owner={{ dims_user }} group={{ dims_group }} mode={{ mode_0775 }}"
+  sudo: yes
+  tags: [ base, config ]
+
+- name: Make DIMS-specific bashrc setup file present
+  template:
+    src={{ item }}
+    dest={{ dims_etc }}/bashrc.dims
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc_dims }}'
+        - bashrc.dims.{{ ansible_fqdn }}.j2
+        - bashrc.dims.category-{{ category }}.j2
+        - bashrc.dims.deployment-{{ deployment }}.j2
+        - bashrc.dims.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/bashrc.dims/'
+        - bashrc.dims/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ base, config ]
+
+# vim: ft=ansible :

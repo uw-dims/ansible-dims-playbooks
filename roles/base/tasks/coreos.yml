@@ -1,0 +1,104 @@
+---
+
+# File: roles/base/tasks/coreos_base.yml
+
+# CoreOS has a different way of initializing Bash shells, which
+# has to be taken into consideration when customizing CoreOS.
+# See:
+#   https://github.com/coreos/coreos-overlay/tree/master/app-shells/bash/files
+#   http://stackoverflow.com/questions/30596866/how-can-i-customize-bashrc-bash-profile-or-profile-on-a-coreos-installation
+
+- name: Make CoreOS user-data file present (CoreOS)
+  template:
+    src={{ item }}
+    dest=/var/lib/coreos-vagrant/user-data
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_rw_user }}
+  with_first_found:
+    - files:
+        - '{{ coreos_userdata }}'
+        - user-data.{{ inventory_hostname }}.j2
+        - user-data.category-{{ category }}.j2
+        - user-data.deployment-{{ deployment }}.j2
+        - user-data.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/user-data/'
+        - user-data/
+  sudo: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Run coreos-cloudinit to install user-data configs (CoreOS)
+  shell: "coreos-cloudinit --from-file=/var/lib/coreos-vagrant/user-data"
+  sudo: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Ensure kernel parameter changes are applied
+  shell: "sysctl --system"
+  sudo: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Ensure CoreOS profile.d initialization file is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/profile.d/coreos.sh
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+        - '{{ coreos_profile }}'
+        - coreos.sh.{{ ansible_fqdn }}.j2
+        - coreos.sh.category-{{ category }}.j2
+        - coreos.sh.deployment-{{ deployment }}.j2
+        - coreos.sh.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
+        - profile.d/
+  sudo: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+#- name: Only "makecache" in toolbox if past timer (CoreOS)
+#  shell: "echo dnf -y makecache timer | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS"
+#  tags: [ base, packages ]
+
+#- name: Make sure required packages are present (CoreOS)
+#  shell: "echo dnf -y install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
+#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS"
+#  tags: [ base, packages ]
+
+# TODO(dittrich): Debug and fix proxy problem?
+#- name: Only "makecache" in toolbox if past timer (CoreOS, no proxy)
+#  shell: "echo dnf -y makecache timer | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS" and https_proxy is not defined
+#  tags: [ base, packages ]
+
+# TODO(dittrich): Debug and fix proxy problem?
+#- name: Only "makecache" in toolbox if past timer (CoreOS, w/proxy)
+#  shell: "echo dnf -y --setopt proxy={{ https_proxy }} makecache timer | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS" and https_proxy is defined
+#  tags: [ base, packages ]
+
+# TODO(dittrich): Debug and fix proxy problem?
+#- name: Make sure required packages are present (CoreOS) (no proxy)
+#  shell: "echo dnf -y install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
+#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS" and https_proxy is not defined
+#  tags: [ base, packages ]
+
+# TODO(dittrich): Debug and fix proxy problem?
+#- name: Make sure required packages are present (CoreOS) (with proxy)
+#  shell: "echo dnf -y --setopt proxy={{ https_proxy }} install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
+#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS" and https_proxy is defined
+#  tags: [ base, packages ]
+
+#- name: Make sure blacklisted packages are absent (CoreOS)
+#  shell: "echo dnf -y remove {{ packages_remove[ansible_os_family] | list_to_args }} | toolbox -q"
+#  when: packages_remove[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS"
+#  tags: [ base, packages ]
+
+# vim: ft=ansible :

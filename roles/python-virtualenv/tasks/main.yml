@@ -1,0 +1,270 @@
+---
+
+# File: roles/python-virtualenv/tasks/main.yml
+
+# This role is designed to ensure that all necessary components for building
+# a Python virtual environment (default name specified by {{ venv_name }}
+# (originally 'dimsenv') for use by system programs. This is known as the
+# "system Python virtual environment" and its purpose is to isolate a
+# specific version of Python and all required tools used by DIMS components
+# from the operating system distribution installed Python interpreter, so as
+# to not break things due to library incompatibilities and/or system updates.
+# Tyring to share a single virtual environment between multiple users, or
+# for mixing "production" and "development" activities, is fraught with
+# hidden dangers and difficult to debug and recover when something breaks.
+#
+# This role installs all of the pre-requisite operating system packages
+# and downloads all of the source code components that will be used to
+# build the system Python virtual environment. It will leave these files
+# in the {{ dims_src }} directory for later use in rebuilding or
+# testing package upgrades.
+#
+# Development users will use a script to create their own Python virtual
+# environment clone in their $HOME directory file tree, to isolate any
+# changes they make for developement and/or testing purposes from the
+# system Python virtual environment, which is intended to remain stable
+# and functional.
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ python-virtualenv, packages, config ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ python-virtualenv, packages ]
+
+- name: Install debian prerequisites if needed
+  apt:
+    name={{ item }}
+    state=present
+    force=yes
+  with_items:
+    - autoconf
+    - build-essential
+    - libreadline-dev
+    - libbz2-dev
+    - libgdbm-dev
+    - libsqlite3-dev
+    - libffi-dev
+    - graphviz
+    - libgraphviz-dev
+    - libxml2-dev
+    - libxslt1-dev
+    - libyaml-dev
+    - libncurses-dev
+    - libssl-dev
+    - libcurl4-gnutls-dev
+    - pkg-config
+    - python2.7-dev
+    - xsltproc
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ python-virtualenv, packages ]
+
+- name: Ensure required Sphinx prerequisites present
+  apt:
+    state=present
+    name={{ item }}
+    force=yes
+  with_items:
+    - texlive-latex-base
+    - texlive-latex-extra
+    - texlive-latex-recommended
+    - texlive-extra-utils
+    - texlive-fonts-recommended
+    - texlive-fonts-extra
+  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx == "true")
+  become: yes
+  tags: [ python-virtualenv, packages ]
+
+#- name: Ensure required MacOS X prerequisites present
+#  script: macos-virtualenv-prereqs.sh
+#  when: ansible_os_family == "Darwin" and install_mode == "system"
+#  become: yes
+#  become_user: '{{ dims_user }}'
+#  tags: [ python-virtualenv ]
+
+- name: Create base-requirements.txt file
+  template:
+    src=pip/base-requirements.txt.j2
+    dest={{ dims_etc }}/base-requirements.txt
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0644 }}
+  become: yes
+  tags: [ python-virtualenv ]
+
+- name: Create {{ venv_name }}-requirements.txt file
+  template:
+    src=pip/{{ venv_name }}-requirements.txt.j2
+    dest={{ dims_etc }}/{{ venv_name }}-requirements.txt
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0644 }}
+  become: yes
+  tags: [ python-virtualenv ]
+
+- name: Create {{ venv_name }}.build script
+  template:
+    src=scripts/{{ venv_name }}.build.j2
+    dest={{ dims_bin }}/{{ venv_name }}.build
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  become: yes
+  tags: [ python-virtualenv, config ]
+
+- name: Make {{ venv_name }}.update script present
+  template:
+    src=scripts/{{ venv_name }}.update.j2
+    dest={{ dims_bin }}/{{ venv_name }}.update
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  become: yes
+  tags: [ python-virtualenv, config ]
+
+- name: Ensure source for Python is present
+  get_url:
+    url={{ python.dist_url }}
+    sha256sum={{ python.sha256_sum }}
+    dest={{ dims_src }}/{{ python.archive }}
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure get-pip.py is present
+  git:
+    repo=https://github.com/pypa/get-pip.git
+    dest={{ dims_src }}/get-pip
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure prisem-rpc source is present
+  get_url:
+    url={{ prisem.dist_url }}
+    dest={{ dims_src }}/{{ prisem.artifact }}
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure source for Git is present
+  git:
+    repo=https://github.com/git/git.git
+    version={{ git_version }}
+    dest={{ dims_src }}/git
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure source for 'hub-flow' is present
+  git:
+    repo=https://github.com/datasift/gitflow
+    dest={{ dims_src }}/gitflow
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure source for 'mr' is present
+  git:
+    repo=https://git.joeyh.name/git/myrepos.git/
+    dest={{ dims_src }}/myrepos
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure source for 'git-crypt' is present
+  git:
+    repo=https://github.com/AGWA/git-crypt.git
+    dest={{ dims_src }}/git-crypt
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure source for 'git-big-picture' is present
+  git:
+    repo=https://github.com/esc/git-big-picture.git
+    dest={{ dims_src }}/git-big-picture
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ python-virtualenv ]
+
+- name: Ensure bashrc additions for virtual environments are present
+  template:
+    src={{ item }}
+    dest={{ dims_etc_bashrc }}/{{ item | basename | regex_replace('\.j2','') }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0644 }}
+  with_fileglob:
+   - ../templates/bashrc.d/*.bash.j2
+  become: yes
+  tags: [ python-virtualenv, config ]
+
+- name: Ensure virtual environment bin directory is group writable
+  file:
+    path={{ dims }}/envs/{{ venv_name }}/bin
+    state=directory
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_2775 }}
+  become: yes
+  tags: [ python-virtualenv ]
+
+# The following is done to prevent removing a Python interpreter that is
+# actively being used
+- name: Check for processes actively using virtualenv
+  shell: "ps auxwwwww | grep -v ' grep ' | grep '{{ dims }}/envs/{{ venv_name }}/bin'"
+  ignore_errors: true
+  tags: [ python-virtualenv ]
+  register: result
+
+- debug: "msg={{ result.stdout }}"
+  when: result.stdout != ""
+  tags: [ python-virtualenv ]
+
+- name: Stop supervisor service if it is using this virtual environment
+  service:
+    name=supervisor
+    state=stopped
+  become: yes
+  notify: restart supervisor
+  when: result is defined and result.stdout != ""
+  ignore_errors: yes
+  tags: [ python-virtualenv ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  tags: [ python-virtualenv, tests ]
+
+- name: Run {{ venv_name }}.build script
+  command:
+    bash {{ dims_bin }}/{{ venv_name }}.build --verbose
+  args:
+    chdir={{ deploy_dir }}/{{ role_name }}
+  environment:
+    DIMS: '{{ dims }}'
+    GIT: '{{ dims_git }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: yes
+  tags: [ python-virtualenv ]
+
+- name: Run unit test for Python virtualenv
+  command: "{{ dims_bin }}/test.runner --tap --level unit --match 'python-virtualenv'"
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  tags: [ python-virtualenv ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ python-virtualenv, packages, configs, tests ]
+
+# vim: ft=ansible :

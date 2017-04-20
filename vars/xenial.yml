@@ -1,0 +1,64 @@
+---
+
+# File: vars/xenial.yml
+
+dist_tag: u'{{ ansible_distribution_version }}'
+
+packages_install:
+  Ubuntu: [
+    'apt-transport-https',
+    'bash-completion',
+    'ca-certificates',
+    'cpanminus',
+    'curl',
+    'dconf-tools',
+    'git-core',
+    'gitk',
+    'htop',
+    'hunspell',
+    'iptables-persistent',
+    'ifstat',
+    'make',
+    'netcat',
+    'nfs-common',
+    'chrony',
+    'ntpdate',
+    'openssh-server',
+    'patch',
+    'perl',
+    'postfix',
+    'python',
+    'python-apt',
+    'remake',
+    'resolvconf',
+    'rsync',
+    'rsyslog',
+    'sshfs',
+    'strace',
+    'tree',
+    'vim',
+    'xsltproc',
+    'chrony',
+    'nfs-kernel-server',
+    'smartmontools',
+  ]
+
+packages_remove:
+  Ubuntu: [
+    'modemmanager',
+    'sendmail',
+  ]
+
+services_disabled: [ ]
+services_enabled: [
+  'auditd',
+]
+
+root_user: 'root'
+root_group: 'root'
+
+# The following is for testing and validation of where this
+# variable gets (re)defined.
+was_defined_in: 'vars/xenial.yml'
+
+# vim: ft=ansible :

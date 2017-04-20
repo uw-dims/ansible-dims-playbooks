@@ -1,0 +1,761 @@
+---
+
+# File: roles/base/tasks/main.yml
+
+- name: Check for ansible 2.x
+  include: "{{ tasks }}/ansible2check.yml"
+  tags: [ always ]
+
+- debug: msg=System "{{ inventory_hostname }}"
+  when: verbose
+  tags: [ base ]
+
+- name: Check proxy availability
+  include: "{{ tasks }}/proxy_check.yml"
+  tags: [ base, packages ]
+
+- name: Make DIMS-specific resources present
+  include: dims_base.yml
+  tags: [ base, packages ]
+
+# Set up logging first to aid in debugging installation problems.
+
+# Debian does not have a 'syslog' user/group by default, and runs rsyslogd
+# as root. Since we're dropping privilege on Ubuntu, create the group and
+# user here to match.
+
+# NOTE(mboggess): CoreOS uses journald to aggregate and structure log
+# output. For more information see
+# https://www.loggly.com/ultimate-guide/linux-logging-with-systemd/
+# Unfortunately, journald doesn't do remote logging, so we'll probably
+# have to do some fenagling and maybe Docker container to run rsyslog
+# on the CoreOS nodes to funnel logs back to their central holding place.
+# Adding "when" statements to make these all Debian-only tasks.
+
+- name: Add group for rsyslog
+  group: name=syslog state=present
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+- name: Add non-privileged user for rsyslog
+  user:
+    name=syslog
+    state=present
+    shell=/bin/true
+    group=syslog
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+- name: Make DIMS logging directory present
+  file:
+    state=directory
+    path=/var/log/dims
+    owner=syslog
+    group={{ root_group }}
+    mode={{ mode_0775 }}
+  sudo: yes
+  tags: [ base, config, rsyslogd ]
+
+- name: Make /etc/rsyslog.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/rsyslog.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rsyslog_config }}'
+        - rsyslog.conf.{{ inventory_hostname }}
+        - rsyslog.conf.category-{{ category }}.j2
+        - rsyslog.conf.deployment-{{ deployment }}.j2
+        - rsyslog.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - rsyslog/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+- name: Ensure /etc/rsyslog.d present
+  file:
+    path: /etc/rsyslog.d
+    state: directory
+    mode: '{{ mode_0644 }}'
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+- name: Make /etc/rsyslog.d/00-ignore.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/rsyslog.d/00-ignore.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rsyslog_default_config }}'
+        - 00-ignore.conf.{{ inventory_hostname }}
+        - 00-ignore.conf.category-{{ category }}.j2
+        - 00-ignore.conf.deployment-{{ deployment }}.j2
+        - 00-ignore.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - rsyslog/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+# The 49-consolidation.conf file is intended to control log consolidation (i.e., "remote" log
+# collection.) It effectively becomes a no-op if the host does not receive any logs
+# from clients. This is being done this way to support central logging from server hosts,
+# or logging to a virtual machine hypervisor host from virtual machines. (Both may actually
+# be used, which is then recursive in nature.)
+
+- name: Make /etc/rsyslog.d/49-consolidation.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/rsyslog.d/49-consolidation.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rsyslog_default_config }}'
+        - 49-consolidation.conf.{{ inventory_hostname }}
+        - 49-consolidation.conf.category-{{ category }}.j2
+        - 49-consolidation.conf.deployment-{{ deployment }}.j2
+        - 49-consolidation.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - rsyslog/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+# The 50-default.conf file is intended to be default for host configuration, with Jinja logic
+# to optionally support sending to a remote log consolidation host.
+- name: Make /etc/rsyslog.d/50-default.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/rsyslog.d/50-default.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rsyslog_default_config }}'
+        - 50-default.conf.{{ inventory_hostname }}
+        - 50-default.conf.category-{{ category }}.j2
+        - 50-default.conf.deployment-{{ deployment }}.j2
+        - 50-default.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - rsyslog/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, rsyslogd ]
+
+# Force restart of rsyslogd here (rather than use 'notify') to
+# start logging to central site as soon as possible for diagnositc
+# purposes. Using 'notify' delays execution of handlers to the end.
+
+- name: restart rsyslog (init/upstart service)
+  action: service name=rsyslog state=restarted
+  sudo: yes
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
+  tags: [ base, config, rsyslogd ]
+
+- name: restart rsyslog (systemd service)
+  shell: systemctl restart rsyslog.service
+  sudo: yes
+  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
+        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
+  tags: [ base, config, rsyslogd ]
+
+- name: /etc/logrotate.d/dims
+  template:
+    src: '{{ item }}'
+    dest: /etc/logrotate.d/dims
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ logrotate_default_config }}'
+        - dims.{{ inventory_hostname }}
+        - dims.category-{{ category }}.j2
+        - dims.deployment-{{ deployment }}.j2
+        - dims.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/logrotate/'
+        - logrotate/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, logrotate ]
+
+- name: Set hostname (runtime) (Debian, CoreOS)
+  shell: 'hostname {{ name | default(ansible_hostname) }}'
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make /etc/hostname present (Debian, CoreOS)
+  shell: 'echo {{ name | default(ansible_hostname) }} > /etc/hostname'
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Set domainname (Debian, CoreOS)
+  shell: 'domainname {{ category }}.{{ deployment }}'
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Set domainname (MacOSX)
+  lineinfile:
+    dest=/etc/defaultdomain
+    regexp='^.*$'
+    line={{ category }}.{{ deployment }}
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  sudo: yes
+  when: ansible_os_family == "MacOSX"
+  tags: [ base, config ]
+
+# Handle the configuration of network interfaces in a manner that
+# matches policy for configuring bare-metal machines.
+# (NetworkManager should be disabled in /etc/network/interfaces file. See
+# http://support.qacafe.com/knowledge-base/how-do-i-prevent-network-manager-from-controlling-an-interface/)
+#
+# TODO(dittrich): Link to documentation re: bare-metal network interface config.
+# TODO(mboggess): add support for other OSes as needed.
+
+# This play is for RedHat/Fedora/CentOS
+#- name: Ensure resolv.conf is not modified by changes to NICs
+#  lineinfile:
+#    dest=/etc/sysconfig/network
+#    create=yes
+#    backup=yes
+#    state=present
+#    line='RESOLV_MODS=no'
+#    regexp=^RESOLV_MODS=
+#  sudo: yes
+#  tags: [ base, config, dns ]
+
+- name: Make resolv.conf file present on Debian
+  template:
+    src: '{{ item }}'
+    dest: /etc/resolv.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ resolv_conf }}'
+        - resolv.conf.{{ inventory_hostname }}.j2
+        - resolv.conf.category-{{ category }}.j2
+        - resolv.conf.deployment-{{ deployment }}.j2
+        - resolv.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - resolv.conf/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, dns ]
+
+- name: Make appropriate NetworkManager configruation present
+  template:
+    src: '{{ item }}'
+    dest: /etc/NetworkManager/NetworkManager.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ network_manager }}'
+        - NetworkManager.conf.{{ inventory_hostname }}.j2
+        - NetworkManager.conf.{{ ansible_lsb.codename }}.j2
+        - NetworkManager.conf.category-{{ category }}.j2
+        - NetworkManager.conf.deployment-{{ deployment }}.j2
+        - NetworkManager.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/NetworkManager/'
+        - NetworkManager/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# Deal with dnsmasq configuration in the face of NetworkManager
+# and/or Ubuntu 14.04 issues.
+# TODO(mboggess): Tasks in dnsmasq.yml fail on CoreOS
+# added "when" statement
+- name: Make DNS service using dnsmasq present (Debian)
+  include: dnsmasq.yml
+  when: ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+# Handle the configuration of network interfaces in a manner that
+# matches policy for configuring bare-metal machines.
+# (NetworkManager should be disabled in /etc/network/interfaces file. See
+# http://support.qacafe.com/knowledge-base/how-do-i-prevent-network-manager-from-controlling-an-interface/)
+#
+# TODO(dittrich): Link to documentation re: bare-metal network interface config.
+# TODO(mboggess): add support for other OSes as needed.
+- name: Apply /etc/network/interfaces (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/network/interfaces
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ network_interfaces }}'
+        - interfaces.{{ inventory_hostname }}.j2
+        - interfaces.category-{{ category }}.j2
+        - interfaces.deployment-{{ deployment }}.j2
+        - interfaces.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/network/'
+        - network/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# http://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/
+# nmcli con add type ethernet con-name static2 ifname eth1 ip4 192.168.29.13/24 gw4 192.168.29.1
+
+#- name: Install needed network-manager libs
+#  apt:
+#    name: '{{ item }}'
+#    state: installed
+#  with_items:
+#    - libnm-glib-dev
+#  sudo: yes
+#  when: ansible_distribution == "Debian"
+#  tags: [ base, config ]
+
+#     - libnm-qt-devel.x86_64
+#     - nm-connection-editor.x86_64
+#     - libsemanage-python
+#     - policycoreutils-python
+
+# Roadblock.
+# Fails with: Error: invalid property 'address': 'address' is ambiguous (addresses x address-labels).
+#- name: Create ethernet device config using nmcli
+#  nmcli:
+#    conn_name={{ networking.interfaces[1].device }}
+#    ifname={{ networking.interfaces[1].device }}
+#    type=ethernet
+#    state=present
+#    autoconnect=yes
+#    ip4={{ networking.interfaces[1].ip }}/{{ networking.interfaces[1].cidr_bits }}
+#    gw4={{ networking.interfaces[1].gateway }}
+#    dns4={{ networking.interfaces[1].dns_servers }}
+#  sudo: yes
+#  when: networking is defined and inventory_hostname == "yellow.devops.local"
+
+# As Bill O'Reilly would say, "#%$^$! We'll do it live!"
+#- name: Create ethernet device config using nmcli
+#  shell: >
+#    /usr/bin/nmcli connection add type ethernet
+#    con-name {{ networking.interfaces[1].device }}
+#    ifname {{ networking.interfaces[1].device }}
+#    ip4 {{ networking.interfaces[1].ip }}/{{ networking.interfaces[1].cidr_bits }}
+#    gw4 {{ networking.interfaces[1].gateway }}
+#  sudo: yes
+#  when: 'networking is defined and inventory_hostname in ["yellow.devops.local", "yellow.ops.ectf"]'
+#  when: ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8
+#  tags: [ base, config ]
+
+- name: Ensure functioning /etc/fstab file is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/fstab
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ base_fstab }}'
+        - fstab.{{ inventory_hostname }}.j2
+        - fstab.category-{{ category }}.j2
+        - fstab.deployment-{{ deployment }}.j2
+        - fstab.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/fstab/'
+        - fstab/
+      skip: true
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Create base /etc/hosts file (Debian, CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/hosts
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ base_hosts }}'
+        - hosts.{{ inventory_hostname }}.j2
+        - hosts.category-{{ category }}.j2
+        - hosts.deployment-{{ deployment }}.j2
+        - hosts.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/hosts/'
+        - hosts/
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make sure blacklisted packages are absent (Debian)
+  apt: state=absent name={{ item }} force=yes
+  with_items:
+    - '{{ packages_remove[ansible_lsb.id] }}'
+  sudo: yes
+  when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  ignore_errors: yes
+  tags: [ base, packages ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  tags: [ base, packages ]
+
+- name: Make sure required APT packages are present (Debian)
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - "{{ packages_install[ansible_lsb.id] }}"
+  sudo: yes
+  ignore_errors: yes
+  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+- name: Make upgraded packages present if we are explicitly upgrading
+  apt:
+    upgrade: safe
+    autoremove: yes
+  sudo: yes
+  when: packages_upgrade and ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+- name: Disable IPv6 in kernel on non-CoreOS
+  shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ base, packages ]
+
+- name: iptables v4 rules (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/iptables/rules.v4
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, iptables ]
+
+- name: iptables v4 rules (CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/iptables/rules-save
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  sudo: yes
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: iptables v6 rules (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/iptables/rules.v6
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, iptables ]
+
+- name: iptables v6 rules (CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/ip6tables/rules-save
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  sudo: yes
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+# Using "meta: flush_handlers" will run any handlers that have
+# been set up to this point.
+# http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
+- meta: flush_handlers
+
+# The Google shflags package is used by DIMS scripts
+- name: Make sure shflags is present
+  include: "{{ tasks }}/install-shflags.yml"
+
+# Note: All scripts end up without extensions. In the directory, they
+# have names that end in .j2 or .sh to differentiate between templated
+# and non-templated scripts.
+
+- name: Make sure common (templated) scripts are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_fileglob:
+   - '{{ files }}/common-scripts/*.j2'
+  tags: [ base, packages, scripts, tests ]
+
+- name: Make sure common (non-templated) scripts are present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_fileglob:
+   - '{{ files }}/common-scripts/*.sh'
+  tags: [ base, packages, scripts, tests ]
+
+- name: Ensure Ubuntu locale set (Ubuntu)
+  shell: "locale-gen {{ locale }}"
+  notify:
+  - update Ubuntu locales
+  sudo: yes
+  when: ansible_lsb.id == "Ubuntu"
+  tags: [ base, packages ]
+
+- name: Ensure Debian locale set (Debian)
+  lineinfile: dest=/etc/locale.gen
+              regexp='^# {{ locale }} UTF-8'
+              line='{{ locale }} UTF-8'
+              backrefs=yes
+              state=present
+  notify:
+  - update Debian locales
+  sudo: yes
+  when: ansible_lsb.id == "Debian"
+  tags: [ base, packages ]
+
+- name: Set timezone variables (Debian)
+  copy: content={{ dims_timezone }}
+        dest=/etc/timezone
+        owner={{ root_user }}
+        group={{ root_group }}
+        mode={{ mode_0644 }}
+        backup=yes
+  notify:
+  - update timezone
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
+- name: Set timezone (CoreOS)
+  shell: timedatectl set-timezone {{ dims_timezone }}
+  sudo: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Ensure getaddrinfo configuration is present (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/gai.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ gai_rules }}'
+        - gai.conf.{{ inventory_hostname }}.j2
+        - gai.conf.category-{{ category }}.j2
+        - gai.conf.deployment-{{ deployment }}.j2
+        - gai.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/gai/'
+        - gai/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# TODO(mboggess): unsure if chony usable on CoreOS
+#   Added "when" statement
+- name: Make sure that chrony is running (Debian)
+  service:
+    name: chrony
+    state: started
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, services ]
+
+# NOTE(mboggess): on CoreOS, /etc/ssh/sshd_config is a symlink to /usr/share/ssh/sshd_config
+# and /usr is a readonly filesystem. Might need to use user-data file for this step...
+- name: Apply SSH daemon configuration (OS invariant)
+  template:
+    src: '{{ item }}'
+    dest: /etc/ssh/sshd_config
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_rw_user }}'
+  with_first_found:
+    - files:
+        - '{{ sshd_config }}'
+        - sshd_config.{{ inventory_hostname }}.j2
+        - sshd_config.category-{{ category }}.j2
+        - sshd_config.deployment-{{ deployment }}.j2
+        - sshd_config.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
+        - sshd/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  notify:
+  - restart ssh
+  tags: [ base, config ]
+
+- name: Customize /etc/rc.local (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/rc.local
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0550 }}'
+  with_first_found:
+    - files:
+        - '{{ base_rclocal }}'
+        - rc.local.{{ inventory_hostname }}.j2
+        - rc.local.category-{{ category }}.j2
+        - rc.local.deployment-{{ deployment }}.j2
+        - rc.local.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rc.local/'
+        - rc.local/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Ensure bashpass is present
+  include: "{{ tasks }}/install-bashpass.yml"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, packages ]
+
+# See Jira Ticket http://jira.prisem.washington.edu/browse/DIMS-431
+#
+# The following two plays can be handled in all instances by now inserting
+# the inclusion logic into the postactivate script in the Python virtual
+# environment $WORKON_HOME directory. That file is run after every Python
+# virtual environment is run. The virtual environment includes scripts for
+# DIMS development that use hubflow and Git, so this is an acceptable place
+# to run them.
+
+# TODO(dittrich): How to handle this for Mac?
+- name: Install hub bash profile settings
+  copy:
+    src: hub.bash_completion.sh
+    dest: '{{ dims_etc_bashrc }}/hub.bash_completion.sh'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+# TODO(dittrich): How to handle this for Mac?
+- name: Install git prompt script
+  copy:
+    src: git-prompt.sh
+    dest: '{{ dims_etc_bashrc }}/git-prompt.sh'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  sudo: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Ensure bats is present
+  include: "{{ tasks }}/install-bats.yml"
+  tags: [ base, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  tags: [ base, tests ]
+
+- name: Make defined triggers present
+  include: "{{ tasks }}/triggers.yml"
+  tags: [ base, triggers ]
+
+- name: Make CoreOS resources present
+  include: coreos.yml
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, packages ]
+
+# vim: ft=ansible :

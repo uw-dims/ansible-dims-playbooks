@@ -1,0 +1,35 @@
+---
+
+# File: tasks/proxy_check.yml
+
+- name: Check to see if http_proxy is working
+  shell: "wget --timeout=3 -qO - http://archive.ubuntu.com/ubuntu/dists/devel/Release | grep -q '^Label: Ubuntu'"
+  environment:
+     http_proxy: "{{ http_proxy | default('') }}"
+  args:
+    warn: false
+  register: http_proxy_test
+  ignore_errors: yes
+  when: http_proxy is defined and http_proxy != ''
+
+- name: Disable http_proxy if it is not working
+  set_fact:
+    http_proxy: ''
+  when: http_proxy_test.rc is defined and http_proxy_test.rc != 0
+
+- name: Check to see if https_proxy is working
+  shell: "wget --timeout=3 -qO - https://packages.debian.org/jessie/amd64/0install/filelist | grep -q '0install'"
+  environment:
+     https_proxy: "{{ https_proxy | default('') }}"
+  args:
+    warn: false
+  register: https_proxy_test
+  ignore_errors: yes
+  when: https_proxy is defined and https_proxy != ''
+
+- name: Disable https_proxy if it is not working
+  set_fact:
+    https_proxy: ''
+  when: https_proxy_test.rc is defined and https_proxy_test.rc != 0
+
+# vim: ft=ansible :

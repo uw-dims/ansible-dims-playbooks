@@ -1,0 +1,9 @@
+---
+
+# File: roles/debug/tasks/main.yml
+
+# Simple playbook to dump variables for debugging
+
+- include: "{{ tasks }}/debug-dump-vars.yml"
+
+# vim: ft=ansible :

@@ -1,0 +1,37 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] System name is {{ trident.name }}" {
+    assert "{{ trident.name }}" tcli system get name
+}
+
+@test "[S][EV] System welcome_text is {{ trident.welcome_text }}" {
+    assert "{{ trident.welcome_text }}" tcli system get welcome_text
+}
+
+@test "[S][EV] System url_public is {{ trident.url_public }}" {
+    assert "{{ trident.url_public }}" tcli system get url_public
+}
+
+@test "[S][EV] System adminname is {{ trident.adminname }}" {
+    assert "{{ trident.adminname }}" tcli system get adminname
+}
+
+@test "[S][EV] System adminemail is {{ trident.adminemail }}" {
+    assert "{{ trident.adminemail }}" tcli system get adminemail
+}
+
+@test "[S][EV] System email_domain is {{ trident.email_domain }}" {
+    assert "{{ trident.email_domain }}" tcli system get email_domain
+}
+
+@test "[S][EV] System people_domain is {{ trident.people_domain }}" {
+    assert "{{ trident.people_domain }}" tcli system get people_domain
+}
+
+#EOF

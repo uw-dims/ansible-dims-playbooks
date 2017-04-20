@@ -1,0 +1,251 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Copyright (C) 2014-2016, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Source shflags
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
+
+# Tracks with bumpversion
+DIMS_VERSION=2.0.0
+
+VENV=${VENV:-{{ venv_name }}}
+ENVS=$HOME/dims/envs
+
+# Define command line options
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_string  'venv' "${VENV}" 'virtual environment name' 'n'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+
+ANSIBLE_OPTIONS="${ANSIBLE_OPTIONS}"
+FLAGS_HELP="usage: $BASE [options] args"
+
+# Define functions
+
+function usage() {
+    flags_help
+    cat << EOD
+
+This script clones the "system" Python virtual environment (default name
+"$VENV") to the user's home directory in the path "~/dims/envs".
+Any scripts that are found in the system virtual environment directory
+are also copied (as scripts like 'postactivate' are used by within DIMS).
+
+After the virtual environment is cloned, it will be populated with
+DIMS commands by running 'dims.install.dimscommands'.
+
+An exit trap is used to attempt to prevent destruction of the user's
+"$VENV" virtual environment if this script is interrupted.
+
+Using --verbose enables verbose output during the execution of this script.
+Using --debug enables debugging output during the execution of this script.
+Using both --verbose and --debug gives maximum output.
+
+EOD
+    exit 0
+}
+
+function exists_venv() {
+    local _venv=$1
+    if [[ -z $_venv ]]; then
+        error_exit 1 "No virtual environment name specified"
+    fi
+    [[ -d $ENVS/$_venv ]]
+}
+
+# This function is called within an exit trap. It should NOT exit,
+# which would cause the trap to be executed yet again.  Just print
+# errors to stderr and return instead.
+
+function abort_cleanup() {
+    local retval=0
+    if [[ -d $ENVS/${FLAGS_venv} ]]; then
+        mv $ENVS/${FLAGS_venv} $ENVS/${FLAGS_venv}.aborted
+        retval=$?
+        if [[ $retval -ne 0 ]]; then
+            warn "Could not create backup of aborted clone to $ENVS/${FLAGS_venv}"
+            return $retval
+        else
+            verbose "Created backup of aborted clone of $ENVS/${FLAGS_venv} to $ENVS/${FLAGS_venv}.aborted"
+        fi
+    fi
+    if [[ -d $ENVS/${FLAGS_venv}.orig ]]; then
+        mv $ENVS/${FLAGS_venv}.orig $ENVS/${FLAGS_venv}
+        retval=$?
+        if [[ $retval -ne 0 ]]; then
+            warn "Could not restore $ENVS/${FLAGS_venv}.orig to $ENVS/${FLAGS_venv}"
+            return $retval
+        fi
+    fi
+    return $retval
+}
+
+function copy_scripts() {
+    local f
+    local retval=0
+    local src=$DIMS/envs
+    local dest=$ENVS
+    verbose "Installing pre/post scripts from $src into $dest"
+    for f in $(cd $src && find * -maxdepth 0 -type f); do
+        debug "src=$src|f=$f|dest=$dest"
+        cp --preserve $src/$f $dest
+    done
+    return $retval
+}
+
+function get_venv_status() {
+    if [[ -z $VIRTUAL_ENV ]]; then
+        echo "NO"
+    elif [[ "$WORKON_HOME" =~ "$HOME" ]]; then
+        echo "USER"
+    else
+        echo "SYSTEM"
+    fi
+}
+
+function get_active_venv() {
+    if [[ -z $VIRTUAL_ENV ]]; then
+        echo ""
+    else
+        basename $VIRTUAL_ENV
+    fi
+}
+
+function main()
+{
+    # Just exit if all we were asked for was help.
+    [[ ${FLAGS_help} -eq ${FLAGS_TRUE} ]] && exit 0
+    [[ ${FLAGS_usage} -eq ${FLAGS_TRUE} ]] && usage
+
+    debug 'debug mode enabled'
+    [[ $FLAGS_debug -eq ${FLAGS_TRUE} && $FLAGS_verbose -eq ${FLAGS_TRUE} ]] && set -x
+
+    retval=0
+
+    debug "WORKON_HOME=$WORKON_HOME"
+
+    local venv=$(get_venv_status)
+    verbose "$venv virtual environment identified"
+    [[ "${venv}" == "NO" ]] && exit 1
+
+    local active_venv=$(get_active_venv)
+
+    if [[ ! -z "$active_venv" ]]; then
+        verbose "Virtual environment \"$active_venv\" is activated"
+    fi
+
+    for f in $ENVS/${FLAGS_venv}/bin/python $DIMS/envs/dimsenv/bin/python; do
+        if [[ -f $f ]]; then
+            debug "$f => $(get_file_timestamp $f)"
+        else
+            debug "$f does not exist"
+        fi
+    done
+    if ! [[ $ENVS/${FLAGS_venv}/bin/python -ot $DIMS/envs/{{ venv_name }}/bin/python ]]; then
+        verbose "User virtual environment \"${FLAGS_venv}\" does not need replacement"
+        exit 0
+    else
+        verbose "User virtual environment \"${FLAGS_venv}\" needs replacement"
+    fi
+
+    # Ensure virtual environment top level directory is present.
+    if [[ ! -d $ENVS ]]; then
+        mkdir -p $ENVS || error_exit $? "Could not create directory: $ENVS"
+        verbose "Created directory $ENVS"
+    fi
+
+    # Don't over-write virtual environment target directly. Put it aside
+    # for now until we know the clone was successful.
+    if [[ -d $ENVS/${FLAGS_venv} ]]; then
+        verbose "Renaming $ENVS/${FLAGS_venv} to $ENVS/${FLAGS_venv}.orig"
+        mv $ENVS/${FLAGS_venv} $ENVS/${FLAGS_venv}.orig
+    fi
+
+    # Make sure that we back out of things cleanly if interrupted.
+    add_on_exit abort_cleanup
+
+    verbose "Running: virtualenv-clone $DIMS/envs/{{ venv_name }} $ENVS/${FLAGS_venv}"
+    virtualenv-clone $DIMS/envs/{{ venv_name }} $ENVS/${FLAGS_venv}
+    retval=$?
+    if [[ $retval -ne 0 ]]; then
+        error_exit $retval "Failed to clone $DIMS/envs/{{ venv_name }} to $ENVS/${FLAGS_venv}"
+    fi
+
+    if [[ -d $ENVS/${FLAGS_venv}.orig ]]; then
+        verbose "Removing temporary backup $ENVS/${FLAGS_venv}.orig"
+        rm -rf $ENVS/${FLAGS_venv}.orig
+    fi
+    # Cancel cleanup on isle 9.
+    clear_on_exit
+
+    copy_scripts
+
+    # Ensure DIMS commands are present in virtualenv
+    if [[ -f $ENVS/${FLAGS_venv}/bin/activate ]]; then
+        . $ENVS/${FLAGS_venv}/bin/activate
+        [[ $VIRTUAL_ENV == "$ENVS/${FLAGS_venv}" ]] ||
+            error_exit $? "Could not activate cloned virtual environment \"${FLAGS_venv}\""
+        if [[ ! -d $GIT ]]; then
+            warn "Directory $GIT does not exist: cannot install DIMS commands from Git repos"
+            retval=1
+        else
+            verbose=$([[ ${FLAGS_verbose} -eq ${FLAGS_TRUE} ]] && echo "--verbose" || echo "")
+            if ! dims.install.dimscommands $verbose; then
+                warn "Could not install DIMS commands into virtual environment \"${FLAGS_venv}\""
+                retval=1
+            fi
+        fi
+    fi
+
+    if [[ "$venv_status" == "SYSTEM" ]]; then
+        if [[ "${FLAGS_venv}" == "{{ venv_name }}" ]]; then
+            warn "To activate the new USER virtual environment, use \"exec bash\" or log out/log in"
+        else
+            warn "To activate the new USER virtual environment, use \"exec bash\" followed by \"workon ${FLAGS_venv}\""
+        fi
+    else
+        if [[ "$active_venv" != "${FLAGS_venv}" ]]; then
+            warn "To activate the \"${FLAGS_venv}\" virtual environment, use \"workon ${FLAGS_venv}\""
+        else
+            warn "To activate the \"${FLAGS_venv}\" virtual environment, use \"exec bash\" or log out/log in"
+        fi
+    fi
+    return $retval
+}
+
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?

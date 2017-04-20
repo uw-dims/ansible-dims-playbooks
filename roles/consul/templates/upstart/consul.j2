@@ -1,0 +1,154 @@
+#!/bin/sh
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+set -e
+
+### BEGIN INIT INFO
+# Provides:           consul
+# Required-Start:     $syslog $remote_fs
+# Required-Stop:      $syslog $remote_fs
+# Should-Start:       cgroupfs-mount cgroup-lite
+# Should-Stop:        cgroupfs-mount cgroup-lite
+# Default-Start:      2 3 4 5
+# Default-Stop:       0 1 6
+# Short-Description:  Consul init script
+# Description:
+#  Consul is a distributed key-value store for service discovery,
+#  DNS, etc. See https://www.consul.io/
+#
+### END INIT INFO
+
+# This script is based on the /etc/init.d/docker startup script
+# for Ubuntu 14.04.
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+BASE=consul
+
+# modify these in /etc/default/$BASE (/etc/default/consul)
+CONSULD=/opt/dims/bin/consul.run
+# This is the pid file managed by consul itself
+CONSUL_PIDFILE=/var/run/$BASE.pid
+# This is the pid file created/managed by start-stop-daemon
+CONSUL_SSD_PIDFILE=/var/run/$BASE-ssd.pid
+CONSUL_LOGFILE=/var/log/$BASE.log
+CONSUL_OPTS=
+CONSUL_DESC="Consul"
+
+# Get lsb functions
+. /lib/lsb/init-functions
+
+if [ -f /etc/default/$BASE ]; then
+	. /etc/default/$BASE
+fi
+
+# Check consul is present
+if [ ! -x $CONSULD ]; then
+	log_failure_msg "$CONSULD not present or not executable"
+	exit 1
+fi
+
+check_init() {
+	 # see also init_is_upstart in /lib/lsb/init-functions (which isn't available in Ubuntu 12.04, or we'd use it directly)
+	 if [ -x /sbin/initctl ] && /sbin/initctl version 2>/dev/null | grep -q upstart; then        
+                log_failure_msg "$CONSUL_DESC is managed via upstart, try using service $BASE $1"
+                exit 1
+         fi
+}
+
+fail_unless_root() {
+	if [ "$(id -u)" != '0' ]; then
+		log_failure_msg "$CONSUL_DESC must be run as root"
+		exit 1
+	fi
+}
+
+cgroupfs_mount() {
+	# see also https://github.com/tianon/cgroupfs-mount/blob/master/cgroupfs-mount
+	if grep -v '^#' /etc/fstab | grep -q cgroup \
+		|| [ ! -e /proc/cgroups ] \
+		|| [ ! -d /sys/fs/cgroup ]; then
+		return
+	fi
+	if ! mountpoint -q /sys/fs/cgroup; then
+		mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
+	fi
+	(
+		cd /sys/fs/cgroup
+		for sys in $(awk '!/^#/ { if ($4 == 1) print $1 }' /proc/cgroups); do
+			mkdir -p $sys
+			if ! mountpoint -q $sys; then
+				if ! mount -n -t cgroup -o $sys cgroup $sys; then
+					rmdir $sys || true
+				fi
+			fi
+		done
+	)
+}
+
+case "$1" in
+	start)
+		check_init
+		
+		fail_unless_root
+
+		cgroupfs_mount
+
+		touch "$CONSUL_LOGFILE"
+		chgrp consul "$CONSUL_LOGFILE"
+
+		ulimit -n 1048576
+		if [ "$BASH" ]; then
+			ulimit -u 1048576
+		else
+			ulimit -p 1048576
+		fi
+
+		log_begin_msg "Starting $CONSUL_DESC: $BASE"
+		start-stop-daemon --start --background \
+			--no-close \
+			--exec "$CONSULD" \
+			--pidfile "$CONSUL_SSD_PIDFILE" \
+			--make-pidfile \
+			-- \
+				-p "$CONSUL_PIDFILE" \
+				$CONSUL_OPTS \
+					>> "$CONSUL_LOGFILE" 2>&1
+		log_end_msg $?
+		;;
+
+	stop)
+		check_init
+		fail_unless_root
+		log_begin_msg "Stopping $CONSUL_DESC: $BASE"
+		start-stop-daemon --stop --pidfile "$CONSUL_SSD_PIDFILE" --retry 10
+		log_end_msg $?
+		;;
+
+	restart)
+		check_init
+		fail_unless_root
+		consul_pid=`cat "$CONSUL_SSD_PIDFILE" 2>/dev/null`
+		[ -n "$consul_pid" ] \
+			&& ps -p $consul_pid > /dev/null 2>&1 \
+			&& $0 stop
+		$0 start
+		;;
+
+	force-reload)
+		check_init
+		fail_unless_root
+		$0 restart
+		;;
+
+	status)
+		check_init
+		status_of_proc -p "$CONSUL_SSD_PIDFILE" "$CONSUL" "$CONSUL_DESC"
+		;;
+
+	*)
+		echo "Usage: service consul {start|stop|restart|status}"
+		exit 1
+		;;
+esac

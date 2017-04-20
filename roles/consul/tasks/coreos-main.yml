@@ -1,0 +1,94 @@
+---
+
+# File: roles/consul/tasks/coreos-main.yml
+
+- name: Make systemd service file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/system/consul.service
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ consul_service_file }}'
+        - consul.service.{{ inventory_hostname }}.j2
+        - consul.service.category-{{ category }}.j2
+        - consul.service.deployment-{{ deployment }}.j2
+        - consul.service.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - systemd/
+      skip: true
+  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ consul, config ]
+
+- name: Make systemd join service file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/system/consul-join.service
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ consul_join_service_file }}'
+        - consul-join.service.{{ inventory_hostname }}.j2
+        - consul-join.service.category-{{ category }}.j2
+        - consul-join.service.deployment-{{ deployment }}.j2
+        - consul-join.service.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - systemd/
+      skip: true
+  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ consul, config ]
+
+#- name: Force consul service to start
+#  service:
+#    name: consul
+#    state: started
+#    enabled: yes
+#  when: ansible_os_family == "Container Linux by CoreOS"
+#  sudo: yes
+#  tags: [ consul, config ]
+#
+#- name: Force consul-join service to start
+#  service:
+#    name: consul-join
+#    state: started
+#    enabled: yes
+#  when: ansible_os_family == "Container Linux by CoreOS"
+#  sudo: yes
+#  tags: [ consul, config ]
+
+- name: Reload the consul service configuration
+  shell: "systemctl daemon-reload"
+  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ consul, packages ]
+
+# TODO(mboggess): 'systemd' module not available
+#                 until Ansible version 2.2
+- name: Force consul service to start
+  systemd:
+    name: consul
+    enabled: yes
+    state: started
+    masked: no
+  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ consul, config ]
+
+- name: Force consul-join service to start
+  systemd:
+    name: consul-join
+    enabled: yes
+    state: started
+    masked: no
+  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  sudo: yes
+  tags: [ consul, config ]
+ 

@@ -1,0 +1,142 @@
+#!/bin/bash
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# Copyright (C) 2014-2016, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# For enhanced getopt use by shflags ("brew install gengetopt")
+[[ $(uname -s) == "Darwin" ]] && PATH=/opt/local/bin:$PATH
+
+. {{ dims_lib }}/shflags
+. {{ dims_bin }}/dims_functions.sh
+
+# Need to define this function now, as it is used in setting defaults.
+
+ip_of_nic() {
+    local _nic=$1
+    local _os=$(uname -s)
+    [[ ${_os} == "Linux" ]]  && echo $(/sbin/ifconfig ${_nic}| grep "inet addr" | awk '{ print substr($2,6) }')
+    [[ ${_os} == "Darwin" ]] && echo $(/sbin/ifconfig ${_nic}| grep "inet " | awk '{ print $2 }')
+    echo ""
+}
+
+
+# Defaults set before used in setting command line options.
+NAME=${1:-$PROGNAME}
+DOMAIN=${DOMAIN:-{{ deployment }}}
+BIND=${BIND:-$(ip_of_nic {{ consulBindInterface }})}
+# Don't even bother if we don't have an interface to bind to.
+if [[ -z ${BIND} ]]; then
+    error_exit 1 "Cannot identify IP address for {{ consulBindInterface }}"
+fi
+ADVERTISE=${ADVERTISE:-${BIND}}
+LOGLEVEL=${LOGLEVEL:-{{ syslog_severity }}}
+GOMAXPROCS=${GOMAXPROCS:-2}; export GOMAXPROCS
+# TODO(dittrich): Move this to $DIMS somewhere.
+DATADIR="{{ consulDataDir }}"
+
+FLAGS_HELP="usage: $BASE [options] args"
+
+
+DEFINE_boolean 'debug'        false             'enable debug mode'        'd'
+DEFINE_string  'advertise'    "${ADVERTISE}"    'advertise address'        'A'
+DEFINE_string  'bind'         "${BIND}"         'bind address'             'B'
+DEFINE_string  'data-dir'     "${DATADIR}"      'data directory'           'D'
+DEFINE_string  'domain'       "${DOMAIN}"       'domain name'              'Z'
+DEFINE_string  'name'         "${NAME}"         'node name'                'n'
+DEFINE_integer 'retry-delay'  20                'retry delay in seconds'   'R'
+DEFINE_boolean 'server'       false             'enable server mode'       's'
+DEFINE_boolean 'syslog'       false             'log to syslog'            'S'
+DEFINE_string  'log-level'    "${LOGLEVEL}"     'logging level'            'L'
+DEFINE_boolean 'usage'        false             'print usage information'  'u'
+DEFINE_boolean 'verbose'      false             'be verbose'               'v'
+
+usage() {
+    flags_help
+    cat << EOD
+
+This script is used to start Consul and is intended to be run from a daemon
+manager (e.g., supervisor, upstart, or systemd). Use the daemon manager in
+the simplest way possible for what it is good at (i.e., managing daemons),
+and use this Bash script as a form of API to test and debug the
+startup process.
+
+
+EOD
+    exit 0
+}
+
+
+main()
+{
+    # Just exit if all we were asked for was help.
+    [[ ${FLAGS_help} -eq ${FLAGS_TRUE} ]] && exit 0
+    [[ ${FLAGS_usage} -eq ${FLAGS_TRUE} ]] && usage
+
+    debug 'debug mode enabled'
+    [[ $FLAGS_debug -eq ${FLAGS_TRUE} && $FLAGS_verbose -eq ${FLAGS_TRUE} ]] && set -x
+
+    [[ $FLAGS_verbose -eq ${FLAGS_TRUE} || $FLAGS_debug -eq ${FLAGS_TRUE} ]] && FLAGS_log_level="debug"
+
+    if [[ ${FLAGS_syslog} -eq ${FLAGS_TRUE} ]]; then
+        LOGGER="| logger -t \"consul[$$]\" -p {{ syslog_facility }}.${FLAGS_log_level}"
+    else
+        LOGGER=""
+    fi
+
+    if [ ${FLAGS_server} -eq ${FLAGS_TRUE} ]; then
+        MODE="server"
+    else
+        MODE="client"
+    fi
+    debug "MODE=$MODE"
+
+    # Start the consul agent in the foreground so service daemon manager
+    # can watch in case it dies.
+
+    CMD="{{ dims_bin }}/consul \
+        agent \
+        -bind=${BIND} \
+        -config-dir /etc/consul.d/${MODE}/consul.json 2>&1 $LOGGER"
+    debug "CMD=$CMD"
+    eval $CMD
+    RETVAL=$?
+    [[ $RETVAL -ne 0 ]] && sleep ${FLAGS_retry_delay}
+    on_exit
+    return $RETVAL
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?
+
+#EOF

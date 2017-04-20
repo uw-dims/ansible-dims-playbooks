@@ -1,0 +1,22 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+	source $DIMS/bin/dims_functions.sh
+}
+
+{% if consul_servers is defined %}
+{%- for node in consul_servers %}
+@test "[I][EV] {{ node }} is member of consul cluster" {
+    is_coreos && skip "Not applicable on CoreOS"
+    # TODO(dittrich): Something wrong with calling dimscli...
+    #assert '"{{ node }}"' bash -c "$(which dimscli) nodes list -c Address -f csv | grep {{ node }}"
+    assert '{{ node }}' bash -c "{{ dims_bin }}/consul members | grep server | awk '/{{ node }}/ { print \$1; }'"
+}
+{% endfor -%}
+{% endif -%}

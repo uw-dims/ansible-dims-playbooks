@@ -1,0 +1,92 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+	source $DIMS/bin/dims_functions.sh
+}
+
+@test "[S][EV] Nginx returns version statement 'nginx version: nginx'" {
+	assert "nginx version: nginx" bash -c "/usr/sbin/nginx -v 2>&1 | awk -F/ '{ print \$1; }'"
+}
+
+@test "[S][EV] Directory /etc/nginx exists" {
+    [ -d /etc/nginx ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /etc/nginx" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx
+}
+
+@test "[S][EV] Assert permisions 755 for /etc/nginx" {
+	assert 755 stat --printf "%a" /etc/nginx
+}
+
+@test "[S][EV] File /etc/nginx/nginx.conf exists" {
+    [ -f /etc/nginx/nginx.conf ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /etc/nginx/nginx.conf" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx/nginx.conf
+}
+
+@test "[S][EV] Assert permisions 644 for /etc/nginx/nginx.conf" {
+	assert 644 stat --printf "%a" /etc/nginx/nginx.conf
+}
+
+@test "[S][EV] Directory /etc/nginx/conf.d exists" {
+    [ -d /etc/nginx/conf.d ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d
+}
+
+@test "[S][EV] Assert permisions 755 for /etc/nginx/conf.d" {
+	assert 755 stat --printf "%a" /etc/nginx/conf.d
+}
+
+@test "[S][EV] File /etc/nginx/conf.d/simple.conf exists" {
+    [ -f /etc/nginx/conf.d/simple.conf ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d/simple.conf" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d/simple.conf
+}
+
+@test "[S][EV] Assert permisions 644 for /etc/nginx/conf.d/simple.conf" {
+	assert 644 stat --printf "%a" /etc/nginx/conf.d/simple.conf
+}
+
+@test "[S][EV] Directory /var/www/health_check exists" {
+    [ -d /var/www/health_check ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /var/www/health_check" {
+	assert "dims:dims" stat --printf "%U:%G" /var/www/health_check
+}
+
+@test "[S][EV] Assert permisions 755 for /var/www/health_check" {
+	assert 755 stat --printf "%a" /var/www/health_check
+}
+
+@test "[S][EV] Base Nginx configuration at /var/www/health_check/index.html exists" {
+    [ -f /var/www/health_check/index.html ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /var/www/health_check/index.html" {
+	assert "root:root" stat --printf "%U:%G" /var/www/health_check/index.html
+}
+
+@test "[S][EV] Assert permisions 644 for /var/www/health_check/index.html" {
+	assert 644 stat --printf "%a" /var/www/health_check/index.html
+}
+
+@test "[S][EV] Default sites-enabled file is not present" {
+	[ ! -f /etc/nginx/sites-enabled/default ]
+}
+

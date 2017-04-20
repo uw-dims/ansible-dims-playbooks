@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Runs latest consul image as a consul agent container
+docker run -d \
+    --name=consul --net=host \
+    consul agent -bind={{ consulBindAddress }} -retry-join={{ consulRetryJoin }}
+
+exit $?

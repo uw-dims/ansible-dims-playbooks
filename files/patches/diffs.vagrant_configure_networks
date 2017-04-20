@@ -1,0 +1,7 @@
+--- /home/mboggess/dims/git/vagrant/plugins/guests/coreos/cap/configure_networks.rb     2016-12-11 09:35:34.237916546 -0800
++++ /opt/vagrant/embedded/gems/gems/vagrant-1.8.6/plugins/guests/coreos/cap/configure_networks.rb       2017-01-01 16:44:19.474325366 -0800
+@@ -14,3 +14,3 @@
+             interfaces = []
+-            comm.sudo("ifconfig | grep '(e[n,t][h,s,p][[:digit:]]([a-z][[:digit:]])?' | cut -f1 -d:") do |_, result|
++            comm.sudo("ifconfig | grep 'e[nt][hsp][[:digit:]]' | cut -f1 -d:") do |_, result|
+               interfaces = result.split("\n")

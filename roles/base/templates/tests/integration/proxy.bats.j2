@@ -1,0 +1,33 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+setup()
+{
+    export HTTPS_PROXY="https://127.0.0.1:8000"
+    export https_proxy="https://127.0.0.1:8000"
+    bash -c "netstat -nat | grep -q ':8000 '" && PROXY_LISTEN=0 || PROXY_LISTEN=1
+}
+
+@test "[S][EV] HTTP download test (using wget, w/proxy if configured)" {
+	[[ $PROXY_LISTEN -eq 0 ]] || skip "Proxy not listening on 8000/tcp"
+	[ ! -z "$(wget -q -O - http://http.us.debian.org/debian/dists/jessie/Release | grep non-free/source/Release 2>/dev/null)" ]
+}
+
+#@test "[S][EV] HTTP download test (using lynx, w/proxy if configured)" {
+#	[[ $PROXY_LISTEN -eq 0 ]] || skip "Proxy not listening on 8000/tcp"
+#	[ ! -z "$(lynx -source http://http.us.debian.org/debian/dists/jessie/Release | grep non-free/source/Release 2>/dev/null)" ]
+#}
+
+@test "[S][EV] HTTPS download test (using wget, w/proxy if configured)" {
+	[[ $PROXY_LISTEN -eq 0 ]] || skip "Proxy not listening on 8000/tcp"
+	[ ! -z "$(wget -q -O - https://packages.debian.org/jessie/amd64/0install/filelist | grep 0install 2>/dev/null)" ]
+}
+
+#@test "[S][EV] HTTPS download test (using lynx, w/proxy if configured)" {
+#	[[ $PROXY_LISTEN -eq 0 ]] || skip "Proxy not listening on 8000/tcp"
+#	[ ! -z "$(lynx -source https://packages.debian.org/jessie/amd64/0install/filelist | grep 0install 2>/dev/null)" ]
+#}
+

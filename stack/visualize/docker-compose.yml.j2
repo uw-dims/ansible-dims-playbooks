@@ -1,0 +1,26 @@
+---
+
+version: "3"
+
+services:
+
+  viz:
+    image: {{ swarm.services.viz.image_name }}
+    volumes:
+      - {{ swarm.services.viz.mounts.0 }}
+    ports:
+      - "{{ swarm.services.viz.ports.0.host }}:{{ swarm.services.viz.ports.0.client }}"
+    environment:
+      - {{ swarm.services.viz.env_vars.0.name }}:{{ swarm.services.viz.env_vars.0.value }}
+    deploy:
+      replicas: {{ swarm.services.viz.replicas}}
+      placement:
+        constraints: [{{ swarm.services.viz.constraints.0 }}]
+      resources:
+        limits:
+          cpus: "{{ swarm.services.viz.limit_cpu }}"
+
+# NOTE(mboggess): this is a very, very bare-bones Compose
+# file. Networks can be defined here. External volumes can
+# be defined. Secrets can be defined. Plus, various services
+# may have more or fewer attributes defined than 'viz'. 

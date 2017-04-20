@@ -1,0 +1,74 @@
+---
+
+# File: roles/pycharm/tasks/main.yml
+
+# Following installation instructions from Jet Brains site.
+# https://www.jetbrains.com/pycharm/download/#section=linux
+#
+#   Copy the pycharm-XXXX.X.tar.gz to the desired installation location
+#   (make sure you have rw permissions for that directory)
+#   Unpack the pycharm-XXXX.X.tar.gz using the following command:
+#   tar xfz pycharm-XXXX.X.tar.gz
+#   Remove the pycharm-XXXX.X.tar.gz to save disk space (optional)
+#   Run pycharm.sh from the bin subdirectory
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ pycharm, packages ]
+
+# TODO(dittrich): The certificate check fails (SNI?), but the SHA256 hash exists to validate download.
+#- name: Get pycharm community edition tgz file
+#  get_url:
+#    url: "{{ pycharm.dist_url }}"
+#    sha256sum: "{{ pycharm.sha256_sum }}"
+#    dest: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }}"
+#    validate_certs: false
+#  sudo: yes
+#  tags: [ pycharm, packages ]
+
+- name: Get pycharm community edition tgz file
+  shell: "wget -q --directory-prefix {{ dims_deploy }}/{{ role_name }} {{ pycharm.dist_url }}"
+  args:
+    warn: false
+  tags: [ pycharm, packages ]
+
+- name: Calculate SHA256 hash of downloaded file
+  stat: "path={{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }} checksum_algorithm=sha256"
+  register: result
+  tags: [ pycharm, packages ]
+
+- name: Verify SHA256 hash of downloaded file
+  fail: msg="SHA256 hash does not match"
+  when: result.stat.checksum != "{{ pycharm.sha256_sum }}"
+  tags: [ pycharm, packages ]
+
+- name: Unpack pycharm archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }}"
+    dest: /opt
+    copy: no
+  tags: [ pycharm, packages ]
+
+- name: Make link to pycharm run script
+  shell: "ln -sf /opt/pycharm-community-{{ pycharm.version }}/bin/pycharm.sh {{ dims_bin }}/pycharm"
+  sudo: yes
+  tags: [ pycharm, packages ]
+
+- name: Make pycharm desktop configuration present
+  template:
+     src=desktop/jetbrains-pycharm-ce.desktop.j2
+     dest=/usr/share/applications/jetbrains-pycharm-ce.desktop
+     owner={{ root_user }}
+     group={{ root_group }}
+     mode={{ mode_0644 }}
+  sudo: yes
+  tags: [ pycharm, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ pycharm, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ pycharm, packages ]
+
+# vim: ft=ansible :

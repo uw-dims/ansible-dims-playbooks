@@ -1,0 +1,40 @@
+---
+
+# File: playbooks/hosts/blue16.devops.local.yml
+
+- name: Dump all vars if debug enabled
+  hosts: blue16.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/xenial.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "blue16.devops.local"
+  hosts: blue16.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/xenial.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: hosts }
+    - { role: dims-ci-utils }
+    - { role: postfix }
+    - { role: python-virtualenv, use_sphinx: true }
+    - { role: docker }
+    - { role: consul, consul_startup_method: "supervisor" }
+    - { role: vagrant }
+    - { role: pycharm }
+    - { role: byobu }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"

@@ -1,0 +1,9 @@
+---
+
+# File: roles/manage-user/tasks/main.yml
+
+- name: Archive user account to preserve any files
+  shell: "(cd /home; echo tar -czf {{ dims_data }}/{{ username }}-home-{{ hostname }}-archive-{{ date }}.tgz)"
+
+- name: Remove user account
+  user: "name={{ username }} state=absent remove=yes"

@@ -1,0 +1,163 @@
+---
+
+# File: roles/trident-configure/tasks/main.yml
+
+- name: Validate Debian Jessie is being used.
+  fail:
+    msg: "Debian Jessie is required for running Trident."
+  when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ trident-configure, config ]
+
+- name: Load deployment secrets
+  include_vars: '{{ playbooks_root }}/inventory/{{ deployment }}/group_vars/{{ deployment }}-vault.yml'
+  no_log: '{{ nolog }}'
+  tags: [ trident-configure, config ]
+
+- name: Ensure administator is logged in
+  shell: >
+    tcli system login trident {{ tridentSysAdminPass }} | grep -q "Login successful"
+  register: tcli_login
+  no_log: '{{ nolog }}'
+  tags: [ trident-configure, config ]
+
+- fail:
+    msg: "Failed to log in via trident: {{ tcli_login.stdout }}"
+  when: tcli_login.rc != 0
+  tags: [ trident-configure, config ]
+
+- name: Ensure administrator logged in with sysadmin rights
+  shell: >
+    tcli system swapadmin | grep -q "Now a SysAdmin user"
+  register: tcli_swapadmin
+  no_log: '{{ nolog }}'
+  tags: [ trident-configure, config ]
+
+- fail:
+    msg: "Failed to obtain sysadmin rights: {{ tcli_swapadmin.stdout }}"
+  when: tcli_swapadmin.rc != 0
+  tags: [ trident-configure, config ]
+
+- name: Retrieve present trust groups from tcli
+  shell: >
+    tcli {{ tcli[trident.version]['tg_SUB'] }} list | grep -v 'No Groups Found' | awk '{ print $1; }'
+  register: results
+  tags: [ trident-configure, config ]
+
+- name: Extract list of present trust groups
+  set_fact:
+    groups_present: '{{ results.stdout_lines }}'
+  tags: [ trident-configure, config ]
+
+- name: Determine present members of primary_tg from tcli
+  shell: >
+    tcli {{ tcli[trident.version]['tg_SUB'] }} member list {{ trident.primary_tg.ident }} | awk '{ print $1; }'
+  register: results
+  tags: [ trident-configure, config ]
+
+- name: Extract list of present members
+  set_fact:
+    members_present: '{{ results.stdout_lines }}'
+  tags: [ trident-configure, config ]
+
+# Add new users to Trident
+- name: Setup new users
+  shell: >
+    tcli user new {{ item.ident }} {{ item.email }} &&
+    tcli user set descr {{ item.ident }} '{{ item.descr }}' &&
+    tcli user email confirm_force {{ item.ident }} {{ item.email }}
+  with_items: '{{ trident.primary_tg.initial_users }}'
+  when: item.ident not in members_present
+  tags: [ trident-configure, config ]
+
+- name: Add trust group
+  shell: >
+    tcli {{ tcli[trident.version]['tg_SUB'] }} add {{ trident.primary_tg.ident }} &&
+    tcli {{ tcli[trident.version]['tg_SUB'] }} set descr {{ trident.primary_tg.ident }} '{{ trident.primary_tg.descr }}'
+  when: trident.primary_tg.ident not in groups_present
+  tags: [ trident-configure, config ]
+
+- name: Add new members to primary_tg
+  shell: >
+    tcli {{ tcli[trident.version]['tg_SUB'] }} member {{ tcli[trident.version]['addmem'] }} {{ trident.primary_tg.ident }} {{ item.ident }} &&
+    tcli {{ tcli[trident.version]['tg_SUB'] }} member approve {{ trident.primary_tg.ident }} {{ item.ident }}
+  with_items: '{{ trident.primary_tg.initial_users }}'
+  register: results
+  when:
+    - trident.primary_tg.ident not in groups_present
+    - item.ident not in members_present
+  tags: [ trident-configure, config ]
+ 
+- name: Determine present mailing lists of primary_tg from tcli
+  shell: >
+    tcli ml list {{ trident.primary_tg.ident }} | awk '{ print $1; }'
+  register: results
+  tags: [ trident-configure, config ]
+
+- name: Extract list of present mailing lists
+  set_fact:
+    lists_present: '{{ results.stdout_lines }}'
+  tags: [ trident-configure, config ]
+
+- name: Add additional mailing lists
+  shell: >
+    tcli ml new {{ trident.primary_tg.ident }} {{ item.ident }} &&
+    tcli ml set descr {{ trident.primary_tg.ident }} {{ item.ident }} '{{ item.descr }}'
+  with_items: '{{ trident.primary_tg.additional_lists }}'
+  when: item.ident not in lists_present
+  tags: [ trident-configure, config ]
+
+  # NOTE(mboggess): these mailing lists are additional
+  # to mailing lists automatically created when a trust group
+  # is created (admin, general, vetting). This means all members
+  # of the trust group must be "manually" added to these
+  # additional mailing lists.
+  # This task then assumes that no trust group members have
+  # been added to them, and, as such, does not check to see
+  # if a member exists on a mailing list already, it just
+  # adds all members to all mailing lists.
+- name: Add all members to all mailing lists
+  shell: >
+    tcli ml member add {{ trident.primary_tg.ident }} {{ item[0] }} {{ item[1] }}
+  with_nested:
+    - '{{ trident.primary_tg.additional_lists | map(attribute="ident") | list }}'
+    - '{{ trident.primary_tg.initial_users | map(attribute="ident") | list }}'
+  tags: [ trident-configure, config ]
+
+- name: Add admins to admin list
+  shell: >
+    tcli ml member add {{ trident.primary_tg.ident }} admin {{ item }}
+  with_items: '{{ trident.admins }}'
+  tags: [ trident-configure, config ]
+
+  # We give our admins both system administration rights
+  # and trust group administration rights. 
+  # NOTE(mboggess): passwords are not set for these users.
+  # They must be set manually via tcli using:
+  # $ tcli user password help
+  #   Trident Help for: "user password"
+  #   User: trident [sysadmin]
+  #
+  #   set <pwtype> <username> <newpassword> <curpassword> Set password of type (portal|chat|jabber), requires providing current portal password
+  #   recover <username> <token> <password> Set a password using the the recovery token
+  #   resetcount <username> Reset authentication failure count
+  #   reset <username> <nominator> Send a recovery password split between the user and a nominator
+- name: Give admins sysadmin/tg admin rights
+  shell: >
+    tcli user set sysadmin {{ item }} true &&
+    tcli {{ tcli[trident.version]['tg_SUB'] }} member promote {{ trident.primary_tg.ident }} {{ item }}
+  with_items: '{{ trident.admins }}'
+  tags: [ trident-configure, config ]
+
+- name: Run unit test for trident-configure
+  command: '{{ dims_bin }}/test.runner --tap --level unit --match "trident-configure"'
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  tags: [ trident-configure ]
+
+- include: '{{ tasks }}/post_tasks.yml'
+  tags: [ trident-configure, config ]
+
+# vim:ft=ansible:

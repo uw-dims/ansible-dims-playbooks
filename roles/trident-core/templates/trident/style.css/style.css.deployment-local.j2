@@ -1,0 +1,1012 @@
+html, body
+{
+	top				: 0px;
+	left				: 0px;
+	color				: #383838;
+	background-color		: white;
+	text-rendering			: optimizeLegibility;
+}
+
+html, body, h1, h2, h3, h4, div, p, ul, li, fieldset
+{
+	font-family			: "Lucida Grande", "Helvetica", "Arial", "Verdana", "sans-serif";
+	border				: none;
+	text-decoration			: none;
+}
+
+*
+{
+	-webkit-font-smoothing		: antialiased;
+}
+
+p
+{
+	line-height			: 1.4737;
+}
+
+html, body, #container
+{
+	height				: 100%;
+}
+
+body > #container
+{
+	height				: auto;
+	overflow			: auto;
+	min-height			: 95%;
+}
+
+html, body, h1, h2, h3, h4, div, p, pre
+{
+	margin				: 0px;
+	padding				: 0px;
+}
+
+.nomargin
+{
+	margin-top			: 0px;
+	margin-bottom			: 0px;
+}
+
+pre
+{
+	background-color		: #eeeeee;
+	padding				: 10px;
+}
+
+pre, table.diff td
+{
+	font-size			: 14px;
+	font-family			: monospace;
+	line-height			: 1.35em;
+	color				: black;
+	white-space			: pre-wrap;
+}
+
+blockquote
+{
+	white-space			: pre;
+	margin-left			: 5px;
+	margin				: 0px;
+	padding-left			: 5px;
+	border-left			: 5px solid green;
+}
+
+blockquote > blockquote
+{
+	border-left			: 5px solid red;
+}
+
+blockquote > blockquote > blockquote
+{
+	border-left			: 5px solid blue;
+}
+
+blockquote p
+{
+	margin				: 0px;
+}
+
+ul
+{
+	padding				: 0px 0px 2px 20px;
+}
+
+audio
+{
+	display				: block;
+}
+
+article
+{
+	border-bottom			: 1px dotted #d5d5d5;
+}
+
+article:last-child
+{
+	border-bottom			: none;
+}
+
+h1, div.sidebar h2, div.sidebox h2
+{
+	font-size			: 1.7em;
+	font-weight			: lighter;
+	padding-top			: 20px;
+	padding-bottom			: 20px;
+	color				: black;
+}
+
+h1, h2, h3, h4
+{
+	letter-spacing			: -1px;
+}
+
+h2, h3, h4
+{
+	font-size			: 1.5em;
+	font-weight			: lighter;
+	padding-top			: 20px;
+	padding-bottom			: 20px;
+	color				: black;
+}
+
+hr
+{
+	background-color		: #050505;
+	color				: black;
+}
+
+li
+{
+	display				: list-item;
+	list-style-type			: square;
+}
+
+video
+{
+	width				: 100%;
+	max-width			: 50% !important;
+	height				: auto !important;
+	margin-bottom			: 25px;
+	border				: 1px solid black;
+}
+
+.galleryPic video
+{
+	width				: 100% !important;
+	max-width			: 100% !important;
+}
+
+/*
+ * Instead of using the text-decoration to get an underline
+ * we use a border-bottom so we can give it a custom color and style
+ * This makes the links less obtrusive to the eye, as they are not
+ * that important to read, but they should be there
+ */
+a
+{
+	color				: #45294a;
+	background-color		: transparent;
+	text-decoration			: none;
+	border-bottom			: 2px dotted #bbbbbb;
+	text-shadow			: 0px 0px .5px #888;
+}
+
+a:hover
+{
+	color				: #45294a;
+	text-decoration			: none;
+	border-bottom			: 2px solid purple;
+	text-shadow			: 0px 0px .5px #888;
+}
+
+.rightpic a
+{
+	color				: black;
+}
+
+table tr th a
+{
+	color				: black;
+}
+
+nav ul
+{
+	margin				: 0px;
+	padding				: 0px;
+}
+
+nav ul:nth-child(2)
+{
+	padding-left			: 48px;
+	font-size			: small;
+}
+
+nav ul li a, #footer ul li a
+{
+	border-bottom			: 0px solid transparent;
+	padding-top			: 5px;
+	padding-bottom			: 5px;
+}
+
+nav ul li, nav ul li:hover, #footer ul li, #footer ul li:hover
+{
+	padding-top			: 0px;
+	padding-bottom			: 5px;
+}
+
+.menu ul li a:hover
+{
+	background-color		: transparent;
+	border-bottom			: 2px solid #a8bdae;
+}
+
+/* add a flavor of purple to the first menu */
+.menu ul:first-child li a:hover
+{
+	background-color		: transparent;
+	border-bottom			: 2px solid #d4cde2;
+}
+
+nav ul li:hover, #footer ul li:hover
+{
+	text-decoration			: none;
+	background-color		: transparent;
+	border-bottom			: 0px solid transparent;
+}
+
+header.usertop a.fakebutton
+{
+	position			: relative;
+	top				: 10px;
+}
+
+header.usertop
+{
+	position			: absolute;
+	right				: 15px;
+	top				: 5px;
+	background-color		: transparent;
+}
+
+header.usertop a
+{
+	border-bottom			: none;
+}
+
+header.usertop a img
+{
+	background-color		: white;
+	border				: 1px solid gray;
+	border-radius			: 20px;
+	width				: 40px;
+}
+
+img.userimage
+{
+	max-height			: 40px;
+	max-width			: 40px;
+	border-radius			: 20px;
+}
+
+/* Force no lines, used to hide the underlines from <a href="...">..</a>'s */
+.nolines, .nolines:hover
+{
+	text-decoration			: none;
+	border-bottom			: none;
+	background-color		: transparent;
+}
+
+tr.selected
+{
+	background-color		: #d4cde2 !important;
+}
+
+p
+{
+	margin-bottom			: 20px;
+}
+
+/* No image borders please, it makes them ugly */
+img
+{
+	border				: none;
+}
+
+a img.smallimg
+{
+	width				: 30px;
+}
+
+a:focus img.smallimg
+{
+	width				: 100%;
+}
+
+/* But we want a little border around our flags */
+img.country
+{
+	border				: 1px solid black !important;
+	width				: 16px !important;
+	height				: 16px !important;
+}
+
+@media all
+{
+	.printOnly
+	{
+		display			: none;
+	}
+}
+
+/* Printing support */
+@media print
+{
+	.printOnly
+	{
+		display			: inline;
+	}
+
+	body, html
+	{
+		background-color	: transparent;
+		height			: initial;
+	}
+
+	body > #container
+	{
+		height			: initial;
+		overflow		: initial;
+		min-height		: initial;
+	}
+
+	a
+	{
+		text-decoration		: none;
+		border-bottom		: none;
+	}
+
+	a:hover
+	{
+		text-decoration		: none;
+		border-bottom		: none;
+	}
+
+	/* Annotate external URLs */
+	a[href^="http"]:link:after, a[href^="http"]:visited:after
+	{
+		content			: " (" attr(href) ") ";
+		font-size		: 75%;
+	}
+
+	/* Don't annotate maps urls */
+	a[href^="http://maps.google"]:link:after
+	{
+		content			: "";
+	}
+
+	h1, h2, h3, h4, p
+	{
+		page-break-after	: avoid;
+	}
+
+	article
+	{
+		page-break-inside	: avoid;
+	}
+
+	nav ul li, .navbar-handle, #footer ul li, audio, .noprint
+	{
+		display			: none !important;
+	}
+
+	#footer ul li:last-child
+	{
+		display			: inline !important;
+	}
+
+	nav div.navbar-header
+	{
+		display			: inline !important;
+		visibility		: visible !important;
+		text-transform		: none;
+		font-size		: xx-large;
+		margin-left		: 10px;
+	}
+
+	nav.menu, body > #container
+	{
+		margin			: 0px !important;
+		padding			: 0px !important;
+	}
+
+	#receptacle
+	{
+		padding-bottom		: 1em !important;
+	}
+
+	p
+	{
+		line-height		: 1.2;
+	}
+}
+
+table
+{
+	padding-bottom			: 10px;
+	color				: #666666;
+}
+
+th
+{
+	text-align			: left;
+}
+
+td
+{
+	vertical-align			: top;
+}
+
+table tr:nth-child(even)
+{
+	background-color		: #f4f4f4;
+}
+
+table tr:nth-child(odd)
+{
+	background-color		: #e8e8e8;
+}
+
+table tr th
+{
+	color				: black;
+	background-color		: #a8bdae;
+}
+
+table tr th, table tr td
+{
+	padding				: 4px;
+}
+
+nav
+{
+	background-color		: #554488;
+	font-weight			: 800;
+	padding-top			: 5px;
+	padding-left			: 5px;
+	padding-bottom			: 5px;
+}
+
+nav.slider
+{
+	border-bottom			: none;
+}
+
+nav ul li a, nav ul li a:hover
+{
+	color				: white;
+}
+
+nav ul li.sel a
+{
+	border-bottom			: 2px solid #5da370;
+}
+
+nav ul:first-child li.sel a
+{
+	border-bottom			: 2px solid purple;
+}
+
+nav ul li, nav ul li.sel, #footer ul li
+{
+	display				: inline-block;
+	list-style			: none;
+	list-style-image		: none;
+}
+
+#footer ul
+{
+	margin				: 0px;
+	margin-right			: 30px;
+	padding				: 0px;
+	padding-top			: 10px;
+}
+
+#footer ul li img
+{
+	height				: 10px;
+	width				: 10px;
+}
+
+#container
+{
+	height				: 100%;
+	background-color		: white;
+	position			: relative;
+}
+
+#receptacle
+{
+	position			: relative;
+}
+
+.content, .center
+{
+	margin-top			: 10px;
+	margin-left			: 20px;
+	margin-right			: 20px;
+	padding-bottom			: 20px;
+}
+
+.center
+{
+	text-align			: center;
+}
+
+#footer
+{
+	clear				: both;
+	position			: relative;
+	z-index				: 10;
+	height				: 4em;
+	font-size			: xx-small;
+	text-align			: right; 
+	width				: 100%;
+	background-color		: #eeeeee;
+	border-top			: 1px solid #aaaaaa;
+}
+
+.small
+{
+	font-size			: xx-small;
+}
+
+.menu ul li a, #footer ul li a
+{
+	text-shadow		: none;
+	text-decoration		: none;
+	border-bottom		: none;
+	padding			: 5px 5px 2px 5px;
+}
+
+.menu li
+{
+	display			: inline-block;
+	vertical-align		: middle;
+}
+
+img.header
+{
+	width			: 100%;
+	height			: 200px;
+	border-top		: 2px solid black;
+	border-bottom		: 4px solid #548;
+}
+
+nav div.navbar-header
+{
+	visibility		: hidden;
+	display			: none;
+}
+
+@media (max-width: 810px)
+{
+	.menu ul
+	{
+		max-height	: 0;
+		overflow	: hidden;
+		background-color: #554488;
+	}
+
+	.menu li
+	{
+		visibility	: hidden;
+		display		: block;
+		border		: none;
+	}
+
+	.menu ul li a
+	{
+		display		: block;
+	}
+
+	.menu .navbar-handle
+	{
+		display		: block;
+	}
+
+	nav.menu
+	{
+		min-height	: 2em;
+		margin-left	: 3em;
+		margin-right	: 4em;
+		border-bottom	: none;
+		background-color: white;
+	}
+
+	#navbar-checkbox:checked + nav.menu ul
+	{
+		margin-top	: -10px;
+	}
+
+	#navbar-checkbox:checked + nav.menu
+	{
+		padding-bottom	: 5em;
+	}
+
+	#navbar-checkbox:checked + .menu ul
+	{
+		max-height	: 300px;
+		overflow	: inherit;
+		border-left	: 2px solid black;
+		border-right	: 2px solid black;
+	}
+
+	#navbar-checkbox:checked + .menu li
+	{
+		visibility	: visible;
+		display		: block;
+	}
+
+	.navbar-handle
+	{
+		-webkit-touch-callout	: none;
+		-webkit-user-select	: none;
+		 -khtml-user-select	: none;
+		   -moz-user-select	: none;
+		    -ms-user-select	: none;
+		        user-select	: none;
+	}
+
+	.navbar-handle,
+	.navbar-handle:before,
+	.navbar-handle:after
+	{
+		border-top		: 0.27em solid #554488;
+	}
+
+	.navbar-handle:before
+	{
+		top			: 0.37777777777777777em;
+	}
+
+	.navbar-handle:after
+	{
+		top			: 0.8888888888888888em;
+	}
+
+	#navbar-checkbox:checked .navbar-handle,
+	#navbar-checkbox:checked .navbar-handle:before,
+	#navbar-checkbox:checked .navbar-handle:after
+	{
+		border-top	: 0.27em solid #45294a !important;
+	}
+
+
+	#navbar-checkbox:checked + nav div.navbar-header
+	{
+		border-top	: 2px solid black;
+		padding-top	: 20px;
+	}
+
+	nav div.navbar-header
+	{
+		visibility	: visible;
+		display		: block;
+		width		: 100%;
+		text-align	: center;
+		text-transform	: none;
+	}
+
+	article
+	{
+		border-bottom	: 2px solid #a8bdae;
+	}
+
+	article:last-child
+	{
+		border-bottom	: 1px solid #a8bdae;
+	}
+
+	p, h1, h2, h3, h4, h5
+	{
+		margin-left	: 5px;
+		margin-right	: 5px;
+	}
+
+	#container, #receptacle, .content
+	{
+		margin-left	: 0px;
+		margin-right	: 0px;
+		margin-top	: 0px;
+		padding-left	: 0px;
+		padding-right	: 0px;
+	}
+}
+
+.navbar-checkbox
+{
+	display			: none;
+}
+
+.navbar-handle
+{
+	display			: none;
+	cursor			: pointer;
+	position		: relative;
+	font-size		: 45px;
+	padding			: .5em 0;
+	height			: 0;
+	width			: 1.6666666666666667em;
+}
+
+.navbar-handle:before, .navbar-handle:after
+{
+	position		: absolute;
+	left			: 0;
+	right			: 0;
+	content			: ' ';
+}
+
+.menu
+{
+	top			: 0;
+	left			: 0;
+	right			: 0;
+	min-height		: 4em;
+}
+
+.menu .navbar-handle
+{
+	position		: absolute;
+	font-size		: 1.2em;
+	top			: 0.0em;
+	left			: 12px;
+	margin-top		: 10px;
+}
+
+/* Wiki */
+
+form#wikiform textarea#wikitext
+{
+	font-family		: monospace;
+	width			: 80%;
+	clear			: both;
+	height			: 20em;
+}
+
+form#wikiform label
+{
+	width			: initial;
+}
+
+form#wikiform label
+{
+	float			: none;
+	clear			: both;
+	padding-top		: 10px;
+}
+
+form#wikiform.styled_form
+{
+	width			: initial;
+	float			: none;
+}
+
+form#wikiform input#message
+{
+	margin-right		: 10px;
+}
+
+span#wikisecurity
+{
+	font-size		: small;
+	clear			: both;
+	width			: 100%;
+	margin-bottom		: 50px;
+}
+
+div.wikitoc
+{
+	float			: right;
+	border			: 1px solid #aaaaaa;
+	background-color	: #eeeeee;
+	margin-top		: 4em;
+	font-size		: small;
+}
+
+div.wikitoc b
+{
+	background-color	: #8a849c;
+	padding-left		: 10px;
+	padding-right		: 10px;
+	padding-top		: 5px;
+	padding-bottom		: 10px;
+}
+
+div.wikitoc ul
+{
+	padding-left		: 10px;
+	margin-bottom		: 5px;
+}
+
+div.wikitoc ul li
+{
+       	list-style-type		: none;
+}
+
+div.wikitoc ul li ul
+{
+	padding-left		: 1.5em;
+}
+
+div.wikitoc ul li ul li
+{
+       	list-style-type		: initial;
+}
+
+div#wikiedit
+{
+	text-align		: center;
+}
+
+div#wikiedit > div
+{
+	width			: 47%;
+	float			: left;
+	padding			: 10px;
+	min-height		: 400px;
+	border-left		: 2px solid #eeeeee;
+	border-right		: 2px solid #eeeeee;
+	border-bottom		: 2px solid #eeeeee;
+}
+
+div#wikiedit > div > h2
+{
+	background-color	: #8a849c;
+	padding			: 4px;
+	margin			: 5px;
+}
+
+div#wikiedit > div > div#tools button
+{
+	min-width		: 42px;
+	height			: 25px;
+	margin-right		: 5px;
+}
+
+div#wikiedit > div > div#tools button#tool-bold
+{
+	font-weight		: bold;
+}
+
+div#wikiedit > div > div#tools button#tool-italic
+{
+	font-style		: italic;
+}
+
+div#wikiedit > div > div#tools button#tool-quote, div#wikiedit > div > div#tools button#tool-code
+{
+	font-family		: monospace;
+}
+
+div#wikiedit > div > div#tools button#tool-h1, div#wikiedit > div > div#tools button#tool-h2, div#wikiedit > div > div#tools button#tool-h3, div#wikiedit > div > div#tools button#tool-h4
+{
+	font-weight		: bold;
+}
+
+div#wikiedit > div > div#epiceditor, div#wikiedit > div > div#epiceditor-preview
+{
+	min-height		: 400px;
+	text-align		: initial;
+}
+
+div.lastedit
+{
+	border-top		: 1px solid #eeeeee;
+	font-size		: small;
+}
+
+div.lastedit img.userimage
+{
+	max-height		: 1.5em;
+}
+
+/* Diff */
+table.diff
+{
+	font-family		: monospace;
+	border-spacing		: 1px;
+	width			: 100%;
+}
+
+table.diff tr
+{
+	background-color	: initial;
+}
+
+table.diff td
+{
+	width			: 50%;
+}
+
+table.diff td.diffadd
+{
+	background-color	: #dbffdb;
+}
+
+table.diff td.diffdel
+{
+	background-color	: #ffdddd;
+}
+
+/* Crumbs */
+div.crumbbar
+{
+	border-bottom		: 1px solid #aaaaaa;
+	font-size		: small;
+	background-color	: #eeeeee;
+	padding-left		: 20px;
+	padding			: 5px;
+}
+
+div.crumbbar, div.crumbbar ul
+{
+	margin			: 0px;
+}
+
+div.crumbbar ul li
+{
+	display			: inline-block;
+}
+
+div.crumbbar ul li a
+{
+	border-bottom		: none;
+}
+
+div.crumbbar ul li a:hover
+{
+	border-bottom		: 2px solid #a8bdae;
+}
+
+div.crumbbar ul.crumbs li:after, div.crumbbar ul.crumbs li:first-child:before
+{
+	content			: " > ";
+}
+
+div.crumbbar ul.opts li:after
+{
+	content			: " | ";
+}
+
+div.crumbbar ul li:after, div.crumbbar ul li:first-child:before
+{
+	font-size		: 100%;
+	color			: #aaaaaa;
+}
+
+div.crumbbar ul.crumbs li:first-child:before
+{
+	content			: "";
+}
+
+div.crumbbar li.crumbs:last-child
+{
+	font-weight		: bold;
+}
+
+div.crumbbar ul li:last-child:after
+{
+	content			: "";
+}
+
+div.crumbbar ul.opts
+{
+	float			: right;
+	margin-top		: -1.5em;
+	margin-right		: 20px;
+	font-size		: small;
+}
+
+/* Code highlighting */
+code
+{
+	display			: block;
+	background-color	: #333;
+	color			: #65B042;
+	padding			: 5px 10px 5px 10px;
+}
+
+code .str { color: #65B042; }	/* string  - green */
+code .kwd { color: #E28964; }	/* keyword - dark pink */
+code .com { color: #AEAEAE; font-style: italic; } /* comment - gray */
+code .typ { color: #89bdff; }	/* type - light blue */
+code .lit { color: #3387CC; }	/* literal - blue */
+code .pun { color: #fff; }	/* punctuation - white */
+code .pln { color: #fff; }	/* plaintext - white */
+code .tag { color: #89bdff; }	/* html/xml tag    - light blue */
+code .atn { color: #bdb76b; }	/* html/xml attribute name  - khaki */
+code .atv { color: #65B042; }	/* html/xml attribute value - green */
+code .dec { color: #3387CC; }	/* decimal - blue */
+

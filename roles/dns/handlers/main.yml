@@ -1,0 +1,12 @@
+---
+
+# File: roles/dns/handlers/main.yml
+
+- include: "{{ handlers }}/restart_services.yml"
+  static: yes
+
+# TODO(dittrich): This differs from {{ handlers }}/restart_services.yml. Why? Which is right?
+- name: restart dnsmasq on Debian
+  sudo: yes
+  service: name=dnsmasq state=restarted
+

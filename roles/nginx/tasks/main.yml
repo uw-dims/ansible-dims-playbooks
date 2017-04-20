@@ -1,0 +1,158 @@
+---
+
+# File: roles/nginx/tasks/main.yml
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ nginx, packages, config ]
+
+#
+# Install
+#
+
+# Following instructions from http://nginx.org/en/linux_packages.html
+- name: Import repository signing key
+  shell: wget --quiet -O - http://nginx.org/keys/nginx_signing.key | sudo apt-key add -
+  sudo: yes
+  args:
+    warn: false
+  when: ansible_os_family == "Debian"
+  tags: [ nginx, packages ]
+
+- name: Make deb sources present
+  apt_repository:
+    repo='{{ item }}'
+    state=present
+    update_cache=yes
+  with_items:
+    - deb http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
+    - deb-src http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ nginx, packages ]
+
+- name: Only "update_cache=yes" if >3600s since last update
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  tags: [ nginx, packages ]
+
+- name: Make nginx present
+  apt: name=nginx state=present dpkg_options='force-confold,force-confdef'
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  notify: restart nginx
+  tags: [ nginx, packages ]
+
+#
+# Configure
+#
+
+- name: Configure Nginx
+  template:
+    src: '{{ item }}'
+    dest: /etc/nginx/nginx.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  when: ansible_os_family == "Debian"
+  with_first_found:
+    - files:
+        - '{{ nginx_conf }}'
+        - nginx.conf.{{ inventory_hostname }}.j2
+        - nginx.conf.category-{{ category }}.j2
+        - nginx.conf.deployment-{{ deployment }}.j2
+        - nginx.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
+        - nginx/
+  sudo: yes
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+- name: Configure simple server directive
+  template:
+    src: '{{ item }}'
+    dest: /etc/nginx/conf.d/simple.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  when: ansible_os_family == "Debian"
+  with_first_found:
+    - files:
+        - '{{ directive_nginx_conf }}'
+        - simple.conf.{{ inventory_hostname }}.j2
+        - simple.conf.category-{{ category }}.j2
+        - simple.conf.deployment-{{ deployment }}.j2
+        - simple.conf.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx_confd/'
+        - nginx_confd/
+  sudo: yes
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+- name: Make default directories present
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0755 }}'
+  with_items:
+    - /var/www/health_check
+  sudo: yes
+  tags: [ nginx, config ]
+
+- name: Make base Nginx configuration present
+  template:
+    src: '{{ item }}'
+    dest: /var/www/health_check/index.html
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  when: ansible_os_family == "Debian"
+  with_first_found:
+    - files:
+        - '{{ nginx_index }}'
+        - index.html.{{ inventory_hostname }}.j2
+        - index.html.category-{{ category }}.j2
+        - index.html.deployment-{{ deployment }}.j2
+        - index.html.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/html/'
+        - html/
+  sudo: yes
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+- name: Remove default sites-enabled file
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  when: ansible_os_family == "Debian"
+  sudo: yes
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+# Letsencrypt support
+- include: '{{ tasks }}/install-certbot-auto.yml'
+  when: use_letsencrypt is defined and use_letsencrypt
+  tags: [ nginx, packages ]
+
+# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
+- name: Generate Strong Diffie-Hellman Group
+  shell: "openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048"
+  sudo: yes
+  tags: [ nginx, config ]
+
+- name: Ensure nginx is running and enabled
+  service: name=nginx state=running enabled=yes
+  sudo: yes
+  tags: [ nginx, packages ]
+
+- name: Make defined bats tests present
+  include: '{{ tasks }}/bats-tests.yml'
+  tags: [ nginx, tests ]
+
+- include: '{{ tasks }}/post_tasks.yml'
+  tags: [ nginx, packages, config ]
+
+# vim: ft=ansible :

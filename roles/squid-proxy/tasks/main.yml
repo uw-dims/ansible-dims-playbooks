@@ -1,0 +1,34 @@
+---
+
+# File: roles/squid-proxy/tasks/main.yml
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ squid-proxy, config ]
+
+#
+# Initialize
+#
+
+- name: Stop squid service if running - ignore errors
+  service: "name={{ squidBasename }} state=stopped"
+  sudo: yes
+  ignore_errors: true
+  tags: [ squid-proxy ]
+
+#
+# Configure
+#
+
+#
+# Start
+#
+
+- name: Stop and remove old containers
+  shell: "docker stop {{ squidContainerName }} && docker rm {{ squidContainerName }}"
+  ignore_errors: yes
+  tags: [ squid-proxy ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ squid-proxy, config ]
+
+# vim: ft=ansible :

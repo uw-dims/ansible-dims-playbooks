@@ -1,0 +1,36 @@
+---
+
+# File: tasks/key-add.yml
+
+# We use git on the host to get the dims-keys repo and checkout master branch
+# Should only run once for multiple hosts
+- name: Get dims-keys repo and checkout master
+  git: "repo=git@git.prisem.washington.edu:/opt/git/dims-keys.git version=develop dest=/tmp/dims-keys-{{r}} accept_hostkey=True"
+  delegate_to: 127.0.0.1
+  run_once: yes
+
+- name: Update the authorized_keys file in the repo
+  shell: "cd /tmp/dims-keys-{{r}}/ssh-pub/ && make update"
+  delegate_to: 127.0.0.1
+  run_once: yes
+
+- name: Ensure select user public keys present in authorized-keys
+  authorized_key: user={{ dims_user }} key="{{ lookup('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_authorized_keys') }}"
+  sudo: yes
+
+- name: Make sure users' public key present in authorized_keys
+  authorized_key: user={{ item }} key="{{ lookup ('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_'+item + '_rsa.pub') }}"
+  with_items: accounts
+  sudo: yes
+
+- name: Update git account authorized_keys with member keys
+  authorized_key: user=git key="{{ lookup('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_authorized_keys') }}"
+  when: "'git' in group_names"
+  sudo: yes
+
+- name: Delete keys repo on host
+  file: "state=absent path=/tmp/dims-keys-{{r}}"
+  delegate_to: 127.0.0.1
+  run_once: yes
+
+# vim: ft=ansible :

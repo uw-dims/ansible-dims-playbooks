@@ -1,0 +1,53 @@
+---
+
+# File: tasks/yumrepos.yml
+
+- name: put rhel repos on rhel systems
+  action: copy src="{{ files }}/common/rhel{{ ansible_distribution_major_version }}.repo" dest="/etc/yum.repos.d/rhel{{ ansible_distribution_major_version }}.repo"
+  when: ansible_distribution == 'RedHat'
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: put epel repos on el systems
+  action: copy src="{{ files }}/common/epel{{ ansible_distribution_major_version }}.repo" dest="/etc/yum.repos.d/epel{{ ansible_distribution_major_version }}.repo"
+  when: ((ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and use_default_epel)
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: put fedora repos on primary architecture systems
+  action: copy src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+  - fedora.repo
+  - fedora-updates.repo
+  - fedora-updates-testing.repo
+  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l') and not inventory_hostname.startswith('arm03')
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: put fedora repos on secondary architecture systems
+  action: copy src="{{ files }}/common/{{ item }}-secondary" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+  - fedora.repo
+  - fedora-updates.repo
+  - fedora-updates-testing.repo
+  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'aarch64' or ansible_architecture == 'ppc64' or ansible_architecture == 'ppc64le')
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: add infrastructure repo
+  action: copy src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+  - infrastructure.repo
+  - infrastructure-testing.repo
+  tags:
+  - config
+  - packages
+  - yumrepos

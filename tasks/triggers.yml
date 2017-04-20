@@ -1,0 +1,86 @@
+---
+
+# File: tasks/triggers.yml
+
+# This task file handles a multi-level trigger subdirectory
+# hierarchy that supports multiple trigger levels
+#
+# Examples of projects that similarly split out types of
+# tests, in a manner like that implemented in this task
+# playbook, are:
+#
+# https://github.com/docker/machine/tree/master/test
+# https://github.com/docker/swarm/tree/master/test
+
+# More about triggers can be found here:
+#
+# https://github.com/emyl/vagrant-triggers
+
+# While these are being used specifically for Vagrant
+# VMs, we are trying to generalize this to be able to
+# be used against any machine we stand-up.
+
+# The Jinja templates don't seem to be easily split over
+# multiple lines, so they are left as big long lines
+# despite possible readability problems.
+
+- name: Set fact with list of trigger directories
+  set_fact:
+    trigger_directories="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/triggers && find * -type d').split() }}"
+
+- name: Make subdirectories for trigger categories present
+  file:
+    state=directory
+    dest={{ dims_triggers }}/{{ item }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  with_items: "{{ trigger_directories }}"
+
+# This playbook assumes that all trigger helpers and
+# bash scripts are kept at the top level of the
+# triggers directory.  Links to these files will be
+# created at each subordinate level to allow simpler
+# loading of helpers in a consistent manner.
+
+- name: Make trigger functions present
+  template:
+    src={{ item }}
+    dest={{ dims_triggers }}/{{ item | basename | regex_replace('\.j2','') }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  with_fileglob:
+   - ../templates/triggers/*.sh.j2
+
+- name: Set fact with list of .sh scripts in top level triggers directory
+  shell: "cd {{ dims_triggers }} && find * -maxdepth 0 -type f -name '*.sh'"
+  register: scripts
+
+- name: Make links to helper scripts present in subdirectories
+  file:
+    state=link
+    src={{ dims_triggers }}/{{ item[1] }}
+    path={{ dims_triggers }}/{{ item[0] }}/{{ item[1] }}
+  with_nested:
+    - "{{ trigger_directories }}"
+    - "{{ scripts.stdout_lines }}"
+
+# The Jinja templates don't seem to be easily split over
+# multiple lines, so they are left as big long lines
+# despite possible readability problems.
+
+- name: Set fact with list of all triggers at/below triggers directory
+  set_fact:
+    triggers_templates="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/triggers && find . -type f -name \"*.sh.j2\"').split() }}"
+
+- name: Make defined triggers present
+  template:
+    src=../templates/triggers/{{ item }}
+    dest={{ dims_triggers }}/{{ item | dirname }}/{{ item | basename | regex_replace('\.j2','') }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_0755 }}
+  with_items: "{{ triggers_templates }}"
+
+# vim: ft=ansible :

@@ -1,0 +1,26 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+# This set of tests is written for CoreOS-specific diagnostics.
+# All tests are skipped if this is not being run on CoreOS.
+# (Some tests may still apply on other hosts, but this file is
+# named with 'coreos' in the name to allow selective execution.)
+
+load helpers
+
+setup() {
+    source $DIMS/bin/dims_functions.sh
+}
+
+@test "[S][EV] etcdctl returns results" {
+    ! is_coreos && skip "Only applying on CoreOS"
+    bash -c "etcdctl cluster-health | grep -q '^member'"
+}
+
+@test "[S][EV] etcdctl cluster-health returns 'healthy'" {
+    ! is_coreos && skip "Only applying on CoreOS"
+    assert "cluster is healthy" bash -c "etcdctl cluster-health | grep '^cluster'"
+}

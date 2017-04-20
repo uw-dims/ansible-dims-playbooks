@@ -1,0 +1,10 @@
+---
+
+# File: inventory/go/nodes.yml
+
+go:
+  hosts:
+    'yellow.devops.local':
+    'purple.devops.local':
+
+# vim: ft=ansible :

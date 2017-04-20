@@ -1,0 +1,41 @@
+---
+
+# File: playbooks/hosts/purple.devops.local.yml
+
+- name: Dump all vars if debug enabled
+  hosts: purple.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/jessie.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "purple.devops.local"
+  hosts: purple.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/jessie.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: hosts }
+    - { role: dims-ci-utils }
+    - { role: postfix, postfix_group: 'trident-local', smtp_relayhost: true }
+    - { role: python-virtualenv, use_sphinx: false }
+    - { role: docker }
+    - { role: consul,  startup_method: "supervisor" }
+    - { role: postgres }
+    - { role: nginx }
+    - { role: trident-core }
+    - { role: trident-configure }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"

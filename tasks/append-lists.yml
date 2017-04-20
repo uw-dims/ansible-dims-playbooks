@@ -1,0 +1,40 @@
+---
+
+# File: tasks/append-lists.yml
+
+- name: Initialize required data structures
+  set_fact:
+    admins_defined: [ 'dittrich', 'mboggess', 'trident' ]
+    members_current: [ 'dittrich', 'mboggess', 'trident', 'bob', 'jim' ]
+
+- name: Fake tcli user get sysadmin status ($3)
+  shell: 'grep "{{ item }}" /tmp/fake-tcli | awk "{print \$3;}"'
+  with_items: "{{ admins_defined }}"
+  register: results
+
+- name: Build admins_dict1 with admin status
+  set_fact: 
+    admins_dict1: "{{ admins_dict1|default({})|combine({ item.0: item.1.stdout }) }}"
+  with_together:
+    - "{{ members_current }}"
+    - "{{ results.results }}"
+  when: item.1.stdout is defined
+
+- debug: 'var=admins_dict1'
+
+- name: Build dict with admin status
+  set_fact: 
+    admins_dict2: "{{ admins_dict2|default({})|combine({ item.item: item.stdout }) }}"
+  with_items: "{{ results.results }}"
+
+- debug: 'var=admins_dict2'
+
+- name: Extract subset of members w/sysadmin status
+  set_fact:
+    admins_current: "{{ admins_current|default([]) + [ item.key ] }}"
+  with_dict: "{{ admins_dict2 }}"
+  when: item.value == "yes"
+
+- debug: 'var=admins_current'
+
+#EOF

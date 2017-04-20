@@ -1,0 +1,5 @@
+---
+
+# File: roles/trident/defaults/main.yml
+
+trident_setup: 'tcli'

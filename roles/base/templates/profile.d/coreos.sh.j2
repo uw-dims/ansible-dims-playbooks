@@ -1,0 +1,20 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# Do not manually modify.
+
+# CoreOS does not just load /etc/environment for all shells, so we do
+# it here at login time using an /etc/profile.d drop in.
+
+if [[ -f /etc/environment  ]]; then
+  # Load variables into this shell
+  source /etc/environment
+  # Ensure variables listed in the file are exported
+  while read var; do
+          eval export $var
+  done < <(egrep -v '^#|^$' /etc/environment |
+	   sed 's/\(^[^=]*\)=.*$/\1/')
+fi
+
+# Add export of dynamic library load path for pypy
+export LD_LIBRARY_PATH=/home/core/pypy/lib:/lib64
+
+# End added dims code

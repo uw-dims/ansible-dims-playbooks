@@ -1,0 +1,14 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+localise-queries
+domain-needed
+bogus-priv
+server=/consul/{{ dnsNameserver }}
+server=/devops.{{ deployment }}/{{ dnsNameserver }}
+server=/ops.{{ deployment }}/{{ dnsNameserver }}
+server=/56.168.192.in-addr.arpa/{{ dnsNameserver }}
+local=/local/
+bind-interfaces
+expand-hosts
+domain={{ category }}.{{ deployment }}
+log-queries
+conf-dir=/etc/dnsmasq.d

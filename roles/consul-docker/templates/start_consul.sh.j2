@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Runs latest consul image as container consul
+docker run --name consul --net=host \
+    -e 'CONSUL_BIND_INTERFACE={{ consulBindInterface }}' \
+    -v {{ consulDataDir }}:/consul/data \
+    -v /etc/consul.d/{{ consulMode }}/consul.json:/etc/consul.d/{{ consulMode }}/consul.json \
+	consul agent -config-dir=/etc/consul.d/{{ consulMode }}
+
+exit $?

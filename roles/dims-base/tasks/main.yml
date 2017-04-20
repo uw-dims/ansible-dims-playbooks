@@ -1,0 +1,7 @@
+---
+
+# File: roles/dims-base/tasks/main.yml
+
+- debug: msg="THIS ROLE IS DEPRECATED. (This message is here until role removed from playbooks.)"
+
+# vim: ft=ansible :

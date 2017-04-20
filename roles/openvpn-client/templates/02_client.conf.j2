@@ -1,0 +1,37 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+script-security 2
+tls-client
+dev tun88
+proto udp
+remote 140.142.29.118 8989
+topology subnet
+comp-lzo
+resolv-retry infinite
+nobind
+cipher AES-128-CBC
+user nobody
+group nogroup
+pull
+ns-cert-type server
+persist-key
+persist-tun
+mute-replay-warnings
+verb 3
+mute 20
+key-direction 1
+up emit-up
+down emit-down
+
+<ca>
+{{ client_ca_cert }}
+</ca>
+
+<tls-auth>
+{{ client_tls_auth }}
+</tls-auth>
+<cert>
+{{ client_certificate }}
+</cert>
+<key>
+{{ private_key }}
+</key>

@@ -1,0 +1,8 @@
+---
+
+# File: roles/python-virtualenv/defaults/main.yml
+
+# Default name for virtual environment
+venv_name: dimsenv
+
+# vim: ft=ansible :

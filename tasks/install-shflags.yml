@@ -1,0 +1,27 @@
+---
+
+# File: tasks/install-shflags.yml
+
+# shflags is used for command line parsing by scripts installed into
+# DIMS system components, both in virtual/bare-metal machines and
+# Docker containers. Install it into a directory were it
+#
+# See the following for how to use shflags in Bash scripts:
+# https://code.google.com/archive/p/shflags/wikis/Documentation10x.wiki
+
+- name: Check out shflags repo
+  git:
+    repo: https://github.com/kward/shflags
+    dest: "{{ dims_src }}/shflags"
+    force: true
+    update: yes
+    version: "{{ shflags_version | default('master') }}"
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]
+
+- name: Install shflags into dims_lib
+  shell: "cd {{ dims_src }}/shflags/src && cp -p * {{ dims_lib }}"
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]

@@ -1,0 +1,7 @@
+---
+
+# File: roles/base/defaults/main.yml
+
+packages_upgrade: false
+root_user: root
+root_group: root

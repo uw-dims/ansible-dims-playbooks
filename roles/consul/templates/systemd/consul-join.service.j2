@@ -1,0 +1,16 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+[Unit]
+Description=Consul server cluster join
+Requires=consul.service
+After=consul.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/bin/sh -c 'sleep 30'
+ExecStart=/usr/bin/docker exec consul-%H consul join {{ consul_servers|names_to_ips|list_to_args }}
+RestartSec=30
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

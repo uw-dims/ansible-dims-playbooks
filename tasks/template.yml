@@ -1,0 +1,22 @@
+---
+
+# File: tasks/template.yml
+
+# This task is used by Ansible to template a file specified by
+# the variable "tsrc" to produce an output file specified by
+# the variable "tdest".  It is intended to be invoked via
+# the dims.ansible-playbook wrapper script. (See
+# "dims.ansible-playbook --usage" for more information).
+
+- set_fact:
+    source_msg: "{{ lookup('dims_functions', 'say_raw \"Template source:      {{ tsrc }}\"') }}"
+    dest_msg:   "{{ lookup('dims_functions', 'say_raw \"Template destination: {{ tdest }}\"') }}"
+
+- debug: msg="\n{{ source_msg }}\n{{ dest_msg }}"
+
+- name: Load extra variables from file "tvars"
+  include_vars: "{{ tvars }}"
+  when: tvars is defined and tvars != ''
+
+- name: Template file "tsrc" to produce file "tdest"
+  local_action: template src={{ tsrc }} dest={{ tdest }}

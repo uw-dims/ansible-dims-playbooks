@@ -1,0 +1,137 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# Hosts in this file have multiple entries, one for each separate network on
+# which they are active. These entries are used by dnsmasq with the
+# --localise-queries option. See "man dnsmasq" for an explanation
+# of how this works.
+#
+255.255.255.255       bcast             bcast.prisem             bcast.prisem.dims
+
+10.142.29.11          linda-vm1         linda-vm1.prisem         linda-vm1.prisem.dims
+#192.168.88.11         linda-vm1         linda-vm1.prisem         linda-vm1.prisem.dims
+# Use of the following entry is deprecated
+10.142.29.12          u12-dev-1         u12-dev-1.prisem         u12-dev-1.prisem.dims
+#192.168.88.12         u12-dev-1         u12-dev-1.prisem         u12-dev-1.prisem.dims
+# Use of the following entry is deprecated
+# So what entry will point to this machine, since both are deprecated?
+10.142.29.12          u12-dev-ws-1      u12-dev-ws-1.prisem      u12-dev-ws-1.prisem.dims
+#192.168.88.12         u12-dev-ws-1      u12-dev-ws-1.prisem      u12-dev-ws-1.prisem.dims
+# Use of the following entry is deprecated
+10.142.29.13          u12-dev-svr-1     u12-dev-svr-1.prisem     u12-dev-svr-1.prisem.dims
+#192.168.88.13         u12-dev-svr-1     u12-dev-svr-1.prisem     u12-dev-svr-1.prisem.dims
+
+# Machine running Dashboard demonstration plus other associated services
+10.142.29.13          demo              demo.prisem              demo.prisem.dims
+#192.168.88.13         demo              demo.prisem              demo.prisem.dims
+
+# Machine running DIMS Docker Registry
+10.142.29.14          hub               hub.prisem               hub.prisem.dims
+#192.168.88.14         hub               hub.prisem               hub.prisem.dims
+
+# Machine running the SSO application
+10.142.29.94          sso               sso.prisem               sso.prisem.dims
+#192.168.88.94         sso               sso.prisem               sso.prisem.dims
+# Apache virtual host in SSO application
+10.142.29.94          reload            reload.prisem            reload.prisem.dims
+#192.168.88.94         reload            reload.prisem            reload.prisem.dims
+# Apache virtual host in SSO application
+10.142.29.94          auth              auth.prisem              auth.prisem.dims
+#192.168.88.94         auth              auth.prisem              auth.prisem.dims
+# Apache virtual host in SSO application
+10.142.29.94          manager           manager.prisem           manager.prisem.dims
+#192.168.88.94         manager           manager.prisem           manager.prisem.dims
+# Apache reverse proxy which protects and proxies the foswiki application on foswiki-int
+10.142.29.94          foswiki           foswiki.prisem           foswiki.prisem.dims
+#192.168.88.94         foswiki           foswiki.prisem           foswiki.prisem.dims
+
+# Use of the following entry is deprecated (not yet however - Apache reverse proxy on jenkins references it)
+# Jenkins application runs on this machine
+10.142.29.95          jenkins-int       jenkins-int.prisem       jenkins-int.prisem.dims
+#192.168.88.95         jenkins-int       jenkins-int.prisem       jenkins-int.prisem.dims
+
+# Use of the following entry is deprecated
+10.142.29.95          ansible-d         ansible-d.prisem         ansible-d.prisem.dims
+#192.168.88.95         ansible-d         ansible-d.prisem         ansible-d.prisem.dims
+
+# Http access to packages hosted on Jenkins server machine
+10.142.29.95          source            source.prisem            source.prisem.dims
+#192.168.88.95         source            source.prisem            source.prisem.dims
+
+# Use of the following entry is deprecated (not yet however - Apache reverse proxy on jira references it)
+# JIRA application runs on this machine
+10.142.29.96          jira-int          jira-int.prisem          jira-int.prisem.dims
+#192.168.88.96         jira-int          jira-int.prisem          jira-int.prisem.dims
+
+# Apache reverse proxy which proxies the Jenkins application on jenkins-int
+10.142.29.97          jenkins           jenkins.prisem           jenkins.prisem.dims
+#192.168.88.97         jenkins           jenkins.prisem           jenkins.prisem.dims
+
+# Apache reverse proxy which proxies the Jira application on jira-int
+10.142.29.97          jira              jira.prisem              jira.prisem.dims
+#192.168.88.97         jira              jira.prisem              jira.prisem.dims
+
+# Machine running DIMS project LDAP, Apache proxies
+10.142.29.97          lapp              lapp.prisem              lapp.prisem.dims
+#192.168.88.97         lapp              lapp.prisem              lapp.prisem.dims
+
+# DIMS Project LDAP
+10.142.29.97          ldap              ldap.prisem              ldap.prisem.dims
+#192.168.88.97         ldap              ldap.prisem              ldap.prisem.dims
+10.142.29.97          gitweb            gitweb.prisem            gitweb.prisem.dims
+#192.168.88.97         gitweb            gitweb.prisem            gitweb.prisem.dims
+10.142.29.97          lapp-int          lapp-int.prisem          lapp-int.prisem.dims
+#192.168.88.97         lapp-int          lapp-int.prisem          lapp-int.prisem.dims
+
+# Foswiki application runs on this machine (protected and proxied by SSO machine)
+10.142.29.99          foswiki-int       foswiki.prisem-int       foswiki-int.prisem.dims
+#192.168.88.99         foswiki-int       foswiki.prisem-int       foswiki-int.prisem.dims
+
+# This VM runs on wellington. Lancaster, fearless is the same machine
+192.168.88.101        vpn               vpn.prisem               vpn.prisem.dims
+
+10.142.29.96          git               git.prisem               git.prisem.dims
+
+140.142.29.118        lancaster         lancaster.prisem         lancaster.prisem.dims
+
+10.142.29.163         b29               b29.prisem               b29.prisem.dims
+
+172.22.29.113         time              time.prisem              time.prisem.dims
+172.22.29.138         floyd2            floyd2.prisem            floyd2.prisem.dims
+# Scrub
+#172.22.29.170         rabbit            rabbit.prisem            rabbit.prisem.dims
+# Use of the following entry is deprecated
+172.22.29.170         rabbit-mq-p       rabbit-mq-p.prisem       rabbit-mq-p.prisem.dims
+# Use of the following entry is deprecated
+# Scrub
+#172.22.29.170         rabbitmq          rabbitmq.prisem          rabbitmq.prisem.dims
+# Use of the following entry is deprecated
+172.22.29.170         rabbit-172        rabbit-172.prisem        rabbit-172.prisem.dims
+172.22.29.175         floyd2-p          floyd2-p.prisem          floyd2-p.prisem.dims
+172.22.29.175         cifv1             cifv1.prisem             cifv1.prisem.dims
+172.22.29.182         stirling          stirling.prisem          stirling.prisem.dims
+# Use of the following entry is deprecated
+#172.22.29.234         wellington        wellington.prisem        wellington.prisem.dims
+
+140.142.29.115        eclipse           eclipse.prisem           eclipse.prisem.dims
+
+# Scrub
+#140.142.29.170        rabbit            rabbit.prisem            rabbit.prisem.dims
+
+10.142.29.119         nas               nas.prisem               nas.prisem.dims
+10.142.29.170         rabbitmq.vlan1	rabbitmq.prisem     	 rabbitmq.prisem.dims
+					
+# Use of the following entry is deprecated
+10.142.29.170         rabbit-bd         rabbit-bd.prisem         rabbit-bd.prisem.dims
+# Use of the following entry is *not* deprecated
+10.142.29.234         wellington        wellington.prisem        wellington.prisem.dims
+
+# This entry is future?
+199.168.91.184        portal            portal.prisem            portal.prisem.washington.edu
+# Ops-trust portal
+199.168.91.184        portal.uw.ops-trust.net ot-portal
+# Ops-trust database
+199.168.91.185        db.uw.ops-trust.net ot-db
+# Ops-trust wiki
+38.111.193.9          wiki.uw.ops-trust.net ot-wiki
+# Ops-trust openid (login) machine
+38.111.193.10         openid.uw.ops-trust.net ot-openid

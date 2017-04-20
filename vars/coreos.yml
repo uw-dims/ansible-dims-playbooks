@@ -1,0 +1,50 @@
+---
+
+# File: vars/coreos.yml
+
+dist_tag: u'{{ ansible_distribution_version }}'
+
+packages_install:
+  "Container Linux by CoreOS": [
+    'bash-completion',
+    'ca-certificates',
+    'cpanminus',
+    'curl',
+    'git-core',
+    'htop',
+    'ifstat',
+    'make',
+    'chrony',
+    'ntpdate',
+    'openssh-server',
+    'patch',
+    'perl',
+    'postfix',
+    'python',
+    'remake',
+    'rsync',
+    'rsyslog',
+    'sshfs',
+    'strace',
+    'tree',
+    'vim',
+    'smartmontools',
+  ]
+
+packages_remove:
+  "Container Linux by CoreOS": [ ]
+
+services_disabled:
+  "Container Linux by CoreOS": [ ]
+
+services_enabled:
+  "Container Linux by CoreOS": [ ]
+
+root_user: 'root'
+root_group: 'root'
+
+# The following is for testing and validation of where this
+# variable gets (re)defined.
+was_defined_in: 'vars/coreos.yml'
+
+# vim: ft=ansible :

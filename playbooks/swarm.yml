@@ -1,0 +1,29 @@
+---
+
+# File: playbooks/swarm.yml
+
+# This playbook is used to encapsulated the creation of a Swarm
+# cluster using the published Ansible playbook from:
+# https://github.com/nextrevision/ansible-swarm-playbook
+#
+# After running the playbook to establish the swarm on nodes
+# in the 'manager' group, we then ensure that the defined
+# networks exist, creating them if necessary by delegating
+# to the first available Swarm manager node that was identified
+# during execution of the swarm.yml task file.
+
+- hosts: swarm
+  become: true
+  
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+
+  tasks:
+  - include: "{{ tasks }}/debug-dump-vars.yml"
+    when: debug
+
+- include: "{{ imported_roles }}/swarm-ansible-playbook/swarm.yml"
+
+# NOTE: Cluster state restoration test may be done here
+
+# vim: ft=ansible :

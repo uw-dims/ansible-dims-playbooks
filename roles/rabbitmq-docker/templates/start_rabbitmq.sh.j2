@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Runs latest dims-rabbitmq image as container rabbitmq
+# Default user is guest:guest. Default admin is admin:admin
+# Override these using -e option when running ansible-playbook
+docker run -d -p {{ rabbitmq_admin_port }}:15672 \
+    -p {{ rabbitmq_port }}:5672 \
+    --hostname rabbitmq --name rabbitmq \
+    --net=app.local \
+    --restart=always \
+    -e RABBITMQ_DEFAULT_USER={{ rabbitmq_default_user }} \
+    -e RABBITMQ_DEFAULT_USER_PASS={{ rabbitmq_default_user_pass }} \
+    -e RABBITMQ_ADMIN_USER={{ rabbitmq_admin_user }} \
+    -e RABBITMQ_ADMIN_USER_PASS={{ rabbitmq_admin_user_pass }} \
+    {{ docker_registry }}/dims-rabbitmq
+
+exit 0

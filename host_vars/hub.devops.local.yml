@@ -1,0 +1,17 @@
+---
+
+# File: host_vars/hub.devops.local.yml
+
+name: "hub"
+PORT: "22"
+
+dims_users: [ 'dittrich', 'mboggess', ]
+
+eth1:
+  ip: "192.168.56.33"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.33"
+  auto_config: "false"
+
+# vim: ft=ansible :

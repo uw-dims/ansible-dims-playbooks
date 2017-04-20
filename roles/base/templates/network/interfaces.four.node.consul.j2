@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+#auto eth0
+#iface eth0 inet static
+#address 192.168.0.44
+#netmask 255.255.255.0
+#network 192.168.0.0
+#broadcast 192.168.0.255
+#gateway 192.168.0.1
+#dns-nameservers 192.168.0.2 192.168.0.44 8.8.8.8 8.8.4.4
+
+auto eth1
+iface eth1 inet dhcp
+

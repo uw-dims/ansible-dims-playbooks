@@ -1,0 +1,11 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] User's .bashrc does not directly source DIMS initialization scripts" {
+     ! grep '$DIMS/etc/bashrc.dims' $HOME/.bashrc
+}

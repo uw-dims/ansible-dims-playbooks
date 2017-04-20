@@ -1,0 +1,19 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+# $ vboxmanage --version
+# 5.1.6r110634
+
+load helpers
+
+@test "[S][EV] Virtualbox release version is {{ virtualbox_release_version }}" {
+    assert "{{ virtualbox_release_version | regex_replace('-', 'r') }}" vboxmanage --version
+}
+
+@test "[S][EV] Package \"virtualbox-{{ virtualbox_major_version }}\" is marked \"hold\"" {
+    bash -c "apt-mark showhold | grep -q virtualbox-{{ virtualbox_major_version }}"
+}
+

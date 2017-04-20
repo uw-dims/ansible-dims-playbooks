@@ -1,0 +1,49 @@
+---
+
+# file: library/pre_tasks.yml
+
+- name: PRE_TASK - Echo role name (verbose mode)
+  shell: "echo pre_tasks for role: {{ role_name | quote }}"
+  when: verbose
+
+- name: PRE_TASK - Set the path to virtual environment activate
+  set_fact:
+    dimsenv_activate: "{{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
+
+- name: PRE_TASK - Check proxy availability
+  include: "{{ tasks }}/proxy_check.yml"
+
+- name: PRE_TASK - Test for existence of dimsenv virtualenv
+  shell: ". {{ dimsenv_activate }}"
+  register: dimsenv_check
+  ignore_errors: yes
+
+- name: PRE_TASK - Log start of role with virtualenv logmon
+  shell: ". {{ dimsenv_activate }} && which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
+  ignore_errors: yes
+  when: dimsenv_check.rc == 0
+
+- name: PRE_TASK - Log the start of this role w/o virtualenv logmon
+  shell: "which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
+  ignore_errors: yes
+  when: dimsenv_check.rc != 0
+
+# We don't want to save files to deploy_dir (owned by dims)
+# that are owned by root. But the target may already have
+# this file there owned by root due to previous script errors.
+# So we will remove any existing file first
+- name: PRE_TASK - Delete CURRENT_ROLE file
+  file: "path={{ deploy_dir }}/CURRENT_ROLE state=absent"
+
+- name: PRE_TASK - Save role name for timestamp marker
+  shell: "echo {{ role_name | quote }} > {{ deploy_dir | quote }}/CURRENT_ROLE"
+  when: verbose or debug
+
+- name: PRE_TASK - Create role deploy directory
+  file:
+    state: directory
+    path: "{{ dims_deploy }}/{{ role_name }}"
+    mode: "{{ mode_0770 }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+  when: role_name is defined

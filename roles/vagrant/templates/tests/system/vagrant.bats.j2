@@ -1,0 +1,14 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+# $ vagrant --version
+# Vagrant 1.8.6
+
+load helpers
+
+@test "[S][EV] Vagrant version is {{ vagrant_version }}" {
+    assert "Vagrant {{ vagrant_version }}" vagrant --version
+}

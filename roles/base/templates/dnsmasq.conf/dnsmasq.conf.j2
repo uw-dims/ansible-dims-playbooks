@@ -1,0 +1,11 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+localise-queries
+domain-needed
+bogus-priv
+server=/prisem.washington.edu/10.142.29.115
+server=/29.142.10.in-addr.arpa/10.142.29.115
+bind-interfaces
+expand-hosts
+domain={{ category }}.{{ deployment }}
+log-queries
+conf-dir=/etc/dnsmasq.d

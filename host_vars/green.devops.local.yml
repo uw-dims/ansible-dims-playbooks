@@ -1,0 +1,40 @@
+---
+
+# File: host_vars/green.devops.local.yml
+
+name: "green"
+PORT: "22"
+
+dims_users: [ 'dittrich', 'mboggess', ]
+
+tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
+udp_ports: [ 53, 4789, 7946 ]
+
+eth1:
+  ip: "192.168.56.12"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.12"
+  auto_config: "false"
+
+debian_vagrantfile: [
+  '  # Change the following to the ansible_dsa key on your machine',
+  '  # HOME comes from Makefile',
+  '  # vmKey comes from host_vars host file',
+  '  config.ssh.private_key_path = "{{ HOME }}/.ssh/{{ vmKey }}"',
+  '  config.ssh.forward_agent = true',
+]
+
+# Variables for building "ovf" and "box" files
+box_baseos: "debian"
+box_osversion: "7.11.0"
+box_osnick: "wheezy"
+box_type: "server"
+iso_source: "file:///vm/cache/isos"
+iso_arch: "amd64"
+iso_checksum_type: "sha256"
+iso_checksum: "62876fb786f203bc732ec1bd2ca4c8faea19d0a97c5936d69f3406ef92ff49bd"  # debian-7.11.0-amd64-netinst.iso
+ssh_pass: "{{ vault_ssh_pass }}"
+installDesktop: ""
+
+# vim: ft=ansible :

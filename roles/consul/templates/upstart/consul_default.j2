@@ -1,0 +1,8 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# Debugging support for upstart.
+DIMS_DEBUG=1
+# Whether or not to run the consul daemon; set to 0 to disable.
+ENABLED=1
+# Add any Consul flags to what may already be set
+CONSUL_FLAGS="${CONSUL_FLAGS} "

@@ -1,0 +1,24 @@
+---
+
+# File: tasks/install-bats.yml
+
+# The bats test program is used by DIMS system components, both
+# virtual/bare-metal machines and Docker containers. Install it
+# into a directory were it can be used by both.
+
+- name: Check out bats repo into dims_src
+  git:
+    repo: https://github.com/sstephenson/bats.git
+    dest: "{{ dims_src }}/bats"
+    force: true
+    update: yes
+    version: "{{ bats_version | default('master') }}"
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]
+
+- name: Install bats script into dims_bin directory
+  shell: "cd {{ dims_src }}/bats/libexec && cp bats* {{ dims_bin }}/ && chmod +x {{ dims_bin }}/bats*"
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ base, packages ]

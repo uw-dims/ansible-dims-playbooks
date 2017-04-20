@@ -1,0 +1,210 @@
+---
+
+# file: roles/docker/tasks/main.yml
+
+# Follow instructions from Docker web site on installation for
+# Ubuntu and Debian (respectively):
+#   https://docs.docker.com/engine/installation/linux/ubuntu/
+#   https://docs.docker.com/engine/installation/linux/debian/
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ docker, packages, config ]
+
+# Debian wheezy requires backports (newer releases not)
+- name: Make backports present for APT on Debian wheezy
+  apt_repository:
+    repo="deb http://http.debian.net/debian wheezy-backports main non-free contrib"
+    state=present
+    update_cache=yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "wheezy"
+  tags: [ docker, packages ]
+
+- name: Ensure proper kernel is installed on Ubuntu
+  apt:
+    name=linux-image-extra-{{ ansible_kernel }}
+    state=present
+  become: yes
+  when: ansible_lsb.id == "Ubuntu"
+  tags: [ docker, packages ]
+
+- name: Ensure proper kernel is installed on Debian
+  apt:
+    name=linux-image-amd64
+    default_release=wheezy-backports
+    state=present
+  become: yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "wheezy" and ansible_architecture == "x86_64"
+  tags: [ docker, packages ]
+
+- name: Make Docker registry key present
+  shell: sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+# Name in "filename" is tightly coupled with test in docker-core.bats.j2
+- name: Make deb sources present
+  apt_repository:
+    repo: 'deb https://apt.dockerproject.org/repo {{ ansible_lsb.id | lowercase }}-{{ ansible_lsb.codename }} {{ docker_engine_pool }}'
+    filename: 'docker'
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+# NOTE: You can find a list of the available versions in the output of
+# this play, so it is being stored in a file in /tmp.
+
+- name: Verify APT repository and contents
+  shell: "apt-cache madison docker-engine | tee /tmp/docker-versions.txt"
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Verify docker group exists
+  group: name=docker state=present
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, config ]
+
+# TODO(dittrich): Should do this in user install scripts (users may not be present yet)
+- name: Ensure dims users are in docker group
+  user: "name={{ item }} append=yes groups=docker"
+  with_items: [ dims, ansible ]
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, config ]
+
+# Note package name change as of 1.12.4:
+# docker-engine | 1.12.5-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.5-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
+# docker-engine | 1.12.5~rc1-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.4-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.4-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
+# docker-engine | 1.12.4~rc1-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.3-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.3-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
+# docker-engine | 1.12.3~rc1~git20161025.001321.0.bad4d12-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# docker-engine | 1.12.2-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
+# . . .
+
+- name: Make docker-engine present
+  apt:
+    name=docker-engine={{ docker_engine_version }}~{{ ansible_distribution | lower }}-{{ ansible_lsb.codename }}
+    state=present
+    force=yes
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ docker, packages ]
+
+- name: Prevent docker-engine from being upgraded
+  dpkg_selections:
+    name: docker-engine
+    selection: hold
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+
+- name: Make Docker compose absent
+  file: name={{ dims_bin }}/docker-compose state=absent
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Make Docker compose present
+  get_url:
+    url=https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}
+    dest={{ dims_bin }}/docker-compose
+    mode={{ mode_0775 }}
+    use_proxy=yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Make Docker machine absent
+  file: name={{ dims_bin }}/docker-machine state=absent
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Make Docker machine present
+  get_url:
+    url=https://github.com/docker/machine/releases/download/v{{ docker_machine_version }}/docker-machine-{{ ansible_system }}-{{ ansible_architecture }}
+    dest={{ dims_bin }}/docker-machine
+    mode={{ mode_0775 }}
+    use_proxy=yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Make Docker defaults present
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/docker
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ docker_default }}'
+        - docker.{{ inventory_hostname }}.j2
+        - docker.category-{{ category }}.j2
+        - docker.deployment-{{ deployment }}.j2
+        - docker.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - default/
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ docker, config ]
+
+# Note: The iptables tag is here because Docker is responsible for creating a
+#       chain in the NAT table. If you just replace the general rules from the
+#       base role and restart iptables, the chain created by Docker is removed and
+#       Docker cannot start/restart services as the entries it tries to create
+#       have no chain to be inserted into.
+
+- name: Restart docker client daemon
+  shell: service docker restart
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages, config, iptables ]
+
+- name: Make Docker Bash completions present
+  get_url:
+    url=https://raw.githubusercontent.com/docker/compose/{{ docker_compose_version }}/contrib/completion/bash/docker-compose
+    dest={{ dims_etc_bashrc }}
+    mode={{ mode_0664 }}
+    use_proxy=yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ docker, config ]
+
+- name: Make docker-clean script present
+  get_url:
+    url=https://raw.githubusercontent.com/ZZROTDesign/docker-clean/v2.0.4/docker-clean
+    dest={{ dims_bin }}/docker-clean
+    mode={{ mode_0755 }}
+    use_proxy=yes
+  become: yes
+  tags: [ docker, config ]
+
+- name: Ensure Docker is enabled (CoreOS)
+  service:
+    name=docker.service
+    state=running
+    enabled=true
+  when: ansible_os_family == "Container Linux by CoreOS"
+  become: yes
+  tags: [ docker, config ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  tags: [ docker, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ docker, packages, config ]
+
+# vim: ft=ansible :

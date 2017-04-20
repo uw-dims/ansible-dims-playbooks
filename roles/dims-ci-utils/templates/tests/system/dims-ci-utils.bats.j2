@@ -1,0 +1,13 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+@test "[S][EV] {{ dims_bin }}/dims.git.syncrepos exists and is executable" {
+	[[ -x {{ dims_bin }}/dims.git.syncrepos ]]
+}
+
+@test "[S][EV] {{ dims_bin }}/dims.install.dimscommands exists and is executable" {
+	[[ -x {{ dims_bin }}/dims.install.dimscommands ]]
+}

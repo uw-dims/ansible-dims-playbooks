@@ -1,0 +1,18 @@
+diff --git a/Makefile b/Makefile
+index 20843c3..ce17538 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,3 +12,3 @@ test-pwqcheck:
+ install:
+-	install -m 755 $(program_name) /usr/bin/$(program_name)
++	install -m 755 $(program_name) /opt/dims/bin/$(program_name)
+ 
+diff --git a/bashpass b/bashpass
+index c631fa8..ba42fa6 100755
+--- a/bashpass
++++ b/bashpass
+@@ -84,3 +84,3 @@ done
+ if [[ -z $dictionary_file ]] && [[ -n $LANG ]]; then
+-    dictionary_file=/usr/share/myspell/${LANG/%.*/}.dic
++    dictionary_file=/usr/share/hunspell/${LANG/%.*/}.dic
+     if [[ ! -r $dictionary_file ]]; then

@@ -1,0 +1,145 @@
+---
+
+# File: tasks/build-trident.yml
+
+# This task file is used to build packages for the Trident portal
+# system. It depends on the presence of the go language compiler,
+# which is installed by the install-go.yml task. It installs further
+# build pre-requisites. It is designed to be applied outside of
+# a role, e.g.:
+#
+# $ dims.ansible-playbook --task build-trident purple.devops.local
+#
+# You will find the artifacts in the share directory:
+# $ pwd
+# /vm/run/purple
+# $ ls
+# after-up                      trident_1.4.2_all.deb           trident-wikiexport_1.4.2_amd64.deb
+# ansible-playbooks             trident-cli_1.4.2_amd64.deb     trigger.runner.base
+# interfaces                    trident-perl_0.1.0_amd64.deb    Vagrantfile
+# Makefile                      trident-server_1.4.2_amd64.deb  vagrant-include.sh
+# pitchfork-data_1.9.1_all.deb  trident-test_1.4.2_all.deb
+#
+# Until this is set up in Jenkins, copy artifacts to the source repository
+# directly and sync from there:
+#
+#  $ scp *.deb source.devops.develop:/data/src/
+
+- name: Check for presence of go compiler
+  stat: path='{{ dims_bin }}/go'
+  register: go_test
+
+- name: Ensure go compiler is present
+  include: "{{ tasks }}/install-go.yml"
+  become: yes
+  when: go_test.stat.exists == false
+
+- name: Ensure build directory is present
+  file:
+    dest={{ dims_deploy }}/build-trident
+    state=directory
+    owner={{ dims_user }}
+    group={{ dims_user }}
+    mode={{ mode_0750 }}
+  become: yes
+  become_user: '{{ dims_user }}'
+
+- name: Ensure Trident repo is present
+  git:
+    repo=https://github.com/tridentli/trident.git
+    dest={{ dims_src }}/trident
+    version=v1.4.5
+    force=yes
+  become: yes
+  become_user: '{{ dims_user }}'
+
+# This code comes from a non-public repository. For now, build and install
+# from a source .tgz
+
+- name: Ensure trident-perl source archive is present
+  get_url:
+    url={{ artifacts_url }}/trident-perl_{{ trident_perl.version }}.tgz
+    dest={{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Ensure trident-perl source archive is present
+  unarchive:
+    src={{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz
+    dest={{ dims_src }}/trident
+    remote_src=yes
+  become: yes
+  become_user: "{{ dims_user }}"
+
+# NOTE: We are temporarily adding hardcoded versioned path to the Go
+# bin directory that was just installed.
+
+- name: Ensure Trident dependencies are present
+  shell: "make clean_ext && make deps"
+  args:
+    chdir: "{{ dims_src }}/trident"
+  environment:
+    GOROOT: '/opt/go-{{ go.version }}'
+    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Build Trident packages
+  shell: dpkg-buildpackage -uc -us -F -d
+  args:
+    chdir: "{{ dims_src }}/trident"
+  environment:
+    GOROOT: '/opt/go-{{ go.version }}'
+    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Build Pitchfork package
+  shell: dpkg-buildpackage -uc -us -F -d
+  args:
+    chdir: "{{ dims_src }}/trident/ext/_gopath/src/trident.li/pitchfork"
+  environment:
+    GOROOT: '/opt/go-{{ go.version }}'
+    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: "{{ dims_user }}"
+
+#- name: Ensure pitchfork package is in share folder
+
+- name: Build trident-perl package
+  shell: dpkg-buildpackage -uc -us -F -d
+  args:
+    chdir: "{{ dims_src }}/trident/trident-perl"
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Find all built artifacts
+  find:
+    paths: "{{ dims_src }}"
+    patterns: "*.deb"
+    recurse: yes
+  register: found
+  become: yes
+  become_user: "{{ dims_user }}"
+
+# NOTE: We are assuming this is done in a vagrant VM,
+# and so vagrant/ is a shared directory with the host.
+# Use "cp" instead of copy module, since possibly NFS
+# Long term this should be done via Jenkins using a
+# Debian slave or from within a Docker container.
+
+- name: Copy artifacts to share directory
+  shell: "cp {{ item.path }} /home/{{ ansible_user }}/vagrant/{{ item.path | basename }}"
+  with_items: "{{ found.files }}"
+  ignore_errors: yes
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Ensure build directory is absent
+  file:
+    dest={{ dims_deploy }}/build-trident
+    state=absent
+  become: yes
+  become_user: '{{ dims_user }}'
+
+# vim: ft=ansible :

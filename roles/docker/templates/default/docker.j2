@@ -1,0 +1,5 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# Docker Upstart and SysVinit configuration file
+# Use DOCKER_OPTS to modify the daemon startup options.
+
+DOCKER_OPTS="$DOCKER_OPTS {{ docker_opts }}"

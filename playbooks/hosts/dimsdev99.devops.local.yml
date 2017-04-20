@@ -1,0 +1,45 @@
+---
+
+# File: playbooks/hosts/dimsdev99.devops.local.yml
+#
+# Host file for provisioning development/testing using host "dimsdev99"
+# replicating DIMS developer laptop.
+#
+
+- name: Dump all vars if debug enabled
+  hosts: dimsdev99.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
+
+  remote_user: "ansible"
+
+  tasks:
+   - include: "{{ tasks }}/debug-dump-vars.yml"
+
+- name: Configure host "dimsdev99.devops.local"
+  hosts: dimsdev99.devops.local
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
+
+  remote_user: "ansible"
+  sudo: yes
+
+  roles:
+    - { role: base }
+    - { role: hosts }
+    - { role: dims-ci-utils }
+    - { role: python-virtualenv, use_sphinx: true, https_proxy: "https://10.0.2.2:8000" }
+    - { role: docker }
+    - { role: consul }
+    - { role: ansible-server }
+    - { role: vagrant }
+    - { role: pycharm }
+    - { role: byobu }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+

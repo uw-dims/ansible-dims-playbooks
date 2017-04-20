@@ -1,0 +1,72 @@
+---
+
+# File: tasks/install-go.yml
+
+# This task installs a specific version of go. The go language
+# compiler is required for other tasks, such as building Trident
+# packages.
+
+# NOTE: Not DRY -- yanked from pre_tasks.yml
+- name: Create task deploy directory
+  file:
+    state: directory
+    path: "{{ dims_deploy }}/install-go"
+    mode: "{{ mode_0775 }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+
+- name: Install debian prerequisites if needed
+  apt:
+    name={{ item }}
+    state=present
+    force=yes
+  with_items:
+    - build-essential
+    - git
+    - pbuilder
+    - dh-golang
+    - dh-systemd
+  when: ansible_os_family == "Debian"
+  become: yes
+
+# Add installation of pre-reqs for other OSs when/if needed.
+
+- name: Download go tgz file with check (sha256)
+  get_url:
+    url={{ go.dist_url }}
+    dest={{ dims_deploy }}/install-go/{{ go.archive }}
+    checksum=sha256:{{ go.sha256_sum }}
+  become: yes
+
+- name: Unpack go archive file
+  unarchive:
+    src={{ dims_deploy }}/install-go/{{ go.archive }}
+    dest={{ dims_deploy }}/install-go
+    remote_src=yes
+  become: yes
+
+- name: Prevent copying Go directory into existing directory
+  file:
+    path=/opt/go-{{ go.version }}
+    state=absent
+  become: yes
+
+- name: Move go directory
+  command: mv {{ dims_deploy }}/install-go/go /opt/go-{{ go.version }}
+  become: yes
+
+- name: Make link to go run script
+  file:
+    src=/opt/go-{{ go.version }}/bin/go
+    dest={{ dims_bin }}/go
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode={{ mode_2775 }}
+    state=link
+  become: yes
+
+# NOTE: Not DRY, see first task
+- name: Remove task deploy directory
+  file:
+    state: absent
+    path: "{{ dims_deploy }}/install-go"

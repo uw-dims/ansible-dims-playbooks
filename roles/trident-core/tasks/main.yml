@@ -1,0 +1,489 @@
+---
+
+# File: roles/trident/tasks/main.yml
+
+# This playbook requires Debian Jessie as Trident is only
+# supported for running on Debian Jessie.
+# See https://github.com/bapril/trident/tree/DEV-1.3
+
+# This role ensures that the defined version of Trident and
+# all of its pre-requisite packages are installed. It also
+# ensures that the initial "trident" system administration
+# account is present (which is required for all further
+# system configuration, creation of trust groups and mailing
+# lists, etc.) and that the initial system configuration
+# of the web UI is present. Configuration of the primary
+# trust group and mailing lists is done in other tasks.
+
+# NOTE: When upgrading versions of Trident, it is important
+# that the PostgreSQL tables and users related to Trident
+# are deleted before the upgrade. This playbook checks for
+# the existence of a PostgreSQL user called 'trident'. If
+# that user exists, subsequent steps which setup Trident
+# databases and users are skipped. This can be a problem,
+# for example, when the Trident program expects new database
+# tables, but the database does not have those tables. (We
+# had this problem where we couldn't log in because a table
+# called 'iptrk' did not exist, and we didn't know why.)
+# To get the new tables, the database must be setup from
+# scratch. This note may change if the Trident developers
+# define an appropriate method for upgrading the database.
+# At that time, we will upgrade this playbook.
+
+# Until then, run:
+#  $ sudo apt-get purge postgresql-*
+# before running this playbook.
+
+- name: Validate Debian Jessie is being used.
+  fail:
+    msg: "Debian Jessie is required for running Trident."
+  when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ trident-core, config, packages ]
+
+- name: Load deployment secret variables file
+  include_vars: '{{ inventory_dir }}/group_vars/{{ deployment }}-vault.yml'
+  no_log: '{{ nolog }}'
+  tags: [ trident-core, config ]
+
+- name: Install required perl libraries
+  apt:
+    state: present
+    name: '{{ item }}'
+    force: yes
+  with_items:
+   - libdbi-perl
+   - libdbd-pg-perl
+   - libgnupg-perl
+   - haveged
+   - libdatetime-format-mail-perl
+   - libdatetime-format-pg-perl
+   - libgnupg-interface-perl
+   - libmail-sendeasy-perl
+  become: yes
+  tags: [ trident-core, packages ]
+
+- name: Make pg_hba.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ pghba_conf }}'
+       - pg_hba.conf.{{ inventory_hostname }}.j2
+       - pg_hba.conf.category-{{ category }}.j2
+       - pg_hba.conf.deployment-{{ deployment }}.j2
+       - pg_hba.conf.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/main/'
+       - postgresql/main/
+  become: yes
+  tags: [ trident-core, config ]
+
+  # NOTE: Must be restarted before Trident starts so can't use handler.
+- name: Apply configuration change
+  service:
+    name: postgresql
+    state: restarted
+  become: yes
+  tags: [ trident-core, config ]
+
+# TODO(dittrich): Need to migrate to public Trident carefully
+- name: Make core Trident packages present
+  get_url:
+    url: '{{ item.value }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.value | basename }}'
+  with_dict: '{{ trident_release[trident.version] }}'
+  become: yes
+  tags: [ trident-core, packages ]
+
+  # NOTE: trident-perl package is from private source currently,
+  # so must retrieve from our cache, not the github debs source.
+- name: Make trident-perl package present
+  get_url:
+    url: '{{ artifacts_url }}/{{ item }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item }}'
+  with_items: trident-perl_{{ trident_perl.version }}_amd64.deb
+  become: yes
+  tags: [ trident-core ]
+
+- name: Make trident group present
+  group:
+    name: trident
+    state: present
+  become: yes
+  tags: [ trident-core ]
+
+- name: Make trident user present
+  user:
+    name: trident
+    groups: trident,{{ dims_group }}
+    state: present
+    append: yes
+    createhome: no
+  become: yes
+  tags: [ trident-core ]
+
+- name: Make dims user present in trident group
+  user:
+    name: '{{ dims_user }}'
+    groups: trident
+    state: present
+    append: yes
+    createhome: no
+  become: yes
+  tags: [ trident-core ]
+
+- name: Make postgres user present in trident group
+  user:
+    name: postgres
+    groups: trident
+    state: present
+    append: yes
+    createhome: no
+  become: yes
+  tags: [ trident-core ]
+
+# TODO(dittrich): Need to migrate to public Trident carefully
+- name: Ensure core Trident packages are installed (tsetup)
+  shell: >
+    dpkg -i --force-confold {{ deploy_dir }}/{{ role_name }}/{{ item }}
+  with_items:
+    - pitchfork-data_{{ pitchfork.version }}_all.deb
+    - trident-cli_{{ trident.version }}_amd64.deb
+    - trident-server_{{ trident.version }}_amd64.deb
+    - trident_{{ trident.version }}_all.deb
+  become: yes
+  notify: restart trident
+  tags: [ trident-core, packages ]
+
+- name: Force enable
+  shell: >
+    systemctl enable trident.service
+  become: yes
+  tags: [ trident-core, packages ]
+
+# Attempting to install trident-perl without any written instructions.
+# Hackety, hackety...
+
+- name: Unpack trident-perl (mail handler) package into /
+  shell: >
+    dpkg -x {{ deploy_dir }}/{{ role_name }}/trident-perl_{{ trident_perl.version }}_amd64.deb /
+  become: yes
+  tags: [ trident-core, packages ]
+
+- name: Manually extract control files from trident-perl
+  shell: >
+    dpkg -e {{ deploy_dir }}/{{ role_name }}/trident-perl_{{ trident_perl.version }}_amd64.deb
+    {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN
+  become: yes
+  tags: [ trident-core, packages ]
+
+- name: Manually run trident-perl postinst script to install
+  shell: >
+    sh {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN/postinst
+  become: yes
+  tags: [ trident-core, packages ]
+
+- name: Make Trident init.d defaults present
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/trident
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_default }}'
+       - trident.{{ inventory_hostname }}.j2
+       - trident.category-{{ category }}.j2
+       - trident.deployment-{{ deployment }}.j2
+       - trident.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/default/'
+       - trident/default/
+  become: yes
+  notify: restart trident
+  tags: [ trident-core, config ]
+
+- name: Ensure /etc/trident/trident.conf is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/trident/trident.conf
+    owner: trident
+    group: trident
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_conf }}'
+       - trident.conf.{{ inventory_hostname }}.j2
+       - trident.conf.category-{{ category }}.j2
+       - trident.conf.deployment-{{ deployment }}.j2
+       - trident.conf.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.conf/'
+       - trident/trident.conf/
+  become: yes
+  notify: restart trident
+  tags: [ trident-core, config ]
+
+# NOTE: Make sure configuration matches between the
+# /etc/trident/trident.conf file and the following file.
+# Tight coupling of variable settings.
+- name: Ensure /var/lib/trident/siteconfig is present
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/trident/siteconfig
+    owner: trident
+    group: trident
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+       - '{{ siteconfig }}'
+       - siteconfig.{{ inventory_hostname }}.j2
+       - siteconfig.category-{{ category }}.j2
+       - siteconfig.deployment-{{ deployment }}.j2
+       - siteconfig.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/siteconfig/'
+       - trident/siteconfig/
+  become: yes
+  notify: restart trident
+  tags: [ trident-core, config ]
+
+- name: Make /etc/nginx/conf.d/trident.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/nginx/conf.d/trident.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ nginx_confd_trident }}'
+       - trident.conf.{{ inventory_hostname }}.j2
+       - trident.conf.category-{{ category }}.j2
+       - trident.conf.deployment-{{ deployment }}.j2
+       - trident.conf.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/confd/'
+       - nginx/confd/
+  become: yes
+  notify: restart nginx
+  tags: [ trident-core, config ]
+
+- name: Make Trident Daemon upstream configuration present
+  template:
+    src: '{{ item }}'
+    dest: /etc/trident/nginx/trident-upstream.inc
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_nginx_upstream }}'
+       - trident-upstream.inc.{{ inventory_hostname }}.j2
+       - trident-upstream.inc.category-{{ category }}.j2
+       - trident-upstream.inc.deployment-{{ deployment }}.j2
+       - trident-upstream.inc.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+       - trident-nginx/
+  become: yes
+  notify: restart nginx
+  tags: [ trident-core, config ]
+
+- name: Make Trident Daemon upstream server configuration present
+  template:
+    src: '{{ item }}'
+    dest: /etc/trident/nginx/trident-server.inc
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_nginx_server }}'
+       - trident-server.inc.{{ inventory_hostname }}.j2
+       - trident-server.inc.category-{{ category }}.j2
+       - trident-server.inc.deployment-{{ deployment }}.j2
+       - trident-server.inc.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+       - trident-nginx/
+  become: yes
+  notify: restart nginx
+  tags: [ trident-core, config ]
+
+- name: Ensure SSL file directory exists
+  file:
+    path: '{{ sslCertDir }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    state: directory
+    mode: '{{ mode_0755 }}'
+  become: yes
+  tags: [ trident-core, config ]
+
+# TODO(dittrich): All given deployment secrets need to be located...somewhere
+- name: Load SSL secrets
+  include_vars: ssl-secrets.deployment-{{ deployment }}.yml
+  no_log: '{{ nolog }}'
+  tags: [ trident-core, config ]
+
+- name: Copy SSL secret files
+  copy:
+    dest: '{{ item.key }}'
+    content: '{{ item.value.content }}'
+    owner: '{{ item.value.owner }}'
+    group: '{{ item.value.group }}'
+    mode: '{{ item.value.mode }}'
+  with_dict: '{{ ssl_secret_files }}'
+  no_log: '{{ nolog }}'
+  notify: restart nginx
+  tags: [ trident-core, config ]
+
+- name: Ensure 'logo_image' is present (tsetup)
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/trident/webroot/gfx/logo.svg
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_logo }}'
+       - logo.svg.{{ inventory_hostname }}
+       - logo.svg.category-{{ category }}
+       - logo.svg.deployment-{{ deployment }}
+       - logo.svg
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/logo.svg/'
+       - files/logo.svg/
+      skip: true
+  become: yes
+  tags: [ trident-core, config ]
+
+- name: Ensure header_image is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/trident/webroot/{{ trident.header_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_header }}'
+       - header_image.jpg.{{ inventory_hostname }}
+       - header_image.jpg.category-{{ category }}
+       - header_image.jpg.deployment-{{ deployment }}
+       - header_image.jpg
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/header_image.jpg/'
+       - files/header_image.jpg/
+      skip: true
+  become: yes
+  tags: [ trident-core, config ]
+
+- name: Ensure cascading style sheet is present (tsetup)
+  template:
+    src: '{{ item }}'
+    dest: /usr/share/trident/webroot/css/trident.css
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_css }}'
+       - trident.css.{{ inventory_hostname }}.j2
+       - trident.css.category-{{ category }}.j2
+       - trident.css.deployment-{{ deployment }}.j2
+       - trident.css.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.css/'
+       - trident/trident.css/
+      skip: true
+  become: yes
+  tags: [ trident-core, config ]
+
+- name: Ensure trident is running and enabled
+  systemd:
+    name: trident
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: [ trident-core ]
+
+- name: Determine if trident user already exists in postgres
+  shell: "psql -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='trident'\""
+  become: yes
+  become_user: 'postgres'
+  register: psql_results
+  tags: [ trident-core, config ]
+
+- name: Ensure Trident user and database present (tcli)
+  shell: "/usr/sbin/tsetup setup_db"
+  when: psql_results.stdout != "1"
+  become: yes
+  become_user: 'postgres'
+  tags: [ trident-core ]
+
+# Add initial sysadmin user. This step is necessary according to Linda's email
+# and Trident documentation (last sentence of ``tsetup`` section).
+- name: Make initial sysadmin user present (tcli)
+  shell: >
+    /usr/sbin/tsetup adduser trident {{ tridentSysAdminPass }}
+  no_log: '{{ nolog }}'
+  when: psql_results.stdout != "1"
+  become: yes
+  become_user: 'postgres'
+  tags: [ trident-core ]
+
+- name: Ensure trident administator is logged in (tcli)
+  shell: >
+    tcli system login trident {{ tridentSysAdminPass }}
+  register: tcli_login
+  no_log: '{{ nolog }}'
+  tags: [ trident-core ]
+
+- fail: 
+    msg: "Failed to log in via trident: {{ tcli_login.stdout }}"
+  when: tcli_login.stdout != "Login successful"
+  tags: [ trident-core ]
+
+- name: Ensure system configuration is present (tcli)
+  shell: '{{ item }}'
+  with_items:
+   - 'tcli system swapadmin'
+   - 'tcli system set name "{{ trident.name }}"'
+   - 'tcli system set welcome_text "{{ trident.welcome_text }}"'
+   - 'tcli system set url_public {{ trident.url_public }}'
+   - 'tcli system set adminname "{{ trident.adminname }}"'
+   - 'tcli system set adminemail "{{ trident.adminemail }}"'
+   - 'tcli system set email_domain "{{ trident.email_domain }}"'
+   - 'tcli system set people_domain "{{ trident.people_domain }}"'
+   - 'tcli system set logo_image {{ trident.logo_image }}'
+   - 'tcli system set header_image {{ trident.header_image }}'
+  tags: [ trident-core ]
+
+- name: Ensure initial sysadmin user account setup
+  shell: '{{ item }}'
+  with_items:
+   - 'tcli user set descr trident "{{ trident.adminname }}"'
+   - 'tcli user email remove trident@example.net'
+   - 'tcli user email add trident {{ trident.adminemail }}'
+   - 'tcli user email confirm_force trident {{ trident.adminemail }}'
+  tags: [ trident-core ]
+
+- name: Make defined bats tests present
+  include: '{{ tasks }}/bats-tests.yml'
+  ignore_errors: yes
+  tags: [ trident-core, tests ]
+
+- include: '{{ tasks }}/post_tasks.yml'
+  tags: [ trident-core, config, packages ]
+
+# vim: ft=ansible :

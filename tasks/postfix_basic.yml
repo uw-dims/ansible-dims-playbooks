@@ -1,0 +1,24 @@
+---
+
+# File: tasks/postfix_basic.yml
+
+- name: install postfix
+  action: yum pkg=postfix state=present
+  tags: [ postfix, packages ]
+
+- name: /etc/postfix/main.cf
+  action: copy src={{ item }} dest=/etc/postfix/main.cf
+  with_first_found:
+    - "{{ postfix_maincf }}"
+    - "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ ansible_fqdn }}"
+    - "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ inventory_hostname }}"
+    - "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ host_group }}"
+    - "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ postfix_group }}"
+    - "{{ roles }}/base/files/postfix/main.cf/main.cf"
+  notify:
+  - restart postfix
+  tags: [ postfix, config ]
+
+- name: Ensure postfix is running and enabled
+  service: name=postfix state=running enabled=yes
+  tags: [ postfix, config, service ]

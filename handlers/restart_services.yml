@@ -1,0 +1,125 @@
+---
+
+# File: handlers/restart_services.yml
+
+# Handlers for restarting services. This file is modelled after
+# the way the Fedora Project does things.
+#
+# This is the global service restart/reload definition file. It should
+# be included in the handlers/main.yml file for each role that requires
+# restarting services (i.e., installs or alters configuration files
+# for a service daemon) as follows:
+#
+# - include: "{{ handlers }}/restart_services.yml"
+#
+# These handlers are just for restarting services. You should *not*
+# be using "enabled=yes" here. Instead, in the tasks file where a
+# service daemon is installed that needs to be running across reboots,
+# a task should be included to ensure it is running and enabled at
+# the end of the role's playbook, like this:
+#
+# - name: Ensure someservice is running and enabled
+#   service:
+#     name: someservice
+#     state: running
+#     enabled: yes
+#   ...
+
+
+- name: update Ubuntu locales
+  command: "dpkg-reconfigure --frontend noninteractive locales"
+
+- name: update Debian locales
+  command: "locale-gen"
+
+- name: update timezone
+  command: "dpkg-reconfigure --frontend noninteractive tzdata"
+
+- name: restart dnsmasq on Debian
+  action: service name=dnsmasq state=restarted
+  ignore_errors: yes
+
+- name: restart dnsmasq with systemd
+  shell: systemctl restart dnsmasq
+
+- name: restart network-manager on Debian
+  action: service name=network-manager state=restarted
+
+# Note: Debian jessie an on use netfilter-persistent alongside of
+# (sort of instead of) iptables-persistent, so we are chaining the
+# handler for netfilter-persistent to be triggered in addition to
+# iptables-persistent to force iptables rules to be loaded
+# properly. See:
+# https://www.reddit.com/r/debian/comments/3zmie1/debian_80_minimal_vps_iptables_persistent_issue/
+# https://recordnotfound.com/iptables-persistent-zertrin-61799
+# https://groups.google.com/forum/#!topic/ansible-project/pOm5zIYpngI
+
+# The following names for iptables/ip6tables handlers are
+# derived in playbooks using facts to construct a dictionary
+# key that is the name string.  See playbooks using "notify"
+# for the base strings using a general form such as
+# 'restart iptables .*' or 'restart ip6tables .*'
+
+- name: restart iptables (Container Linux by CoreOS/NA)
+  shell: systemctl restart iptables-restore.service
+
+- name: restart ip6tables (Container Linux by CoreOS/NA)
+  shell: systemctl restart ip6tables-restore.service
+
+- name: restart iptables (Debian/jessie)
+  action: service name=netfilter-persistent state=restarted
+
+- name: restart ip6tables (Debian/jessie)
+  action: service name=netfilter-persistent state=restarted
+
+- name: restart iptables (Ubuntu/trusty)
+  action: service name=iptables-persistent state=reloaded
+
+- name: restart ip6tables (Ubuntu/trusty)
+  action: service name=ip6tables-persistent state=reloaded
+
+
+- name: restart virtualbox
+  action: service name=virtualbox state=restarted
+
+- name: restart ntpd
+  action: service name=ntpd state=restarted
+
+- name: restart chrony
+  action: service name=chrony state=restarted
+
+- name: restart rsyslog
+  action: service name=rsyslog state=restarted
+
+- name: restart ssh
+  action: service name=ssh state=restarted
+
+- name: restart supervisord
+  action: service name=supervisord state=restarted
+
+- name: restart network
+  action: service name=network state=restarted
+
+- name: restart supervisord
+  service: name=supervisord state=restarted
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: restart consul
+  service: name=consul state=restarted
+
+- name: restart rundeckd
+  service: name=rundeckd state=restarted
+
+- name: restart postgresql
+  service: name=postgresql state=restarted
+
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: restart postfix
+  service: name=postfix state=restarted
+
+- name: restart trident
+  service: name=trident state=restarted

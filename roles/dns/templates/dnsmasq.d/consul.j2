@@ -1,0 +1,18 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# To see all options supported by dnsmasq, look at the default config file
+# included with dnsmasq. (Found in templates/dnsmasq.conf.j2 in this
+# Ansible playbook repository.) Only the options required are specified here.
+
+# The following rule causes dnsmasq to query a local consul DNS
+# service on specified port (if/when it is running) to
+# resolve addresses in specified domain.
+#
+# See http://www.consul.io/intro/getting-started/agent.html
+#
+server=/{{ consulDnsDomain }}/10.142.29.116#{{ consulDnsPort }}
+server=/{{ consulDnsDomain }}/10.142.29.117#{{ consulDnsPort }}
+server=/{{ consulDnsDomain }}/10.142.29.120#{{ consulDnsPort }}
+server=/86.86.10.in-addr.arpa/10.142.29.116#{{ consulDnsPort }}
+server=/86.86.10.in-addr.arpa/10.142.29.117#{{ consulDnsPort }}
+server=/86.86.10.in-addr.arpa/10.142.29.120#{{ consulDnsPort }}

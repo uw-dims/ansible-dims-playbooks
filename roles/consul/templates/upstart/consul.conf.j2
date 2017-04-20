@@ -1,0 +1,99 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Based in part on https://github.com/hashicorp/consul/blob/master/bench/conf/upstart.conf
+
+description "Consul client process"
+
+kill timeout 300 # wait 300s between SIGTERM and SIGKILL.
+
+# To support starting when using OpenVPN connections for the advertised
+# "public" interface, see: http://ubuntuforums.org/showthread.php?t=2125577
+start on (started docker and net-device-up INTERFACE={{ consulBindInterface }})
+stop on runlevel [!12345]
+
+# Respawn, but don't limit (to handle longer network outages)
+respawn
+respawn limit unlimited
+
+umask 022
+
+# Run as dims user
+setuid {{ dims_user }}
+setgid {{ dims_group }}
+
+pre-start script
+
+  logger -t "consul[$$]" -p {{ syslog_facility }}.info "entering pre-start script"
+
+  # Stop job from continuing if no config file found for daemon
+  [ -f /etc/default/consul ] || { stop; logger -t "consul[$$]" -p {{ syslog_facility }}.info "/etc/default/consul not found: exiting"; exit 0; }
+
+  . /etc/default/consul
+
+  # Stop job from continuing if admin has not enabled service
+  # in config file.
+  DIMS_DEBUG=${DIMS_DEBUG:-0}
+  ENABLED=${ENABLED:-0}
+
+  if [ $ENABLED -eq 0 ]; then
+    logger -t "consul[$$]" -p {{ syslog_facility }}.info "not enabled: cancelling start"
+    stop
+  fi
+
+  logger -t "consul[$$]" -p {{ syslog_facility }}.info "leaving pre-start script"
+
+end script
+
+
+script
+
+  # Load defaults (pre-script already validated it exists)
+  . /etc/default/consul
+  DIMS_DEBUG=${DIMS_DEBUG:-0}
+
+  if [ $DIMS_DEBUG -eq 1]; then
+    logger -t "consul[$$]" -p {{ syslog_facility }}.info "entering script"
+  fi
+
+  # Make sure to use all our CPUs, because Consul can block a scheduler thread
+  export GOMAXPROCS=`nproc`
+
+  # Get the public IP
+  PUBLIC_IP=`/sbin/ifconfig {{ consulBindInterface }} | grep "inet addr" | awk '{ print substr($2,6) }' `
+  BIND=""
+  if [ -z "$PUBLIC_IP" ]; then
+    logger -t "consul[$$]" -p {{ syslog_facility }}.info "no IP address found for interface {{ consulBindInterface }}"
+    exit 1
+  else
+    BIND="-bind=${PUBLIC_IP} "
+  fi
+
+  logger -t "consul[$$]" -p {{ syslog_facility }}.info "exec {{ dims_bin }}/consul agent --config-dir=/etc/consul.d/client ${BIND} ${CONSUL_FLAGS}"
+
+  exec {{ dims_bin }}/consul agent \
+    -config-dir=/etc/consul.d/{{ consulMode }} \
+    ${BIND} \
+    ${CONSUL_FLAGS} 2>&1 | logger -t "consul[$$]" -p {{ syslog_facility }}.info
+
+end script
+
+env SLEEP_TIME=1
+post-stop script
+
+  # Exponential delay code courtesy of:
+  # http://serverfault.com/questions/472955/how-to-make-upstart-back-off-rather-than-give-up
+
+  goal=`initctl status $UPSTART_JOB | awk '{print $2}' | cut -d '/' -f 1`
+  logger -t "consul[$$]" -p {{ syslog_facility }}.info "entering post-stop script (goal '$goal', status '$UPSTART_JOB', sleep delay ${SLEEP_TIME}s)"
+  if [ $goal != "stop" ]; then
+    sleep $SLEEP_TIME
+    NEW_SLEEP_TIME=`expr 2 \* $SLEEP_TIME`
+    if [ $NEW_SLEEP_TIME -ge 60 ]; then
+      NEW_SLEEP_TIME=60
+    fi
+    initctl set-env SLEEP_TIME=$NEW_SLEEP_TIME
+  fi
+
+  logger -t "consul[$$]" -p {{ syslog_facility }}.info "leaving post-stop script"
+
+end script

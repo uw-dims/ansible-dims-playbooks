@@ -1,0 +1,150 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+}
+
+@test "[S][EV] File /etc/hostname exists and is not empty" {
+    echo "'hostname' returned '$(hostname)'" >&2
+    [ -s /etc/hostname ]
+}
+
+@test "[S][EV] /usr/sbin/dnsmasq exists and is executable" {
+    is_coreos && skip "Not applicable on CoreOS"
+    [ -x /usr/sbin/dnsmasq ]
+}
+
+# Debian and Ubuntu differ slightly in where /etc/resolv.conf points
+@test "[S][EV] /etc/resolv.conf is a link to /run/resolvconf/resolv.conf or /etc/resolvconf/run/resolv.conf" {
+    is_coreos && skip "Not applicable on CoreOS"
+    bash -c "dpkg -l | grep -E '^ii' | grep -q resolvconf" || skip "Package \"resolvconf\" not installed"
+    result="$(file /etc/resolv.conf)"
+    [[ "$result" =~ 'symbolic link to' ]]
+    [[ "$result" =~ "/run/resolvconf/resolv.conf" ]] || [[ "$result" =~ "/etc/resolvconf/run/resolv.conf" ]]
+}
+
+@test "[S][EV] dnsmasq is running" {
+    is_coreos && skip "Not applicable on CoreOS"
+    result="$(ps auxwww | grep '/usr/sbin/dnsmasq' | grep -v grep | wc -l)"
+    [ $result -ne 0 ]
+}
+
+@test "[S][EV] Output of 'hostname' is not null" {
+    result="$(hostname)"
+    echo "'hostname' returned '$(hostname)'" >&2
+    [ $result != "" ]
+} 
+
+@test "[S][EV] Output of 'hostname' matches contents of /etc/hostname" {
+    echo "'hostname' returned '$(hostname)'" >&2
+    [ "$(hostname)" == "$(cat /etc/hostname)" ]
+}
+
+@test "[S][EV] Output of 'hostname' is equal to 'hostname -s'" {
+    echo "'hostname -s ' returned '$(hostname -s)'" >&2
+    [ "$(hostname)" == "$(hostname -s)" ]
+}
+
+@test "[S][EV] Output of 'hostname' is equal to 'hostname -f'" {
+    echo "'hostname -f ' returned '$(hostname -f)'" >&2
+    [ "$(hostname)" == "$(hostname -f)" ]
+}
+
+@test "[S][EV] Output of 'domainname' is not null" {
+    echo "'domainname' returned '$(domainname)'" >&2
+    [ ! -z "$(domainname)" ]
+} 
+
+@test "[S][EV] Output of 'domainname' is not '(none)'" {
+    echo "'domainname' returned '$(domainname)'" >&2
+    [ "$(domainname)" != "(none)" ]
+} 
+
+@test "[S][EV] Can dig @8.8.8.8 www.google.com" {
+    dig_returns_A_records @8.8.8.8 www.google.com
+}
+
+@test "[S][EV] Can dig www.google.com (no server specified)" {
+    dig_returns_A_records www.google.com
+}
+
+@test "[S][EV] Can dig github.com (no server specified)" {
+    dig_returns_A_records github.com
+}
+
+@test "[S][EV] Can dig docker.io (no server specified)" {
+    dig_returns_A_records docker.io
+}
+
+@test "[S][EV] Can dig @127.0.0.1 www.google.com" {
+    is_coreos && skip "Not applicable on CoreOS"
+    dig_returns_A_records @127.0.0.1 www.google.com
+}
+
+@test "[S][EV] Short hostname resolves to 127.0.1.1 (@127.0.0.1)" {
+    skip "Temporarily disabled"
+    is_coreos && skip "Not applicable on CoreOS"
+    assert "127.0.1.1" dig @127.0.0.1 $(hostname) +short
+}
+
+@test "[S][EV] Partially qualified hostname resolves to 127.0.1.1 (@127.0.0.1)" {
+    skip "Temporarily disabled"
+    name="$(hostname).{{ category }}"
+    result="$(dig @127.0.0.1 ${name} +short)"
+    echo "'dig @127.0.0.1 \"${name}\" +short' returned '$result'" >&2
+    [ "$result" == "127.0.1.1" ]
+}
+
+@test "[S][EV] Short hostname resolves to 127.0.1.1 (no server specified)" {
+    skip "Temporarily disabled"
+    is_coreos && skip "Not applicable on CoreOS"
+    assert "127.0.1.1" dig $(hostname) +short
+}
+
+@test "[S][EV] Partially qualified hostname resolves to 127.0.1.1 (no server specified)" {
+    skip "Temporarily disabled"
+    name="$(hostname).{{ category }}"
+    result="$(dig ${name} +short)"
+    echo "'dig ${name} +short' returned '$result'"
+    [ "$result" == "127.0.1.1" ]
+}
+
+# TODO(dittrich): Move to a higher level test suite.
+#@test "[S][EV] Can dig ns.$(domainname) (using default)" {
+#    domain="$(domainname)"
+#    result="$(dig ns.${domain} +short | wc -c)"
+#    echo "$result" >&2
+#    [ $result -ne 0 ]
+#}
+
+# TODO(dittrich): Doesn't work with laptops (they have multiple interfaces)
+#@test "[S][EV] Reverse lookup of 127.0.1.1 resolves to short name (using default)" {
+#    name="$(hostname)"
+#    result="$(dig -x 127.0.1.1 +short)"
+#    echo "$result" >&2
+#    [ "$result" == "${name}." ]
+#}
+
+# TODO(dittrich): Doesn't work with laptops (they have multiple interfaces)
+#@test "[S][EV] FQDN does not resolve to 127.0.1.1 (using default)" {
+#    fqdn="$(hostname).$(domainname)"
+#    result="$(dig ${fqdn} +short)"
+#    echo "$result" >&2
+#    [ "$result" != "127.0.1.1" ]
+#}
+
+# TODO(dittrich): Doesn't work with laptops (they have multiple interfaces)
+#@test "[S][EV] Reverse lookup of FQDN's IP address resolves to FQDN name (using default)" {
+#    fqdn="$(hostname).$(domainname)"
+#    ip="$(dig -x ${fqdn} +short)"
+#    result="$(dig -x ${ip} +short)"
+#    echo "$result" >&2
+#    [ "$result" == "${fqdn}." ]
+#}
+

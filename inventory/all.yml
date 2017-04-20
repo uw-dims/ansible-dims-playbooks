@@ -1,0 +1,22 @@
+---
+
+# File: inventory/all.yml
+
+all:
+  vars:
+    ansible_user: ansible
+    ansible_ssh_private_key_file: "{{ lookup('dims_functions', 'get_ssh_private_key_file {{ ansible_user }} local') }}"
+    category: devops
+    deployment: local
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
+  hosts:
+    'red.devops.local':
+    'node01.devops.local':
+    'node02.devops.local':
+    'node03.devops.local':
+    'yellow.devops.local':
+    'purple.devops.local':
+    'blue14.devops.local':
+
+# vim: ft=ansible :

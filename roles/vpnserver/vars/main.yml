@@ -1,0 +1,42 @@
+openvpn_enabled: yes                                # The role is enabled
+
+openvpn_etcdir: /etc/openvpn
+openvpn_keydir: "{{openvpn_etcdir}}/keys"
+
+# Default settings (See OpenVPN documentation)
+openvpn_host: "{{inventory_hostname}}"              # The server address
+openvpn_port: 500
+openvpn_proto: udp
+openvpn_dev: tun
+openvpn_server: 10.86.86.0 255.255.255.0
+openvpn_max_clients: 20
+openvpn_log: /var/log/openvpn_u500.log                   # Log's directory
+openvpn_keepalive: "10 120"
+openvpn_ifconfig_pool_persist: ipp_u500.txt
+openvpn_comp_lzo: yes                               # Enable compression
+openvpn_status: /var/log/openvpn-status_u500.log
+openvpn_verb: 3
+openvpn_user: nobody
+openvpn_group: nogroup
+openvpn_resolv_retry: infinite
+openvpn_server_options: []                          # Additional server options
+                                                    # openvpn_server_options:
+                                                    # - dev-node MyTap
+                                                    # - client-to-client
+
+openvpn_client_options: []                          # Additional client options
+                                                    # openvpn_client_options:
+                                                    # - dev-node MyTap
+                                                    # - client-to-client
+
+openvpn_key_country: US
+openvpn_key_province: WA
+openvpn_key_city: Seattle
+openvpn_key_org: UW 
+openvpn_key_email: me@myhost.mydomain
+openvpn_key_size: 2048
+
+openvpn_clients: [client]                         # Make clients certificate
+openvpn_clients_revoke: []                        # Revoke clients certificates
+
+

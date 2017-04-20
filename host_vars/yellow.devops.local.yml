@@ -1,0 +1,40 @@
+---
+
+# File: host_vars/yellow.devops.local.yml
+
+name: "yellow"
+PORT: "22"
+
+dims_users: [ 'dittrich', 'mboggess', ]
+
+tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
+udp_ports: [ 53, 4789, 7946 ]
+
+eth1:
+  ip: "192.168.56.13"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.13"
+  auto_config: "false"
+
+debian_vagrantfile: [
+  '  # Change the following to the ansible_dsa key on your machine',
+  '  # HOME comes from Makefile',
+  '  # vmKey comes from host_vars host file',
+  '  config.ssh.private_key_path = "{{ HOME }}/.ssh/{{ vmKey }}"',
+  '  config.ssh.forward_agent = true',
+]
+
+box_baseos: "debian"
+box_osnick: "jessie"
+box_osversion: "8.5.0"
+iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
+installDesktop: ""
+
+# Trident vars
+# TODO(dittrich): This should be a CNAME record named "trident.devops.develop"
+tridentFQDN: "yellow.devops.local"
+# TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
+tridentIP: "192.168.56.13"
+
+# vim: ft=ansible :

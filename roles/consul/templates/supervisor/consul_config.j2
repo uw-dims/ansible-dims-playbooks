@@ -1,0 +1,12 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+[program:consul]
+command=/opt/dims/bin/consul.run "%(program_name)s_%(process_num)02d"
+autostart=true
+autorestart=unexpected
+startretries=30
+numprocs=1
+exitcode=0,2
+process_name=%(program_name)s_%(process_num)02d
+user=root
+env=HOSTNAME="{{ ansible_hostname }}",SHELL="/bin/bash",USER="root",PATH="/opt/local/bin:/usr/local/bin:/bin:/usr/bin",LANG="en_US"

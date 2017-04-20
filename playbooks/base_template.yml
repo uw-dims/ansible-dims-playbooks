@@ -1,0 +1,41 @@
+---
+
+# file: playbooks/base_template.yml
+
+# This playbook supports templating on the Ansible control host
+# of files that are intended to be customized for a given target
+# host. This is done using the "local_action" module. Since
+# facts are not being gathered, and we wish to use a variable
+# that is normally set by Ansible as a fact, it is created
+# here to allow that variable to be used normally.
+#
+#  $ ansible-playbook \
+#  > -e host=host.fq.dn \
+#  > -e template_src=/path/to/template.j2 \
+#  > -e template_dest=/path/to/template-out.txt \
+#  > playbooks/base_template.yml
+#
+# Alternately, pass a JSON object to -e as follows:
+#  $ ansible-playbook -e "{'host': 'host.fq.dn', \
+#  > 'template_src': '/path/to/template.j2', \
+#  > 'template_dest': '/path/to/template-out.txt'}" \
+#  > playbooks/base_playbook.yml
+
+- name: Ansible (2.x) Base Template
+  vars:
+    - playbooks_root: "{{ lookup('env', 'PBR') }}"
+  vars_files:
+    - "{{ playbooks_root }}/vars/global.yml"
+  hosts: "{{ host }}"
+  gather_facts: no
+  tasks:
+    - name: Ensure ansible_date_time.iso8601 is set
+      set_fact:
+        ansible_date_time:
+          'iso8601': "{{ lookup('pipe', 'date -u +\"%Y-%m-%dT%H:%M:%SZ\"') }}"
+      when: ansible_date_time is not defined
+
+    - name: Template as local_action
+      local_action: template src={{ template_src }} dest={{ template_dest }}
+
+# vim: ft=ansible :

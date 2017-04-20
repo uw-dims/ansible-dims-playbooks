@@ -1,0 +1,47 @@
+---
+
+# File: roles/consul-docker/tasks/main.yml
+
+# This playbook requires Ansible 2.x features.
+- include: "{{ tasks }}/ansible2check.yml"
+  tags: [ always ]
+
+- include: "{{ tasks }}/pre_tasks.yml"
+  tags: [ consul-docker, config ]
+
+- name: Kill any current running instance and remove
+  shell: "docker stop consul && docker rm consul"
+  sudo: yes
+  ignore_errors: yes
+  tags: [ consul-docker ]
+
+- name: Copy script template to target
+  template:
+    src=start_consul.sh.j2
+    dest={{ dims_bin }}/start_consul.sh
+    mode={{ mode_0770 }}
+  sudo: yes
+  tags: [ consul-docker ]
+
+- name: Make Consul data dir on host (for persistence)
+  file: path=/consul/data state=directory mode={{ mode_0644 }}
+  sudo: yes
+  tags: [ consul-docker ]
+
+- name: Generate consul client config
+  template:
+    src=consul.json.j2
+    dest=/etc/consul.d/client/consul.json
+    mode={{ mode_0644 }}
+  sudo: yes
+  tags: [ consul-docker, config ]
+
+- name: Start new instance of consul container
+  shell: /bin/bash -c "/opt/dims/bin/start_consul.sh"
+  sudo: yes
+  tags: [ consul-docker ]
+
+- include: "{{ tasks }}/post_tasks.yml"
+  tags: [ consul-docker, config ]
+
+# vim: ft=ansible :

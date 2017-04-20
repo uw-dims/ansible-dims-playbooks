@@ -1,0 +1,62 @@
+---
+
+# File: tasks/install-certbot-auto.yml
+
+# NOTE: Not DRY -- yanked from pre_tasks.yml
+- name: Create task deploy directory
+  file:
+    state: directory
+    path: "{{ dims_deploy }}/certbot"
+    mode: "{{ mode_0775 }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Ensure GPG is set up
+  shell: "gpg --list-keys 2>/dev/null >/dev/null"
+  become: yes
+  become_user: "{{ dims_user }}"
+  ignore_errors: yes
+
+- name: Ensure EFF public key is available
+  shell: "gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys A2CFB51FA275A7286234E7B24D17C995CD9775F2"
+  become: yes
+  become_user: "{{ dims_user }}"
+  ignore_errors: yes
+
+- name: Obtain current 'certbot-auto' binary
+  get_url:
+    url=https://dl.eff.org/certbot-auto
+    dest={{ dims_deploy }}/certbot/certbot-auto
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Obtain current 'certbot-auto' signature
+  get_url:
+    url=https://dl.eff.org/certbot-auto.asc
+    dest={{ dims_deploy }}/certbot/certbot-auto.asc
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Check signature of certbot-auto binary
+  shell: "gpg2 --verify --trusted-key 4D17C995CD9775F2 {{ dims_deploy }}/certbot/certbot-auto.asc {{ dims_deploy }}/certbot/certbot-auto"
+  become: yes
+  become_user: "{{ dims_user }}"
+
+- name: Ensure certbot-auto is in PATH
+  copy:
+    remote_src: true
+    src: "{{ dims_deploy }}/certbot/certbot-auto"
+    dest: "{{ dims_bin }}/certbot-auto"
+    mode: "{{ mode_0755 }}"
+  become: yes
+  become_user: "{{ dims_user }}"
+
+# NOTE: Not DRY, see first task
+- name: Remove task deploy directory
+  file:
+    state: absent
+    path: "{{ dims_deploy }}/certbot"
+  become: yes
+  become_user: "{{ dims_user }}"

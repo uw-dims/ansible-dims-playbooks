@@ -1,0 +1,10 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# Internal delivery
+ops.local            :
+devops.local         :
+.devops.local        :
+.ops.local           :
+
+# External delivery
+*                    smtp:smtp.{{ category }}.{{ deployment }}

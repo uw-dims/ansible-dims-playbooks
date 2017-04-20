@@ -1,0 +1,54 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+
+[core]
+	excludesfile = /home/{{ item }}/.gitignore_global
+	autocrlf = false
+	trustctime = false
+[alias]
+	unstage = reset HEAD --
+	uncommit = reset --soft HEAD^
+	find = "!git log --color -p -S "
+	stat = "!git status -s"
+	gr = "log --full-history --decorate=short --all --color --graph"
+	gru = "log --full-history --decorate=short --all --color --graph @{upstream}^.."
+	lg = "log --oneline --decorate=short --abbrev-commit --all --color --graph"
+	lgu = "log --oneline --decorate=short --abbrev-commit --all --color --graph @{upstream}^.."
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+	ui = auto
+[push]
+	default = tracking
+[branch]
+	autosetuprebase = always
+[include]
+	# requires git v1.7.10+
+	path = .gitconfig.local
+
+# The file .gitconfig.local is for local per-user customizations of Git.
+# Ideally, user-specific content like name and email address should come
+# from a single point of truth (SPOT) like the Trident portal user db.
+# It should include things like this:
+#
+#[user]
+#	name = Dave Dittrich
+#	email = dittrich@u.washington.edu
+#	affiliation = University of Washington
+#[core]
+#	excludesfile = /home/dittrich/.gitignore_global
+#	editor = vim
+#[merge]
+#	tool = meld3
+#	conflictstyle = diff3
+#[mergetool "meld3"]
+#	cmd = meld --auto-merge "$LOCAL" "$BASE" "$REMOTE" -o "$MERGED" --diff "$BASE" "$LOCAL" --diff "$BASE" "$REMOTE"
+#	trustExitCode = false
+#[mergetool "meld3a"]
+#	cmd = meld --auto-merge "$BASE" "$LOCAL" "$REMOTE"
+#	trustExitCode = false
+#[mergetool "meld3b"]
+#	cmd = meld --auto-merge --diff "$BASE" "$LOCAL" --diff "$BASE" "$REMOTE" --diff "$LOCAL" "$BASE" "$REMOTE" --output "$MERGED"
+#	trustExitCode = false

@@ -1,0 +1,5 @@
+---
+
+# File: roles/debug/defaults/main.yml
+
+debug: true

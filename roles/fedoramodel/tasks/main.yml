@@ -1,0 +1,154 @@
+---
+
+# File: roles/base/tasks/main.yml
+
+# This is a merge of 'v1' base-os and common roles' tasks and 'v2' fakebase tasks.
+
+# This playbook requires Ansible 2.x features.
+- include: "{{ tasks }}/ansible2check.yml"
+  tags: [ always ]
+
+# NOTE(mboggess): from common
+# Announce UUID
+- debug: "msg=System {{ inventory_hostname }}"
+  when: verbose
+  tags: [ base ]
+
+# NOTE(mboggess): from common
+# Save uptime for reporting
+- shell: /usr/bin/uptime
+  register: result
+  tags: [ base ]
+
+# NOTE(mboggess): from base-os
+- name: Only "update_cache=yes" if >3600s since last update
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+- name: global default packages to install (apt)
+  apt: state=present name={{ item }}
+  with_items:
+    - "{{ global_pkgs_inst }}"
+  when: global_pkgs_inst is defined and ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+# TODO(mboggess): template this or...I didn't write down enough of a note about this
+# NOTE(mboggess): from base-os
+- name: Ensure locale set
+  shell: "locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales"
+  sudo: yes
+  tags: [ base, config ]
+   
+# NOTE(mboggess): from base-os
+- name: Install required perl libraries
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - libnet-netmask-perl
+   - libjson-perl
+   - libperl4-corelibs-perl
+   - libyaml-libyaml-perl
+  when: ansible_os_family == "Debian"
+  tags: [ base, packages ]
+
+# NOTE(mboggess): from common tasks/timezone.yml
+- name: Set timezone variables
+  copy: content={{ dims_timezone }}
+        dest=/etc/timezone
+        owner={{ root_user }}
+        group={{ root_group }}
+        mode={{ mode_0644 }}
+        backup=yes
+  notify:
+    - update timezone
+  tags: [ base, config ]
+
+# NOTE(mboggess): from common tasks/ntpcheck.yml
+- name: make sure that ntpd is running on debian/ubuntu
+  service: name=ntp state=started
+  when: ansible_os_family == "Debian"
+  tags: [ base, services ]
+
+# NOTE(mboggess): from fakebase
+- name: iptables v4 rules
+  template: src={{ item }} dest=/etc/iptables/rules.v4 mode=600 validate="/sbin/iptables-restore --test %s"
+  with_first_found:
+    - files:
+      - "{{ iptables_rules }}"
+      - rules.v4.{{ ansible_fqdn }}.j2
+      - rules.v4.category-{{ category }}.j2
+      - rules.v4.deployment-{{ deployment }}.j2
+      - rules.v4.j2
+      paths:
+      - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+      - iptables/
+  notify:
+    - restart iptables
+  tags: [ base, config ]
+
+# NOTE(mboggess): from fakebase
+- name: iptables v6 rules
+  template:
+    src: '{{ item }}'
+    dest: /etc/iptables/rules.v6
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+      - '{{ ip6tables_rules }}'
+      - rules.v6.{{ ansible_fqdn }}.j2
+      - rules.v6.category-{{ category }}.j2
+      - rules.v6.deployment-{{ deployment }}.j2
+      - rules.v6.j2
+      paths:
+      - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+      - iptables/
+  notify:
+    - restart ip6tables
+  tags: [ base, config ]
+
+# Handle the configuration of network interfaces in a manner that
+# matches policy for configuring bare-metal machines.
+# (NetworkManager should be disabled in /etc/network/interfaces file. See
+# http://support.qacafe.com/knowledge-base/how-do-i-prevent-network-manager-from-controlling-an-interface/)
+#
+# TODO(dittrich): Link to documentation re: bare-metal network interface config. 
+# TODO(mboggess): add support for other OSes as needed.
+- name: Apply /etc/network/interfaces
+  template: "src={{ item }} dest=/etc/network/interfaces owner={{ root_user }} group={{ root_group }} mode={{ mode_rw_user }}"
+  with_first_found:
+    - files:
+        - "{{ network_interfaces }}"
+        - interfaces."{{ ansible_fqdn }}.j2"
+        - interfaces.category-{{ category }}.j2
+        - interfaces.deployment-{{ deployment }}.j2
+        - interfaces.j2
+      paths:
+        - network/
+  sudo: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Apply SSH daemon configuration (OS invariant)
+  template:
+    src: '{{ item }}'
+    dest: /etc/ssh/sshd_config
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_rw_user }}'
+  with_first_found:
+    - files:
+        - '{{ sshd_config }}'
+        - sshd_config.{{ ansible_fqdn }}.j2
+        - sshd_config.category-{{ category }}.j2
+        - sshd_config.deployment-{{ deployment }}.j2
+        - sshd_config.j2
+      paths:
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
+        - sshd/
+  sudo: yes
+  notify:
+    - restart ssh
+  tags: [ base, config ]
+
+# vim: ft=ansible :

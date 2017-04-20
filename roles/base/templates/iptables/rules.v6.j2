@@ -1,0 +1,126 @@
+*filter
+
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# Based on example provided by:
+# https://www.digitalocean.com/community/tutorials/how-to-implement-a-basic-firewall-template-with-iptables-on-ubuntu-14-04
+
+# Allow all outgoing, but drop incoming and forwarding packets by default
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+
+:DOCKER - [0:0]
+:LOGGING - [0:0]
+
+# Custom per-protocol chains
+:UDP - [0:0]
+:TCP - [0:0]
+:ICMP6 - [0:0]
+
+# Boilerplate acceptance policy
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -s ::1 -d ::1 -j ACCEPT
+
+# Drop invalid packets
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+
+# Acceptable TCP traffic
+
+# Always allow SSH.
+-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport   22 -j ACCEPT
+-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport 8422 -j ACCEPT
+
+# If the host/group defines incoming tcp_ports - allow them
+{% if tcp_ports is defined %}
+{% for port in tcp_ports %}
+-A TCP -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
+# Acceptable UDP traffic
+
+# If the host/group defines incoming udp_ports - allow them
+{% if udp_ports is defined %}
+{% for port in udp_ports %}
+-A UDP -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
+
+# If there are custom rules - put them in as-is
+{% if custom_v6rules is defined %}
+{% for rule in custom_v6rules %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+
+# Acceptable ICMP6 traffic
+
+
+# Pass traffic to protocol-specific chains
+## Only allow new connections (established and related should already be handled)
+## For TCP, additionally only allow new SYN packets since that is the only valid
+## method for establishing a new TCP connection
+-A INPUT -p udp -m conntrack --ctstate NEW -j UDP
+-A INPUT -p tcp --syn -m conntrack --ctstate NEW -j TCP
+-A INPUT -p icmp -m conntrack --ctstate NEW -j ICMP6
+
+# Uncomment to enable logging for debugging purposes
+#-A INPUT -j LOGGING
+#-A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IPTABLES Packet Dropped: " --log-level 7
+#-A LOGGING -j DROP
+
+# Reject anything that's fallen through to this point
+## Try to be protocol-specific w/ rejection message
+-A INPUT -p udp -j REJECT --reject-with icmp6-port-unreachable
+-A INPUT -p tcp -j REJECT --reject-with tcp-reset
+
+# Commit the changes
+COMMIT
+
+{% if ansible_distribution == "Ubuntu" %}
+*raw
+:PREROUTING DROP [0:0]
+:OUTPUT DROP [0:0]
+
+{% if custom_raw_v6rules is defined %}
+{% for rule in custom_raw_v6rules %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+COMMIT
+
+*nat
+:PREROUTING DROP [0:0]
+:INPUT DROP [0:0]
+:OUTPUT DROP [0:0]
+:POSTROUTING DROP [0:0]
+
+{% if custom_nat_v6rules is defined %}
+{% for rule in custom_nat_v6rules %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+COMMIT
+
+*security
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+COMMIT
+
+*mangle
+:PREROUTING DROP [0:0]
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:POSTROUTING DROP [0:0]
+
+{% if custom_mangle_v6rules is defined %}
+{% for rule in custom_mangle_v6rules %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+COMMIT
+{% endif %}

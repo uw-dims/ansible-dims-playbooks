@@ -1,0 +1,41 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+@test "[U][EV] list_to_args filter turns ['1','2','3'] into '1 2 3'" {
+    [ '{{ ['1', '2', '3'] | list_to_args }}' == '1 2 3' ]
+}
+
+@test "[U][EV] list_to_string_args filter turns ['1','2','3'] into '\"1\", \"2\", \"3\"'" {
+    [ '{{ ['1', '2', '3'] | list_to_string_args }}' == '"1", "2", "3"' ]
+}
+
+@test "[U][EV] ip_to_in_addr_arpa filter turns '192.168.0.1' into '0.168.192.in-addr.arpa'" {
+    [ '{{ '192.168.0.1' | ip_to_in_addr_arpa }}' == '0.168.192.in-addr.arpa' ]
+}
+
+@test "[U][EV] ['node01','node02','node03'] | initial_cluster(category='devops',deployment='local') returns 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380'" {
+    [[ "$DIMS_DEPLOYMENT" != "develop" ]] && skip "Only applicable in deployment 'develop'"
+    [ '{{ ['node01','node02','node03'] | initial_cluster(category='devops',deployment='local') }}' == 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380' ]
+}
+
+@test "[U][EV] ['node01','node02','node03'] | add_domain(category='devops',deployment='local') returns ['node01.devops.local','node02.devops.local','node03.devops.local'] " {
+    [ '{{ ['node01','node02','node03'] | add_domain(category='devops',deployment='local') }}' == '['node01.devops.local', 'node02.devops.local', 'node03.devops.local']' ]
+}
+
+
+@test "[U][EV] ['node01','node02','node03'] | names_to_ips(category='devops',deployment='local') returns ['192.168.56.21','192.168.56.22','192.168.56.23']" {
+    [[ "$DIMS_DEPLOYMENT" != "develop" ]] && skip "Only applicable in deployment 'develop'"
+    [ '{{ ['node01','node02','node03'] | names_to_ips(category='devops',deployment='local') }}' == '['192.168.56.21', '192.168.56.22', '192.168.56.23']' ]
+}
+
+
+@test "[U][EV] tolower filter turns 'STOPYELLING' into 'stopyelling'" {
+    [ '{{ 'STOPYELLING' | lowercase }}' == 'stopyelling' ]
+}
+
+@test "[U][EV] toupper filter turns 'canyouhearmenow?' into 'CANYOUHEARMENOW?'" {
+    [ '{{ 'canyouhearmenow?' | uppercase }}' == 'CANYOUHEARMENOW?' ]
+}

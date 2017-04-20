@@ -1,0 +1,17 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+[Unit]
+Description=consul agent
+# Deployment uses Virtualbox vmnet
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/consul
+Environment=GOMAXPROCS=2
+Restart=on-failure
+ExecStart={{ dims_bin }}/consul.run consul
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+---
+
+# File: roles/trident/handlers/main.yml
+
+- include: "{{ handlers }}/restart_services.yml"
+  static: yes

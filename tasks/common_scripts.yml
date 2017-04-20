@@ -1,0 +1,14 @@
+---
+
+# File: tasks/common_scripts.yml
+#
+# This task installs some common scripts from $files/common-scripts
+# into the DIMS bin directory.
+#
+
+- name: Install common scripts
+  copy: src={{ item }} dest={{ dims_bin }} owner={{ dims_user }} group={{ dims_group }} mode={{ mode_0755 }}
+  with_fileglob:
+   - "{{ files }}/common-scripts/*"
+  tags: [ config ]
+

@@ -1,0 +1,44 @@
+root@yellow:/usr/share/trident/webroot/css# diff style.css style.css.orig
+5,6c5,6
+<       color                           : #C8C8C8;
+<       background-color                : white;
+---
+>       color                           : #484848;
+>       background-color                : black;
+168c168
+<       color                           : #AF8C56;
+---
+>       color                           : #45294A;
+171c171
+<       border-bottom                   : 2px dotted #222222;
+---
+>       border-bottom                   : 2px dotted #BBBBBB;
+177c177
+<       color                           : #A08050;
+---
+>       color                           : #45294A;
+282c282
+<       background-color                : #E1DFCC !important;
+---
+>       background-color                : #D4CDE2 !important;
+472c472
+<       border-bottom                   : 2px solid #A2815D;
+---
+>       border-bottom                   : 2px solid #5DA370;
+578c578
+<               background-color: #887C44;
+---
+>               background-color: #554488;
+645c645
+<               border-top              : 0.27em solid #887C44;
+---
+>               border-top              : 0.27em solid #554488;
+662c662
+<               border-top      : 0.27em solid #FF9900 !important;
+---
+>               border-top      : 0.27em solid #45294A !important;
+928c928
+<       background-color        : #333333;
+---
+>       background-color        : #EEEEEE;
+

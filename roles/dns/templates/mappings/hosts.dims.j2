@@ -1,0 +1,124 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# Older test server - can be abandoned, no longer used
+10.142.29.11          linda-vm1.vlan1.dims
+192.168.88.11         linda-vm1.vlan2.dims
+
+# Old desktop VM - can be abandoned, no longer used
+10.142.29.12          u12-dev-ws-1.vlan1.dims
+192.168.88.12         u12-dev-ws-1.vlan2.dims
+
+10.142.29.13          app.vlan1.dims
+192.168.88.13         app.vlan2.dims
+
+10.142.29.14          hub.vlan1.dims
+192.168.88.14         hub.vlan2.dims
+
+10.142.29.94          sso.vlan1.dims
+192.168.88.94         sso.vlan2.dims
+
+10.142.29.95          jenkins.vlan1.dims
+192.168.88.95         jenkins.vlan2.dims
+#[dimsenv] dittrich@jenkins:~ () $ ifconfig -a | grep -A2 ^eth
+#eth0      Link encap:Ethernet  HWaddr 08:00:27:94:9e:d5
+#          inet6 addr: fe80::a00:27ff:fe94:9ed5/64 Scope:Link
+#          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+#--
+#eth1      Link encap:Ethernet  HWaddr 08:00:27:87:56:a0
+#          inet addr:192.168.88.95  Bcast:192.168.88.255  Mask:255.255.255.0
+#          inet6 addr: fe80::a00:27ff:fe87:56a0/64 Scope:Link
+#--
+#eth2      Link encap:Ethernet  HWaddr 08:00:27:df:01:03
+#          inet addr:10.142.29.95  Bcast:10.142.29.255  Mask:255.255.255.0
+#          inet6 addr: fe80::a00:27ff:fedf:103/64 Scope:Link
+#--
+#eth0:avahi Link encap:Ethernet  HWaddr 08:00:27:94:9e:d5
+#          inet addr:169.254.9.172  Bcast:169.254.255.255  Mask:255.255.0.0
+#          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+
+
+10.142.29.96          jira.vlan1.dims
+192.168.88.96         jira.vlan2.dims
+
+10.142.29.97          lapp.vlan1.dims
+192.168.88.97         lapp.vlan2.dims
+
+10.142.29.99          foswiki.vlan1.dims
+192.168.88.99         foswiki.vlan2.dims
+
+10.142.29.110         wywh.vlan1.dims
+10.142.29.111         zion.vlan1.dims
+10.142.29.112         money.vlan1.dims
+10.142.29.113         time.vlan1.dims
+10.142.29.114         floyd.vlan1.dims
+10.142.29.115         eclipse.vlan1.dims
+10.142.29.116         echoes.vlan1.dims
+10.142.29.117         breathe.vlan1.dims
+10.142.29.118         fearless.vlan1.dims
+10.142.29.119         dogs.vlan1.dims
+10.142.29.120         seamus.vlan1.dims
+
+# Need an entry for this. It is the CIF V1 server
+# This will require editing .cif file on the rabbitmq server
+# OLD:
+# 172.22.29.175         floyd2-p cifv1
+# NEW possible addresses:
+# 10.142.29.175         cifv1.vlan1.dims
+# 192.168.88.175         cifv1.vlan2.dims
+
+#10.29.0.119
+
+# Can't reach? Was this a P172 addressed host?
+#10.142.29.163         b29.vlan1.dims
+
+10.142.29.170         rabbitmq.vlan1.dims
+#[dimsenv] dittrich@rabbitmq:~ () $ netstat -rn
+#Kernel IP routing table
+#Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+#0.0.0.0         172.22.29.100   0.0.0.0         UG        0 0          0 eth0 <<< !!!
+#10.142.29.0     0.0.0.0         255.255.255.0   U         0 0          0 eth1
+#169.254.0.0     0.0.0.0         255.255.0.0     U         0 0          0 eth0
+#172.22.1.0      10.142.29.110   255.255.255.0   UG        0 0          0 eth1
+#172.22.29.0     0.0.0.0         255.255.255.0   U         0 0          0 eth0
+#198.49.223.0    10.142.29.110   255.255.255.0   UG        0 0          0 eth1
+
+10.142.29.171         dogs-ipmi.vlan1.dims
+
+10.142.29.175         floyd2-p.vlan1.dims
+
+10.142.29.182         stirling.vlan1.dims
+
+10.142.29.234         wellington.vlan1.dims
+#[dittrich@wellington ~]$ netstat -rn
+#Kernel IP routing table
+#Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+#10.11.11.0      0.0.0.0         255.255.255.0   U         0 0          0 em4
+#172.22.29.0     0.0.0.0         255.255.255.0   U         0 0          0 em2
+#10.142.29.0     0.0.0.0         255.255.255.0   U         0 0          0 em3
+#192.168.88.0    0.0.0.0         255.255.255.0   U         0 0          0 vboxnet0
+#192.168.57.0    0.0.0.0         255.255.255.0   U         0 0          0 vboxnet1
+#0.0.0.0         10.142.29.115   0.0.0.0         UG        0 0          0 em3
+
+192.168.88.101        vpn.vlan2.dims
+#[dittrich@fearless ~]$ ip addr
+#1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+#    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+#    inet 127.0.0.1/8 scope host lo
+#2: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+#    link/ether 08:00:27:f9:7e:c6 brd ff:ff:ff:ff:ff:ff
+#    inet 140.142.29.118/24 brd 140.142.29.255 scope global eth1
+#3: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+#    link/ether 08:00:27:e1:c4:72 brd ff:ff:ff:ff:ff:ff
+#    inet 192.168.88.101/24 brd 192.168.88.255 scope global eth2
+#4: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN qlen 1000
+#    link/ether 08:00:27:27:41:9c brd ff:ff:ff:ff:ff:ff
+#5: tun88: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN qlen 500
+#    link/[65534]
+#    inet 10.88.88.1/24 brd 10.88.88.255 scope global tun88
+#[dittrich@fearless ~]$ netstat -rn
+#Kernel IP routing table
+#Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+#10.88.88.0      0.0.0.0         255.255.255.0   U         0 0          0 tun88
+#192.168.88.0    0.0.0.0         255.255.255.0   U         0 0          0 eth2
+#140.142.29.0    0.0.0.0         255.255.255.0   U         0 0          0 eth1
+#0.0.0.0         140.142.29.100  0.0.0.0         UG        0 0          0 eth1
