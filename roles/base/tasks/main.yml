@@ -567,7 +567,7 @@
 - name: Make sure common (templated) scripts are present
   template:
     src: '{{ item }}'
-    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2","") }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
@@ -578,7 +578,7 @@
 - name: Make sure common (non-templated) scripts are present
   copy:
     src: '{{ item }}'
-    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh","") }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
