@@ -19,6 +19,70 @@ private:
     vault_tridentDBPass: 'trident'
     vault_tridentSysAdminPass: 'trident'
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
+    ssl_secret_files:
+      /etc/nginx/ssl/trident.crt:
+        owner: root
+        group: root
+        mode: u=r,go=
+        content: |
+          -----BEGIN CERTIFICATE-----
+          MIIEQzCCAyugAwIBAgIJAIEVOlnPWfPvMA0GCSqGSIb3DQEBCwUAMIG3MQswCQYD
+          VQQGEwJVUzETMBEGA1UECAwKV2FzaGluZ3RvbjEPMA0GA1UEBwwGVGFjb21hMSkw
+          JwYDVQQKDCBVbml2ZXJzaXR5IG9mIFdhc2hpbmd0b24sIFRhY29tYTENMAsGA1UE
+          CwwERElNUzEcMBoGA1UEAwwTeWVsbG93LmRldm9wcy5sb2NhbDEqMCgGCSqGSIb3
+          DQEJARYbYW5zaWJsZUB5ZWxsb3cuZGV2b3BzLmxvY2FsMB4XDTE2MDcxNTE1Mjgx
+          OVoXDTE3MDcxNTE1MjgxOVowgbcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNo
+          aW5ndG9uMQ8wDQYDVQQHDAZUYWNvbWExKTAnBgNVBAoMIFVuaXZlcnNpdHkgb2Yg
+          V2FzaGluZ3RvbiwgVGFjb21hMQ0wCwYDVQQLDARESU1TMRwwGgYDVQQDDBN5ZWxs
+          b3cuZGV2b3BzLmxvY2FsMSowKAYJKoZIhvcNAQkBFhthbnNpYmxlQHllbGxvdy5k
+          ZXZvcHMubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLbhHd
+          uZopxuWFtpxDtqUFQG0dRbNvk45IMwxWClAYvkYOp7389oU4VbpUSOTOoCMixbse
+          rpi/JW706zm0RHkjXX2VAdS/PX/QMuARjfeIRbco/F3TfHlBokhGFiYARlsLtvaW
+          hzNrGDdf/uGv1rbTum0rtKR/btMufJy8lAJmizhkt4Au21rgV1Gz6lG1C9r7JV11
+          hIaPCvEna/0unl7phPKb+0Pf6IKdSXfnWOHhGNLHebiU2ymzZ74ZSxgbABgNp5HH
+          aSZcXrKbZtX8qBKN1hJq9Bu2B17oLO1Kz2niL8nf5Zd/TyRpiuZdptOy/jSPXkxr
+          8116EY7v+4Rv4Po9AgMBAAGjUDBOMB0GA1UdDgQWBBTy0Ez36t89PpdS74vHqy0r
+          oOJM0DAfBgNVHSMEGDAWgBTy0Ez36t89PpdS74vHqy0roOJM0DAMBgNVHRMEBTAD
+          AQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBjTDxnMaH+n8mwNsdaORRJ9O/lp7aH9Zcu
+          IzxqiCiTPkUgTIsQZPrDwBUSckF2sIvgztCClQEunfG0WnxPzYB4+kR4BAKGs/yY
+          pK0VURWDMVs/KG3pyAiVCcB5ooXr/PpBLEdsklJL43DKVGGTBwMrteSvUQyqEaUw
+          Z9/6SGfxR98NSvTJ6Geg30MJXtfT2yfTsZdN0Uqf/r8b+1eSNUkEHWbdBSfM2kKL
+          5atjWdVdi5AmpUoetvPYEsOhBmvrKYzfn8qm2iKIQNe0SSd15xcVQLWs+FCKREvM
+          V4Cz51UhNGLEobTodXjZ8iSfo0YPqkO3FQckINyJaiVuBh0ytlB6
+          -----END CERTIFICATE-----
+      /etc/nginx/ssl/trident.key:
+        owner: "root"
+        group: "root"
+        mode: "u=r,go="
+        content: |
+          -----BEGIN PRIVATE KEY-----
+          MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDLbhHduZopxuWF
+          tpxDtqUFQG0dRbNvk45IMwxWClAYvkYOp7389oU4VbpUSOTOoCMixbserpi/JW70
+          6zm0RHkjXX2VAdS/PX/QMuARjfeIRbco/F3TfHlBokhGFiYARlsLtvaWhzNrGDdf
+          /uGv1rbTum0rtKR/btMufJy8lAJmizhkt4Au21rgV1Gz6lG1C9r7JV11hIaPCvEn
+          a/0unl7phPKb+0Pf6IKdSXfnWOHhGNLHebiU2ymzZ74ZSxgbABgNp5HHaSZcXrKb
+          ZtX8qBKN1hJq9Bu2B17oLO1Kz2niL8nf5Zd/TyRpiuZdptOy/jSPXkxr8116EY7v
+          +4Rv4Po9AgMBAAECggEBALlEp1TNgg9mKwaaBrrMjoG36SftoLuPINe0VhnODqBa
+          OaeDMU4+nZluyeGU+X0M7rLubbpFvKroxqKbz9PTQJfqv0KDhmQc+Fh+3P5f0v3y
+          sBrNrA29oRkbWMMrzLQXXzfOC8mPnE5+oX/1u0jPPXaapG5XeDDul7oQlxZPndgQ
+          dzqwQBLG3QGPE2q67O5xLDDPPiHcw9W4qPob2wY+y/wyCqzjjIps+8wbXvWozu0T
+          BftDLkshaTyk1W2SaELz0ZgGziH/MAXbltKNahtdfRyggciwe2nf5cMwt56bXo90
+          f1d41ctPy3C87VP/WNylHpBsrHmWhhTiFweaY56KAGkCgYEA5tj+nZVKWompPVPz
+          jKHvRY3f0eg8mCT8auRYkafspffIHjfl7xDQqupaNP8xnRVJDLG+LhKwggOEpmrB
+          mDF0fje/mu1PhrMBbAb5e9+FU2gJPWCworJiPQoQkRjqJVPcLQAGimx/mec4QLe1
+          wBhwMkcq8UCQx473shVfdB6bToMCgYEA4ZhROPyde8trtKa5aUXv7DiuVSt1qcK6
+          TOnMdvOwn5mWcDgRRrcM54Vnq1nVQiVeVuAjsPI3eCVzjK2wRiHRcUdEAgjWUZ74
+          Hku79/eMNJDgC6/UrQf0SzFedeGKAfN5/QT2eQeikh2c5mAjRc207oUOzOpml9NF
+          HU/ikk7UOD8CgYEAglX92+cQZfHXdeLSXZKIT5L8zbz7iUNIqOloAET5XfN6L2WM
+          EuBBkF5ktAtpbbE430vzfnva4G0wFe2shEtX5HOBYO2fuwOSR/XgIkpfMmpI3Tic
+          Qh/JS4FFPUb93Dlu1JFxH/KGUNS1dATFP0INBrYbzr6Pf7x+qTNcA2nMchUCgYEA
+          zsMt3k8Zf7bHdoFAek4RQa4JiiIU64x/97JpJbTf8sdv7FZW7zsiZqgMhi4FmWRq
+          fLFdxPWbBVE+AHfIkd64+VvZ5wt2csSCoDHFi9Wk+SC3V77F6/jYXHpZGy2lsXgY
+          HGCKDg+DXuwpO7RtX7LT27C0CffkI88ND3qCLJp3Qz0CgYB+oqFsB76gqyD5V+C1
+          PGIrTJVL0Q2FPcfDGbwULOIvJ2tRSndQRWC+ANqBiuWFhgdsIs7zlRilSdaSdSlN
+          y/PorcvX8qjphFmD7q5egRJB56j0WUETdKit1n/UQvTxTBhmaFJKhCVssFFlNdcO
+          +0kmZGKKBjv/MyGOZQz1oVa/XA==
+          -----END PRIVATE KEY-----
   hosts:
     'yellow.devops.local':
     'purple.devops.local':

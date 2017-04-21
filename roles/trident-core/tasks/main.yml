@@ -45,6 +45,7 @@
 - name: Load deployment secret variables file
   include_vars: '{{ inventory_dir }}/group_vars/vault_{{ deployment }}.yml'
   no_log: '{{ nolog }}'
+  when: vault_tridentSysAdminPass is not defined or ssl_secret_files is not defined
   tags: [ trident-core, config ]
 
 - name: Install required perl libraries
@@ -326,12 +327,6 @@
     state: directory
     mode: '{{ mode_0755 }}'
   become: yes
-  tags: [ trident-core, config ]
-
-# TODO(dittrich): All given deployment secrets need to be located...somewhere
-- name: Load SSL secrets
-  include_vars: ssl-secrets.deployment-{{ deployment }}.yml
-  no_log: '{{ nolog }}'
   tags: [ trident-core, config ]
 
 - name: Copy SSL secret files
