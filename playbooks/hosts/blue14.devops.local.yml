@@ -5,6 +5,9 @@
 - name: Dump all vars if debug enabled
   hosts: blue14.devops.local
 
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
    - "{{ playbooks_root }}/vars/xenial.yml"
@@ -16,6 +19,9 @@
 
 - name: Configure host "blue14.devops.local"
   hosts: blue14.devops.local
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"

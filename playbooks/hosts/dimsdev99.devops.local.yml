@@ -9,6 +9,9 @@
 - name: Dump all vars if debug enabled
   hosts: dimsdev99.devops.local
 
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
    - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
@@ -20,6 +23,9 @@
 
 - name: Configure host "dimsdev99.devops.local"
   hosts: dimsdev99.devops.local
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"

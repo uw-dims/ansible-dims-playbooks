@@ -5,6 +5,9 @@
 - name: Dump all vars if debug enabled
   hosts: node01.devops.local
 
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
    - "{{ playbooks_root }}/vars/coreos.yml"
@@ -16,6 +19,9 @@
 
 - name: Configure host "node01.devops.local"
   hosts: node01.devops.local
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"

@@ -2,7 +2,7 @@
 #
 # vim: set ts=4 sw=4 tw=0 et :
 #
-# Copyright (C) 2014-2016, University of Washington. All rights reserved.
+# Copyright (C) 2014-2017, University of Washington. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Source shflags
 . $DIMS/lib/shflags
 . $DIMS/bin/dims_functions.sh
 
@@ -38,13 +37,13 @@
 FACTSD="/opt/dims/data/facts.d"
 
 # Tracks with bumpversion
-DIMS_VERSION=2.1.0
+DIMS_VERSION=2.2.0
 
 DEPLOYMENT=${DIMS_DEPLOYMENT:-$(get_deployment)}
 CATEGORY=${DIMS_CATEGORY:-devops}
 GROUP=${DEPLOYMENT}
 HOSTNAME=$(hostname)
-INVENTORY=${INVENTORY:-$PBR/inventory/$DEPLOYMENT}
+INVENTORY=${INVENTORY:-$PBR/inventory}
 
 # If you change this from 'hello' to something else, make sure to also
 # change the tightly-coupled output string in the usage() function.
