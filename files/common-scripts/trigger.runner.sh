@@ -36,7 +36,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.1.1
+DIMS_VERSION=2.1.2
 
 TRIGGERDIR=${TRIGGERDIR:-$DIMS/triggers.d}
 TRIGGERSTATE=${TRIGGERSTATE:-''}
