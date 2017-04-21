@@ -43,7 +43,7 @@
   tags: [ trident-core, config, packages ]
 
 - name: Load deployment secret variables file
-  include_vars: '{{ inventory_dir }}/group_vars/{{ deployment }}-vault.yml'
+  include_vars: '{{ inventory_dir }}/group_vars/vault_{{ deployment }}.yml'
   no_log: '{{ nolog }}'
   tags: [ trident-core, config ]
 
