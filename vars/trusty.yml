@@ -47,6 +47,8 @@ packages_remove:
     'modemmanager',
     'resolvconf',
     'sendmail',
+    'whoopsie',
+    'libwhoopsie0',
   ]
 
 services_disabled:
