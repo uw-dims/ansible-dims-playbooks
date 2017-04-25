@@ -167,8 +167,11 @@
 #       have no chain to be inserted into.
 
 - name: Restart docker client daemon
-  shell: service docker restart
+  service:
+    name: docker
+    state: restarted
   become: yes
+  ignore_errors: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, packages, config, iptables ]
 
