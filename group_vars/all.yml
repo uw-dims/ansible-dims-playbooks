@@ -133,8 +133,8 @@ consulUIDir: '{{ consulDataDir }}/dist'
 
 # TODO(dittrich): Docker engine is updated differently than compose or machine
 docker_engine_pool: 'main'
-docker_engine_version: '17.03.1~ce-0'
-docker_compose_version: '1.11.2'
+docker_engine_version: '17.04.0~ce-0'
+docker_compose_version: '1.12.0'
 docker_machine_version: '0.8.2'
 docker_registry: hub.devops.local:5000
 
