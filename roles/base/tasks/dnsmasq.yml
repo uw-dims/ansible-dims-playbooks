@@ -37,10 +37,14 @@
         - dnsmasq.conf/
   sudo: yes
   when: ansible_os_family == "Debian"
+  notify: restart dnsmasq
   tags: [ base, config, dns ]
 
-- name: Restart dnsmasq
-  action: service name=dnsmasq state=restarted
+- name: Ensure dnsmasq is restarted
+  service:
+    name: dnsmasq
+    state: restarted
+    enabled: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, dns ]
 

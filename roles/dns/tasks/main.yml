@@ -42,7 +42,7 @@
   sudo: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 - name: Make dnsmasq configuration file present on Debian
@@ -65,7 +65,7 @@
   sudo: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 - name: Make service defaults present on Debian
@@ -88,7 +88,7 @@
   sudo: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 - name: Make service initialization script present on Debian
@@ -111,7 +111,7 @@
   sudo: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 - name: Create directory for additional user-supplied configurations
@@ -136,7 +136,7 @@
   sudo: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 # It isn't necessary to have a 1:1 configuration file to mapping file, so don't
@@ -155,7 +155,7 @@
   ignore_errors: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq on Debian
+    - restart dnsmasq
   tags: [ dns, config ]
 
 - include: "{{ tasks }}/post_tasks.yml"
