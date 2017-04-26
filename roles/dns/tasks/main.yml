@@ -126,14 +126,16 @@
 
 - name: Add additional user-supplied configurations
   template:
-    src: dnsmasq.d/{{ item }}.j2
-    dest: /etc/dnsmasq.d/{{ item }}
+    src: '{{ item.0 }}/{{ item.1 }}.j2'
+    dest: /etc/dnsmasq.d/{{ item.1 }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  with_items:
-    - "{{ zones }}"
+  with_nested:
+    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
+    - '{{ zones }}'
   sudo: yes
+  ignore_errors: yes
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
@@ -144,12 +146,13 @@
 
 - name: Update dnsmasq hosts file for DIMS
   template:
-    src: mappings/hosts.{{ item }}.j2
-    dest: /etc/hosts.{{ item }}
+    src: '{{ item.0 }}/hosts.{{ item.1 }}.j2'
+    dest: /etc/hosts.{{ item.1 }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  with_items:
+  with_nested:
+    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
     - "{{ zones }}"
   sudo: yes
   ignore_errors: yes
