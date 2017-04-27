@@ -8,7 +8,23 @@ kill timeout 300 # wait 300s between SIGTERM and SIGKILL.
 
 # To support starting when using OpenVPN connections for the advertised
 # "public" interface, see: http://ubuntuforums.org/showthread.php?t=2125577
-start on (started docker and net-device-up INTERFACE={{ consulBindInterface }})
+# The event comes from a script like this:
+# $ sudo cat /etc/openvpn/emit-up
+# #!/bin/bash
+#
+# # To see what variables are available, set DEBUG to 1.
+#
+# #DEBUG=1
+# DEBUG=${DEBUG:-0}
+# [ $DEBUG -eq 1 ] && (env | logger -t openvpn -p local0.info)
+#
+# [ -z "$dev" ] && echo "Environment variable 'dev' not set" && exit 1
+# COMMAND="initctl emit --no-wait net-device-added INTERFACE=${dev}"
+# logger -t openvpn -p local0.info "$COMMAND"
+# eval $COMMAND
+
+
+start on (started docker and net-device-added INTERFACE={{ consulBindInterface }})
 stop on runlevel [!12345]
 
 # Respawn, but don't limit (to handle longer network outages)
