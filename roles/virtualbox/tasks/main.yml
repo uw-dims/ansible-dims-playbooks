@@ -1,0 +1,13 @@
+---
+
+# File: roles/virtualbox/tasks/main.yml
+
+- name: Enforce that no virtual machine guests are running
+  shell: "ps auxwww | grep -v grep | grep virtualbox/VBoxHeadless"
+  ignore_errors: true
+  register: grep_result
+  tags: [ virtualbox, packages ]
+
+- include: virtualbox.yml
+  when: grep_result.rc == 1
+  tags: [ virtualbox, packages ]
