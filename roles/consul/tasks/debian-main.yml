@@ -23,7 +23,9 @@
 # which was consulted in the creation of this playbook.)
 
 - name: Stop consul service if running - ignore errors
-  service: "name={{ consul_basename }} state=stopped"
+  service:
+    name: consul
+    state: stopped
   sudo: yes
   ignore_errors: true
   when: ansible_os_family == "Debian"
@@ -213,8 +215,11 @@
   notify: restart consul
   tags: [ consul, packages ]
 
-- name: Ensure consul is running and enabled
-  service: name=consul state=running enabled=yes
+- name: Ensure consul is started and enabled
+  service:
+    name: consul
+    state: started
+    enabled: yes
   when: ansible_os_family == "Debian"
   sudo: yes
   tags: [ consul, packages ]
