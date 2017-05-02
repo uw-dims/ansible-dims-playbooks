@@ -31,6 +31,7 @@
     group={{ dims_group }}
     mode={{ mode_0755 }}
   with_items: "{{ test_directories }}"
+  when: test_directories is defined
 
 # This playbook assumes that all Bats helpers and
 # bash scripts are kept at the top level of the
@@ -60,6 +61,7 @@
   with_nested:
     - "{{ test_directories }}"
     - "{{ scripts.stdout_lines }}"
+  when: test_directories is defined and scripts.stdout_lines is defined
 
 # The Jinja templates don't seem to be easily split over
 # multiple lines, so they are left as big long lines
@@ -78,4 +80,6 @@
     mode={{ mode_0755 }}
   with_items: "{{ bats_test_templates }}"
   ignore_errors: yes
+  when: bats_test_templates is defined
+
 # vim: ft=ansible :
