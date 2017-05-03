@@ -25,12 +25,13 @@
 
 - name: Make subdirectories for test categories present
   file:
-    state=directory
-    dest={{ dims_tests }}/{{ item }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode={{ mode_0755 }}
-  with_items: "{{ test_directories }}"
+    state: directory
+    dest: '{{ dims_tests }}/{{ item }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0755 }}'
+  with_items: '{{ test_directories }}'
+  when: test_directories is defined
 
 # This playbook assumes that all Bats helpers and
 # bash scripts are kept at the top level of the
@@ -40,11 +41,11 @@
 
 - name: Make bats functions present
   template:
-    src={{ item }}
-    dest={{ dims_tests }}/{{ item | basename | regex_replace('\.j2','') }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode={{ mode_0755 }}
+    src: '{{ item }}'
+    dest: '{{ dims_tests }}/{{ item | basename | regex_replace("\.j2","") }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0755 }}'
   with_fileglob:
    - ../templates/tests/*.bash.j2
 
@@ -54,12 +55,13 @@
 
 - name: Make links to helper functions present
   file:
-    state=link
-    src={{ dims_tests }}/{{ item[1] }}
-    path={{ dims_tests }}/{{ item[0] }}/{{ item[1] }}
+    state: link
+    src: '{{ dims_tests }}/{{ item[1] }}'
+    path: '{{ dims_tests }}/{{ item[0] }}/{{ item[1] }}'
   with_nested:
-    - "{{ test_directories }}"
-    - "{{ scripts.stdout_lines }}"
+    - '{{ test_directories }}'
+    - '{{ scripts.stdout_lines }}'
+  when: test_directories is defined and scripts.stdout_lines is defined
 
 # The Jinja templates don't seem to be easily split over
 # multiple lines, so they are left as big long lines
@@ -71,11 +73,13 @@
 
 - name: Make defined bats tests present
   template:
-    src=../templates/tests/{{ item }}
-    dest={{ dims_tests }}/{{ item | dirname }}/{{ item | basename | regex_replace('\.j2','') }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode={{ mode_0755 }}
-  with_items: "{{ bats_test_templates }}"
+    src: ../templates/tests/{{ item }}
+    dest: '{{ dims_tests }}/{{ item | dirname }}/{{ item | basename | regex_replace("\.j2","") }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0755 }}'
+  with_items: '{{ bats_test_templates }}'
   ignore_errors: yes
+  when: bats_test_templates is defined
+
 # vim: ft=ansible :

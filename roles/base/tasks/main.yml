@@ -575,7 +575,7 @@
    - '{{ files }}/common-scripts/*.j2'
   tags: [ base, packages, scripts, tests ]
 
-- name: Make sure common (non-templated) scripts are present
+- name: Make sure common (non-templated) BASH scripts are present
   copy:
     src: '{{ item }}'
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
@@ -584,6 +584,17 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.sh'
+  tags: [ base, packages, scripts, tests ]
+
+- name: Make sure common (non-templated) Python scripts are present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.py$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_fileglob:
+   - '{{ files }}/common-scripts/*.py'
   tags: [ base, packages, scripts, tests ]
 
 - name: Ensure Ubuntu locale set (Ubuntu)
