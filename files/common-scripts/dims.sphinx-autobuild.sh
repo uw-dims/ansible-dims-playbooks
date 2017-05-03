@@ -39,13 +39,17 @@
 # DOCLSURL is a Python format string.
 export DOCSURL=${DOCSURL:-file://${GIT}}
 
-DEFINE_boolean 'debug'        false           'enable debug mode'        'd'
-DEFINE_integer 'delay'        5               'browser open delay'       'D'
-DEFINE_boolean 'openbrowser'  true            'open browser window'      'b'
-DEFINE_integer 'port'         0               'HTTP listen port'         'p'
-DEFINE_boolean 'touchfiles'   false           'update timestamps first'  't'
-DEFINE_boolean 'usage'        false           'show usage information'   'u'
-DEFINE_boolean 'verbose'      false           'be verbose'               'v'
+# Tracks with bumpversion
+DIMS_VERSION=2.3.0
+
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_integer 'delay' 5 'browser open delay' 'D'
+DEFINE_boolean 'openbrowser' true 'open browser window' 'b'
+DEFINE_integer 'port' 0 'HTTP listen port' 'p'
+DEFINE_boolean 'touchfiles' false 'update timestamps first' 't'
+DEFINE_boolean 'usage' false 'show usage information' 'u'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+DEFINE_boolean 'version' false 'print version number and exit' 'V'
 
 FLAGS_HELP="usage: $BASE [options] args"
 
@@ -87,12 +91,7 @@ find_docsbase() {
 
 main()
 {
-    # Just exit if all we were asked for was help.
-    [[ ${FLAGS_help} -eq ${FLAGS_TRUE} ]] && exit 0
-    [[ ${FLAGS_usage} -eq ${FLAGS_TRUE} ]] && usage
-
-    debug 'debug mode enabled'
-    [[ $FLAGS_debug -eq ${FLAGS_TRUE} && $FLAGS_verbose -eq ${FLAGS_TRUE} ]] && set -x
+    dims_main_init
 
     open_browser=""
     [[ $FLAGS_openbrowser -eq ${FLAGS_TRUE} ]] && open_browser="--open-browser"
