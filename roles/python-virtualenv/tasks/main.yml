@@ -47,6 +47,7 @@
     - libgdbm-dev
     - libsqlite3-dev
     - libffi-dev
+    - gettext
     - graphviz
     - libgraphviz-dev
     - libxml2-dev
