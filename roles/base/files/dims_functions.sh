@@ -1350,7 +1350,7 @@ function get_user_ssh_key_dir() {
         error_exit 1 "Could not determine deployment"
     fi
 
-    echo "${PRIVATE}/${_deployment}/ssh-keys/user/${_user}"
+    echo "${PRIVATE}/files/ssh-keys/user/${_user}"
     return 0
 }
 
