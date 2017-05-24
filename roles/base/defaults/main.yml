@@ -3,5 +3,6 @@
 # File: roles/base/defaults/main.yml
 
 packages_upgrade: false
+syslog_user: syslog
 root_user: root
 root_group: root

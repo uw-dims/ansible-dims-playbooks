@@ -52,7 +52,7 @@
   file:
     state=directory
     path=/var/log/dims
-    owner=syslog
+    owner={{ syslog_user }}
     group={{ root_group }}
     mode={{ mode_0775 }}
   sudo: yes
@@ -326,6 +326,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/network/'
         - network/
   sudo: yes
+  ignore_errors: true
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
