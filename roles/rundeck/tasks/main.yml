@@ -16,7 +16,10 @@
   tags: [ rundeck ]
 
 - name: Import repository signing key
-  shell: "wget --quiet -O - {{ rundeck.gpg_key_url }} | sudo apt-key add -"
+  apt_key:
+    id: '{{ rundeck.gpg_key_id }}'
+    url: '{{ rundeck.gpg_key_url }}'
+    state: present
   sudo: yes
   args:
     warn: false

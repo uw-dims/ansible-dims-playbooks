@@ -5,16 +5,13 @@
 - include: '{{ tasks }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
-#
-# Install
-#
-
 # Following instructions from http://nginx.org/en/linux_packages.html
 - name: Import repository signing key
-  shell: wget --quiet -O - http://nginx.org/keys/nginx_signing.key | sudo apt-key add -
+  apt_key:
+    id: ABF5BD827BD9BF62
+    url: http://nginx.org/keys/nginx_signing.key
+    state: present
   sudo: yes
-  args:
-    warn: false
   when: ansible_os_family == "Debian"
   tags: [ nginx, packages ]
 
@@ -42,10 +39,6 @@
   sudo: yes
   notify: restart nginx
   tags: [ nginx, packages ]
-
-#
-# Configure
-#
 
 - name: Configure Nginx
   template:

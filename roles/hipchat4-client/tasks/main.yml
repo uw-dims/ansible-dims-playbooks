@@ -20,8 +20,10 @@
   tags: [ hipchat4-client, packages ]
 
 - name: Import repository signing key
-  shell: >
-    wget --quiet -O - https://atlassian.artifactoryonline.com/atlassian/api/gpg/key/public | apt-key add -
+  apt_key:
+    id:  CC64091D
+    url: https://atlassian.artifactoryonline.com/atlassian/api/gpg/key/public
+    state: present
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ hipchat4-client, packages ]

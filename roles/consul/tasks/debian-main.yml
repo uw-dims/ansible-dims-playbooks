@@ -33,11 +33,13 @@
   tags: [ consul, packages ]
 
 # Download and install Consul from source
+# TODO(dittrich): The certificate check fails (SNI?), but the SHA256 hash exists to validate download.
 - name: Make Consul distribution archive present
   get_url:
-    url={{ consul_dist_url  }}/{{ consul_artifact }}
-    dest={{ dims_deploy }}/{{ role_name }}
-    sha256sum={{ consul_sha256sum }}
+    url: '{{ consul_dist_url  }}/{{ consul_artifact }}'
+    dest: '{{ dims_deploy }}/{{ role_name }}'
+    sha256sum: '{{ consul_sha256sum }}'
+    validate_certs: false
   when: ansible_os_family == "Debian"
   sudo: yes
   tags: [ consul, packages ]

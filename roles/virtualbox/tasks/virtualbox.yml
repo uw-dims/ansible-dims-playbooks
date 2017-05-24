@@ -13,35 +13,19 @@
   sudo: yes
   tags: [ virtualbox, packages ]
 
-- name: Download repository signing key (Debian < 8 and Ubuntu < 16 )
-  get_url:
-    url: https://www.virtualbox.org/download/oracle_vbox.asc
-    dest: "{{ dims_deploy }}/{{ role_name }}/oracle_vbox.asc"
-    timeout: 60
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
-  sudo: yes
-  tags: [ virtualbox, packages ]
-
-- name: Download repository signing key (Debian > 7 and Ubuntu > 14 )
-  get_url:
-    url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
-    dest: "{{ dims_deploy }}/{{ role_name }}/oracle_vbox_2016.asc"
-    timeout: 60
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
-  sudo: yes
-  tags: [ virtualbox, packages ]
-
 - name: Import repository signing key (Debian < 8 and Ubuntu < 16 )
-  shell: apt-key add {{ dims_deploy }}/{{ role_name }}/oracle_vbox.asc
+  apt_key:
+    url: https://www.virtualbox.org/download/oracle_vbox.asc
+    state: present
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   sudo: yes
   tags: [ virtualbox, packages ]
 
 - name: Import repository signing key (Debian > 7 and Ubuntu > 14 )
-  shell: apt-key add {{ dims_deploy }}/{{ role_name }}/oracle_vbox_2016.asc
+  apt_key:
+    url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    state: present
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   sudo: yes
