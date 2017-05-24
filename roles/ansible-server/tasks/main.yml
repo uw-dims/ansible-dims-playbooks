@@ -94,7 +94,7 @@
 - name: Ensure imported roles present (Git)
   git:
     repo: '{{ item }}'
-    dest: '{{ imported_roles }}/{{ item | basename }}'
+    dest: '{{ imported_roles }}/{{ item | basename | regex_replace(".git", "") }}'
     force: true
   become: yes
   with_items: '{{ dims_ansible.roles_git }}'
