@@ -716,6 +716,18 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
+- name: Ensure bashrc additions are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_etc_bashrc }}/{{ item | basename | regex_replace("\.j2","") }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0644 }}'
+  with_fileglob:
+   - ../templates/bashrc.d/*.bash.j2
+  become: yes
+  tags: [ base, config ]
+
 - name: Ensure bashpass is present
   include: "{{ tasks }}/install-bashpass.yml"
   when: ansible_os_family != "Container Linux by CoreOS"

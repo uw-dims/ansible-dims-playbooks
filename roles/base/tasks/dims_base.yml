@@ -153,7 +153,12 @@
   tags: [ base, config ]
 
 - name: Make directory for DIMS bashrc plugins present
-  file: "state=directory path={{ dims_etc }}/bashrc.dims.d owner={{ dims_user }} group={{ dims_group }} mode={{ mode_0775 }}"
+  file:
+    state: directory
+    path: '{{ dims_etc }}/bashrc.dims.d'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0775 }}'
   sudo: yes
   tags: [ base, config ]
 
