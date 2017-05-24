@@ -232,6 +232,7 @@ rundeck:
   dist_url: 'http://dl.bintray.com/rundeck/rundeck-deb'
   sha256_sum: '363c64a7643ae2e52db6b9d019c8593835123327959ae35c95050708d122066f'
   gpg_key_url: 'https://gist.githubusercontent.com/gschueler/6142c7c4eaa759b59da1/raw/757641f1d9f79d01afac8df29ffd11d9aeb8df92/BUILD-GPG-KEY-Rundeck.org.key'
+  gpg_key_id: '90770E1BE2D1065B'
 
 prisem:
   version:                                 '0.5.10'
