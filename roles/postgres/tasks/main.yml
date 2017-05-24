@@ -15,7 +15,7 @@
   apt_key:
     id: 7FCC7D46ACCC4CF8
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    present:
+    state: present
   sudo: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
