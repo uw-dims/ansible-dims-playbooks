@@ -173,7 +173,7 @@
 
 - name: Ensure source for 'mr' is present
   git:
-    repo=https://git.joeyh.name/git/myrepos.git/
+    repo=git://myrepos.branchable.com/
     dest={{ dims_src }}/myrepos
     force=yes
   become: yes
