@@ -1,0 +1,12 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# This file is sourced by Bash at startup. DO NOT use 'exit'
+#
+# Set up aliases to help ease DIMS devops and production tasks.
+
+alias hipchat='(hipchat4 --disable-gpu $@ 2>&1) > /tmp/hipchat.log &'
+alias run.playbook='ansible-playbook -i ${GIT}/private-${DIMS_DEPLOYMENT}/inventory ${GIT}/private-${DIMS_DEPLOYMENT}/playbooks/hosts/$(hostname).$(domainname).yml -c local $@'
+alias show.playbook='less ${GIT}/private-${DIMS_DEPLOYMENT}/playbooks/hosts/$(hostname).$(domainname).yml'
+alias show.vars='ANSIBLE_FORCE_COLOR=true ansible -i ${GIT}/private-${DIMS_DEPLOYMENT}/inventory -m debug -a var=vars $(hostname).$(domainname) | less -R'
+
+# do not 'exit' - sourced script
