@@ -1,7 +1,7 @@
 #!/bin/bash +x
 
-# This script checks for changes in the ./docs directory in the current jenkins job and
-# calls the dims-docs-deploy parameterized job if changes exist
+# This script checks for changes in the ./docs directory in the current jenkins
+# job and calls the dims-docs-deploy parameterized job if changes exist
 
 # Inputs: 
 # BRANCH - branch to build
@@ -19,7 +19,7 @@ BASEPATH="/opt/dims/bin"
 # Parameterized job name
 JOB="dims-docs-deploy"
 # Jenkins URL
-JENKINSURL="http://jenkins.prisem.washington.edu"
+JENKINSURL="{{ jenkins_url_external }}"
 # Path to docs
 DOCPATH='./docs'
 
