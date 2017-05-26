@@ -8,12 +8,12 @@
 PATH='{{ dims_bin }}:/home/{{ vmUser }}/pypy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 GIT='{{ dims_git }}'
 DIMS='{{ dims }}'
-PRIVATE='{{ private }}'
 
 # System organization and naming variables.
 DIMS_CATEGORY='{{ category }}'
 DIMS_DEPLOYMENT='{{ deployment }}'
 DIMS_DOMAIN='{{ category }}.{{ deployment }}'
+DIMS_PRIVATE='{{ private }}'
 
 # For 'dimscli' default selection of configuration settings from
 # $HOME/.config/openstack/clouds.yml
