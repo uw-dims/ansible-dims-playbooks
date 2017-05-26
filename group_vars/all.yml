@@ -11,7 +11,7 @@ debug: true
 verbose: true
 
 # file name of Vault password file. Path is created in Vagrantfile.
-dims_vault_password_file: '{{ private }}/vault_pass_{{ deployment }}.txt'
+dims_vault_password_file: '{{ private }}/vault_pass.txt'
 
 dims_ansible_version: 2.3.0.0
 
