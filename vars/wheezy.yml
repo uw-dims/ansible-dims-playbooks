@@ -8,6 +8,7 @@ packages_install:
   Debian: [
     'chrony',
     'hunspell',
+    'myrepos',
     'smartmontools',
   ]
 

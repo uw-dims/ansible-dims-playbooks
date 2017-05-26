@@ -171,15 +171,6 @@
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
 
-- name: Ensure source for 'mr' is present
-  git:
-    repo=git://myrepos.branchable.com/
-    dest={{ dims_src }}/myrepos
-    force=yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
 - name: Ensure source for 'git-crypt' is present
   git:
     repo=https://github.com/AGWA/git-crypt.git
