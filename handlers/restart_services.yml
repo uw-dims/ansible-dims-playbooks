@@ -44,7 +44,7 @@
 - name: restart network-manager on Debian
   action: service name=network-manager state=restarted
 
-# Note: Debian jessie an on use netfilter-persistent alongside of
+# Note: Debian jessie and on use netfilter-persistent alongside of
 # (sort of instead of) iptables-persistent, so we are chaining the
 # handler for netfilter-persistent to be triggered in addition to
 # iptables-persistent to force iptables rules to be loaded
@@ -77,6 +77,11 @@
 - name: restart ip6tables (Ubuntu/trusty)
   action: service name=ip6tables-persistent state=reloaded
 
+- name: restart iptables (Ubuntu/xenial)
+  action: service name=netfilter-persistent state=reloaded
+
+- name: restart ip6tables (Ubuntu/xenial)
+  action: service name=netfilter-persistent state=reloaded
 
 - name: restart virtualbox
   action: service name=virtualbox state=restarted
