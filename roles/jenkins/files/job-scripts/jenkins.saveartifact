@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This script copies any .tgz and .tar.gz files in the workspace
+# to /data/src
+#
+# Note the owner of /data/src must be jenkins for this 
+# script to work. We now have ownership of /data/src as jenkins:dims
+# rather than dims:dims in order for the script to be executed by
+# a Jenkins job.
+#
+
+echo "[+] Running jenkins.saveartifact"
+
+if [ -f $WORKSPACE/*.tgz ]; then
+  cp $WORKSPACE/*.tgz /data/src
+
+fi
+
+if [ -f $WORKSPACE/*.tar.gz ]; then
+  cp $WORKSPACE/*.tar.gz /data/src
+fi

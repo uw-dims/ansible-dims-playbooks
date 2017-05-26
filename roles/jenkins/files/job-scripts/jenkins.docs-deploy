@@ -1,0 +1,106 @@
+#!/bin/bash +x
+#
+# This is a script to build a DIMS document set in a Jenkins job and
+# use Ansible to push the document to the appropriate destination
+#
+# Accepts the following named parameters:
+#
+# REPO - required - name of documentation repo (e.g. dims-sr)
+# BRANCH - required - branch of repo to build and deploy
+# DOCPATH - required - path to sphinx Makefile from root of repo
+# DOCTYPE - required - type of repo to build. Currently supports 'html' and 'pdf'
+# ANSIBLEBRANCH - optional - Branch of ansible-playbooks to use. 
+# INVENTORYBRANCH - optional - Branch of ansible-inventory to use. 
+# ANSIBLEHOSTFILE - optional - Use a local hostfile rather than the one in ansible-inventory. 
+#   Full path to local hostfile
+# GROUP - optional - Specify the group in the inventory host file to run the play against. This will
+#   limit the machines the play will be run on to a subset of the group listed in the
+#   playbook. If there is no intersection between the group listed
+#   in the playbook and $GROUP, then the play is not run. Can be useful for testing or one-off deploys.
+# REMOTEUSER - optional - use a different remote_user than the default in ansible-playbooks/group_vars/all.
+#   Useful for testing.
+# VERBOSE - optional - set ansible verbose variable to true or false. Overrides any
+#   value already set in playbook or role
+# DEBUG - optional - set ansible debug variable to true or false. Overrides any
+#   value already set in playbook or role 
+#
+#
+# The optional parameters are available so that defaults can be overridden when testing.
+# In general, the global variables ANSIBLEHOSTFILES and DEFAULTBRANCHESTOBUILD specify the
+# branches and host files (and their relationships) used when deploying via Jenkins.
+#
+# When specified, the optional parameters will always override any defaults. 
+#
+# See jenkins.initialize-deploy for more info
+
+# Exit on uncaught errors
+set -e
+
+BASE=$(basename "$0")
+CWD=$(pwd)
+ 
+BASEPATH="/opt/dims/bin"
+
+# Name of playbook used to deploy the docs
+ANSIBLEPLAYBOOK='dims-docs-deploy.yml'
+
+# Echo additional parameters for this job only
+echo "[+] $BASE: Additional parameters"
+echo "[+]   DOCPATH=${DOCPATH}"
+echo "[+]   DOCTYPE=${DOCTYPE}"
+
+DOCPATH=${DOCPATH}
+DOCTYPE=${DOCTYPE}
+# Destination for the documentation on the target machine
+DOCDEST="/opt/dims/docs/$DOCTYPE"
+
+
+# Check for missing required additional parameters
+if [  -z "$DOCPATH" ] || [  -z "$DOCTYPE" ]; then
+  echo "[+] $BASE: DOCPATH or DOCTYPE are missing - exit."
+  exit 1
+fi
+
+# Call the initialization script - tasks to create variables and get the $REPO
+. $BASEPATH/jenkins.initialize-deploy
+
+# Override ARTIFACTPATH
+# Path to the artifact that will be created
+ARTIFACTPATH="$CWD/${DOCREPO}_${DOCTYPE}.tar.gz"
+
+echo "[+] $BASE: Build the docs and package"
+cd $CWD/$REPO
+cd $DOCPATH
+# Build the docs
+if [ $DOCTYPE = "pdf" ]; then
+  make latexpdf
+  cd $CWD/$REPO/$DOCPATH/build/latex
+  # For pdf, just package the .pdf file(s) in the latex directory
+  tar cvzf $ARTIFACTPATH ./*.pdf
+
+elif [ $DOCTYPE = "html" ]; then
+  make $DOCTYPE
+  cd $CWD/$REPO/$DOCPATH/build/html
+  # package the files in the html directory
+  tar cvzf $ARTIFACTPATH ./*
+
+else
+  echo "$BASE: You must build either pdf or html, but you chose $DOCTYPE. Exiting..."
+  exit 1
+fi
+
+# Ensure we are in working directory
+cd $CWD
+
+# Clone and checkout ansible repos so we can deploy the docs after they are built
+echo "[+] $BASE: call script to checkout ansible repositories"
+. $BASEPATH/jenkins.checkout-ansible
+
+echo "[+] $BASE: run the ansible-playbook command"
+# Run the ansible-playbook command
+. $BASEPATH/jenkins.docs-playbook-cmd
+
+
+echo "[+] $BASE finished"
+
+# EOF

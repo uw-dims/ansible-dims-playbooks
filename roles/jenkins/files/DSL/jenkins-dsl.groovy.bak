@@ -1,0 +1,194 @@
+/** This is the first cut at specifying Jenkins jobs via DSL
+  * TODO:
+  * 1) Where do we want to keep this file? Here, then use the Makefile to deploy it to 
+  * /opt/dims/bin or some other location so the Jenkins seed job can use it without cloning
+  * this repo into its workspace? (Need automated update of dims-ci-utils to Jenkins for that
+  * to work)
+  * 2) Where are we going to keep the scripts that the generated Jenkins jobs use as build
+  * steps? Right now the first script, jenkins-deploy-docs, is here at dims-ci-utils/jenkins.
+  * The Makefile could be used to deploy to /opt/dims/somewhere... 
+  * 3) Further generalize this DSL - All the variables for the system should be in one
+  * location where they can be retrieved. 
+  * 4) Job naming conventions
+*/ 
+
+// TODO: put this in a file and parse. Get global vars from the global var location...
+def developBranch = 'develop'
+def masterBranch = 'master'
+def gitUrl = 'git@git.prisem.washington.edu:/opt/git/'
+def dslRepo = 'dims-ci-utils'
+def dslBranch = developBranch
+def jobScriptsRepo = 'dims-ci-utils'
+def jobScriptsBranch = developBranch
+def jobScriptsRepoUrl = gitUrl + jobScriptsRepo + '.git'
+def jobScriptsPath = jobScriptsRepo + '/jenkins/job-scripts/'
+
+def defaultAnsibleBranch = developBranch
+def defaultInventoryBranch = developBranch
+
+def docHost = 'u12-dev-svr-1.prisem.washington.edu'
+def docDest = '/opt/dims/docs'
+def docUrl = 'https://'+docHost+':8443/docs'
+
+def branchesToBuild = ['master', 'develop'] as List
+def oldBranchesToBuild = ['master', 'dev'] as List
+def ansibleBranchesToBuild = ['master', 'develop']
+
+// Build a view to hold our dsl jobs
+//def myView = view {
+//  name('Latest')
+//  description('Current jobs created by DSL')
+//  jobs {
+//    name('dims-docs-deploy')
+//    name('dims-seed-jobs')
+//  }
+//  columns {
+//        status()
+//        weather()
+//        name()
+//        lastSuccess()
+//        lastFailure()
+//        lastDuration()
+//        buildButton()
+//    }
+//}
+
+// Standard jobs just run one script 
+def standardTriggeredJobs = [
+//  [
+//      name:'demo-git-change-trigger', 
+//      description:'Job to test triggering via git repo changes',
+//      repo: 'configstest',
+//      scripts: ['jenkins.demo-git-change-trigger']
+//  ], [
+//      name: 'dims-ci-utils-deploy',
+//      description:'Job to build and deploy dims-ci-utils. Triggered by repo changes',
+//      repo: 'dims-ci-utils',
+//      scripts: [
+//       'jenkins.dims-ci-utils-deploy',
+//        'if [ $GIT_BRANCH = "origin/'+developBranch+'" ] ; then ANSIBLEHOSTFILE=$WORKSPACE/ansible-inventory/prisem jenkins.dims-ci-utils-deploy ; fi',
+//        'if [ $GIT_BRANCH = "origin/'+developBranch+'" ] ; then ANSIBLEHOSTFILE=$WORKSPACE/ansible-inventory/project jenkins.dims-ci-utils-deploy ; fi'
+//      ]
+//  ]
+]
+
+// Standard components of our job dsl
+def jobStandardComponents = {
+  logRotator(-1, 15, -1, -5)
+  wrappers {
+      preBuildCleanup()
+  }
+  environmentVariables {
+    keepSystemVariables(true)
+    keepBuildVariables(true)
+  }
+}
+
+// Closure for downstream parameterized postNotify task
+def postNotify = {
+      trigger('post-notify', 'ALWAYS') {
+        predefinedProps([
+          BUILD_TAG: "\$BUILD_TAG", 
+          BUILD_URL: "\$BUILD_URL",
+          BUILD_DISPLAY_NAME: "\$BUILD_DISPLAY_NAME"])
+      }
+  }
+
+
+def panda = {
+  configure { project ->
+    project / builders / 'jenkins.plugins.shiningpanda.builders.CustomPythonBuilder plugin="shiningpanda@0.21"' {
+      home '/opt/dims/envs/dimsenv'
+      nature 'shell'
+      command pandaCommand
+    }
+  }
+}
+
+def pandaCommand = 'which pip'
+job {
+  name ('test-dsl-panda')
+  description ('Test using shining panda build steps')
+  logRotator(-1, 15, -1, -5)
+  wrappers {
+      preBuildCleanup()
+    
+  }
+  environmentVariables {
+    keepSystemVariables(true)
+    keepBuildVariables(true)
+  }
+  steps {
+    shell('which python')
+  }
+  configure { 
+    it / 'builders' << 'jenkins.plugins.shiningpanda.builders.CustomPythonBuilder' {
+      home('/opt/dims/envs/dimsenv')
+      nature('shell')
+      command(pandaCommand)
+    }
+  }
+}
+
+job {
+  name ('test-dsl-panda2')
+  description ('Test2 using shining panda build steps')
+  logRotator(-1, 15, -1, -5)
+  wrappers {
+      preBuildCleanup()
+  }
+  environmentVariables {
+    keepSystemVariables(true)
+    keepBuildVariables(true)
+  }
+  steps {
+    shell('which pip')
+  }
+  steps {
+    shell('which python')
+  }
+  configure { project ->
+    project / 'builders' << 'jenkins.plugins.shiningpanda.builders.CustomPythonBuilder' {
+      home('/opt/dims/envs/dimsenv')
+      nature('shell')
+      command('which python')
+    }
+  }
+}
+
+
+
+// Parameterized job to build and deploy DIMS documentation 
+job {
+    name 'dims-docs-deploy'
+    description ('Job to build and deploy a set of DIMS system documentation')
+    logRotator(-1, 15, -1, -5)
+    parameters {
+        stringParam('REPO', '', 'Repository to build')
+        stringParam('BRANCH', '', 'Branch of the repo to use')
+        stringParam('DOCPATH', '.', 'Path to the doc Makefile from repo root')
+        stringParam('DOCTYPE', 'html', 'Type of document to build - html or pdf')
+        stringParam('DOCDELETE', 'false', 'True if the documentation is to be deleted')
+        stringParam('DOCHOST', docHost, 'Host to receive the docs')
+        stringParam('DOCDEST', docDest, 'Root destination on host to deploy the docs')
+        stringParam('DOCURL', docUrl, 'URL to documentation root directory')
+    }
+    wrappers {
+        preBuildCleanup()
+    }
+    // This job runs a script
+    configure { project ->
+      project / 'builders' << 'jenkins.plugins.shiningpanda.builders.CustomPythonBuilder' {
+        home('/opt/dims/envs/dimsenv')
+        nature('shell')
+        command('jenkins.dims-docs-deploy')
+      }
+    }
+    publishers {
+      downstreamParameterized postNotify
+    }
+}
+
+
+
+

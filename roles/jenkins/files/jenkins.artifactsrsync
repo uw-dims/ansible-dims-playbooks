@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+
+if [ ! -f .rsyncignore ]; then
+	touch .rsyncignore
+fi
+
+(cd /data/src && make 2>&1 >/dev/null)
+
+rsync -av \
+	--rsh=ssh \
+	--delete \
+	--delete-before \
+	--delete-excluded \
+	--no-p \
+	--no-g \
+	--chmod=ugo=rwX \
+	--quiet \
+	--exclude-from=.rsyncignore \
+	-r \
+	/data/src/ \
+	dimsdoc@ovid.u.washington.edu:w/artifacts
+
+ssh ovid.u.washington.edu "cd w; www-fixdir -R artifacts"

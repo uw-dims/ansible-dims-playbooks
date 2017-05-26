@@ -1,0 +1,1 @@
+The DSL directory contains groovy DSL scripts that are used by the Jenkins seed job to create/update the Jenkins jobs

@@ -1,0 +1,146 @@
+#!/bin/bash -x
+#
+# This script builds multiple Sphinx documents in repos
+# residing (in their current checkout branch/state) in
+# the directory specified by the $GIT environment variable.
+#
+# This is useful for building a set of documents that employ
+# intersphinx linking, obtaining the links from the co-local
+# repositories instead of specified remote locations.
+#
+# To build the docs for a specific server (e.g., when building
+# using a local docker container running Nginx), set the
+# environment variable DOCSURL to point to the server:
+#
+# $ export DOCSURL=http://192.168.99.100:49153
+#
+# This script has been customized to run on Jenkins
+# Jenkins job will already have virtual environment enabled
+# Docs are saved to $WORKSPACE/docs
+
+export DOCSURL=${DOCSURL:-http://u12-dev-svr-1.prisem.washington.edu:8080/docs/testrelease}
+#export DOCSURL=${DOCSURL:-http://b52.apl.washington.edu:8443}
+#REMOTE=b52.apl.washington.edu
+
+#TEST
+REMOTE=u12-dev-svr-1.prisem.washington.edu
+DEST=/opt/dims/docs/testrelease
+#DEST=/opt/dims/docs
+TMPFILE=`mktemp /tmp/index.XXXXXX` || exit 1
+DATE=$(date)
+QUIET=-q
+
+SPHINXOPTS=-Dtodo_include_todos=0
+
+#JENKINS
+#DOCSWORKSPACE=$WORKSPACE/docs
+GIT=$WORKSPACE/git
+
+REMOTEUSER="ansible"
+
+# Activate dimsenv virtual environment for Sphinx - not needed for Jenkins
+#. $HOME/dims/envs/dimsenv/bin/activate
+
+
+cd $GIT
+
+# By default, use wildcard expansion to find all directories
+# that are built with Sphinx (i.e., they have a "conf.py"
+# file in the path "docs/source" within the repo). Otherwise,
+# any arguments specified on the command line are built.
+
+REPOS=$*
+#REPOS=${*:-*}
+# Default to the set that is to be released now.
+REPOS=${*:-dims-ocd dims-sr dims-tp dims-jds}
+
+# Find repos with documentation by looking for conf.py
+# in a docs/source directory (DIMS standard repo layout).
+for d in $REPOS; do
+  if [ -f $d/docs/source/conf.py ]; then
+    DOCS+="$d "
+  fi
+done
+
+# Create HTML header
+cat <<EOD > $TMPFILE
+<HTML>
+  <HEAD>
+    <TITLE>DIMS documents</TITLE>
+  </HEAD>
+  <BODY>
+    <TABLE BORDER="5" CELLPADDING="10">
+      <TR>
+        <TH COLSPAN="2">
+  <H3><BR>DIMS Documents (last updated: $DATE)</H3>
+        </TH>
+      </TR>
+        <TH>HTML version</TH>
+        <TH>PDF version</TH>
+EOD
+
+# Remove any existing objects.inv files.
+for d in $DOCS; do
+  if [ "x$REMOTE" != "x" ]; then
+    ssh $REMOTEUSER@$REMOTE "rm -f $DEST/$d/objects.inv";
+  else
+    rm -f $DEST/$d/objects.inv;
+  fi
+done
+
+
+# Perform first build to get objects.inv files to load
+# later for intersphinx cross-referencing.
+
+for d in $DOCS; do
+  (cd $d/docs;
+  echo "[+]"
+  echo "[+] First build for $d";
+  echo "[+]"
+  #git hf pull;
+  (make clean && make SPHINXOPTS="$SPHINXOPTS" html) 1>/dev/null;
+  if [ "x$REMOTE" != "x" -a ! -d $DEST/$d ]; then
+    ssh $REMOTEUSER@$REMOTE "sudo mkdir -p $DEST/$d";
+  fi;
+  if [ "x$REMOTE" != "x" ]; then
+    ssh $REMOTEUSER@$REMOTE "sudo rm -rf $DEST/$d/*";
+    rsync $QUIET -r --rsync-path="sudo rsync" build/html/* $REMOTEUSER@$REMOTE:$DEST/$d;
+  else
+    rsync $QUIET -av build/html/ $DEST/$d;
+  fi)
+done
+
+# Now perform second build to get intersphinx links right.
+for d in $DOCS; do
+  (cd $d/docs;
+  echo "[+]"
+  echo "[+] Second build for $d";
+  echo "[+]"
+  (make SPHINXOPTS="$SPHINXOPTS" html && make SPHINXOPTS="$SPHINXOPTS" latexpdf) 1>/dev/null;
+  TITLE=$(grep 'link rel="top" title=' build/html/index.html | sed 's/.*title=\"//' | sed 's/" .*//');
+  PDF=$(cd build/latex && echo *.pdf);
+  if [ "x$REMOTE" != "x" ]; then
+    rsync $QUIET -r --rsync-path="sudo rsync" build/html/* $REMOTEUSER@$REMOTE:$DEST/$d;
+    rsync $QUIET -r --rsync-path="sudo rsync" build/latex/*.pdf $REMOTEUSER@$REMOTE:$DEST/$d;
+  else
+    rsync $QUIET -av build/html/ $DEST/$d;
+  fi;
+  echo "    <TR ALIGN="CENTER"><TD><a href=\"$d/index.html\">$TITLE</a></TD><TD><a href=\"$d/$PDF\">$PDF</a></TD></TR>" >> $TMPFILE)
+done
+
+# Finish HTML file
+cat <<EOD >> $TMPFILE
+    </TABLE>
+  </BODY>
+</HTML>
+EOD
+
+if [ "x$REMOTE" != "x" ]; then
+  rsync $QUIET -r --rsync-path="sudo rsync" $TMPFILE $REMOTEUSER@$REMOTE:$DEST/index.html;
+  # Owner is dims on current deployments
+  ssh $REMOTEUSER@REMOTE "sudo chown -R dims:dims $DEST"
+else
+  cp $TMPFILE $DEST/index.html;
+fi;
+
+rm $TMPFILE

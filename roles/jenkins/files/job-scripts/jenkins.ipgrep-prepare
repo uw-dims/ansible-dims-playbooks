@@ -1,0 +1,9 @@
+#! /bin/bash
+
+BASE=$(basename "$0")
+DATE=$(iso8601dateshort)
+
+# Use these until we transition to VERSION file in source 
+echo REV=`git describe` > ipgrep/propsfile 
+echo `git describe` > ipgrep/VERSION 
+sed -i "s/@@REV@@/$REV/" ./ipgrep/ipgrep

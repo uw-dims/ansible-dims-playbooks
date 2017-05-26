@@ -1,0 +1,176 @@
+#!/bin/bash +x
+#
+# This is the first step in running a Jenkins job-script which builds and deploys
+# the contents of a repository. It should be sourced by
+# that script. It handles the standard parameters, sets variables, clones the $REPO if needed and
+# checks out the specified branch. 
+#
+# 
+# Job-scripts accept the following named parameters:
+#
+# REPO - required - name of repository (without the .git)
+# BRANCH - required - branch of repo to build and deploy
+# ANSIBLEBRANCH - optional - Branch of ansible-playbooks to use. 
+# INVENTORYBRANCH - optional - Branch of ansible-inventory to use. 
+# ANSIBLEHOSTFILE - optional - Use a local hostfile rather than the one in ansible-inventory. 
+#   Full path to local hostfile
+# GROUP - optional - Specify the group in the inventory host file to run the play against. This will
+#   limit the machines the play will be run on to a subset of the group listed in the
+#   playbook. If there is no intersection between the group listed
+#   in the playbook and $GROUP, then the play is not run. Can be useful for testing or one-off deploys.
+# REMOTEUSER - optional - use a different remote_user than the default in ansible-playbooks/group_vars/all.
+#   Useful for testing.
+# VERBOSE - optional - set ansible verbose variable to true or false. Overrides any
+#   value already set in playbook or role
+# DEBUG - optional - set ansible debug variable to true or false. Overrides any
+#   value already set in playbook or role
+#
+# The optional parameters are available so that defaults can be overridden when testing.
+# In general, the global variables ANSIBLEHOSTFILES and DEFAULTBRANCHESTOBUILD specify the
+# branches and host files (and their relationships) used when deploying via Jenkins.
+#
+# When specified, the optional parameters will always override any defaults. 
+#
+# When not specified, the defaults are calculated as follows:
+# 1) If the $DOCBRANCH is a default branch (e.g. master or development as specified in the global 
+#    variable $DEFAULTBRANCHESTOBUILD), then:
+#    ANSIBLEBRANCH = $DOCBRANCH
+#    INVENTORYBRANCH = $DOCBRANCH
+# 
+#    In other words, if we are building the master branch of a docs repo, then the master branch
+#    of ansible-playbooks.git and ansible-inventory.git is also used. 
+#
+#    HOSTFILE is the entry in $ANSIBLEHOSTFILES specified by $DOCBRANCH (e.g. "production" for the 
+#       master branch and "development" for the dev or develop branch)
+#
+# 2) If the $DOCBRANCH is not a default branch, then 
+#    ANSIBLEBRANCH = $DEFAULTANSIBLEBRANCH
+#    INVENTORYBRANCH = $DEFAULTINVENTORYBRANCH
+#    HOSTFILE = $$DEFAULTHOSTSFILE
+
+# Exit on uncaught errors
+set -e
+
+# Set the basepath for the scripts
+BASEPATH="/opt/dims/bin"
+
+# Echo standard parameters
+echo "[+] $BASE: standard input parameters"
+echo "[+]   REPO=${REPO}"
+echo "[+]   BRANCH=${BRANCH}"
+echo "[+]   ANSIBLEHOSTFILE=${ANSIBLEHOSTFILE}"
+echo "[+]   ANSIBLEBRANCH=${ANSIBLEBRANCH}"
+echo "[+]   INVENTORYBRANCH=${INVENTORYBRANCH}"
+echo "[+]   REMOTEUSER=${REMOTEUSER}"
+echo "[+]   VERBOSE=${VERBOSE}"
+echo "[+]   DEBUG=${DEBUG}"
+echo "[+]   GROUP=${GROUP}"
+
+# Get default global vars
+echo "[+] $BASE: Get global vars from jenkins.dims-defaults."
+. $BASEPATH/jenkins.dims-defaults
+
+# # Name of playbook used to deploy the docs
+# # This may need to be refactored since we are still working on our new
+# # Ansible workflows. This attempts to use the pattern established 
+# # by the tupelo playbooks and roles.
+# # This playbook specifies the host group where the code will be deployed.
+# ANSIBLEPLAYBOOK='jenkins.dims-ci-utils-deploy.yml'
+
+# Get parameters and populate variables
+REPO=${REPO}
+# If BRANCH supplied, use it. Otherwise fall back to GIT_BRANCH which is supplied by Jenkins
+# If neither, fail
+BRANCH=${BRANCH:-${GIT_BRANCH}}
+REMOTEUSER=${REMOTEUSER}
+VERBOSE=${VERBOSE:-false}
+DEBUG=${DEBUG:-false}
+GROUP=${GROUP}
+
+# Check for missing required parameters
+if [ -z "$REPO" ] || [  -z "$BRANCH" ] ; then
+  echo "[+] $BASE: An input parameter is missing - exit."
+  exit 1
+fi
+
+# Delete origin/ from start of $BRANCH if it exists. GIT_BRANCH from jenkins will usually be branch
+# on the origin
+ORIGIN="origin/"
+BRANCH=${BRANCH#$ORIGIN}
+
+# See if caller supplied a different branch to build other than the 
+# allowed defaults. 
+found=false
+k=0
+for i in "${DEFAULTBRANCHESTOBUILD[@]}"; do
+  if [ $i = $BRANCH ]; then
+    # Branch specified is one of the defaults
+    found=true
+    # Allow these to be overridden by parameters
+    HOSTPATH=${ANSIBLEHOSTFILE:-$CWD/$INVENTORYREPO/${ANSIBLEHOSTFILES[$k]}}
+    ANSIBLEBRANCH=${ANSIBLEBRANCH:-${ANSIBLEBRANCHES[$k]}}
+    INVENTORYBRANCH=${INVENTORYBRANCH:-${INVENTORYBRANCHES[$k]}}
+    break
+  fi
+  k=$((k+1))
+done
+
+# branch wasn't in the default list
+if [ "$found" = false ]; then
+  # Set hostfile and branches to defaults unless a parameter supplied
+  HOSTPATH=${ANSIBLEHOSTFILE:-$CWD/$INVENTORYREPO/$DEFAULTHOSTFILE} 
+  ANSIBLEBRANCH=${ANSIBLEBRANCH:-$DEFAULTANSIBLEBRANCH}
+  INVENTORYBRANCH=${INVENTORYBRANCH:-$DEFAULTINVENTORYBRANCH}
+fi
+
+# Path to the artifact that will be created
+ARTIFACTPATH="$CWD/${REPO}.tar.gz"
+
+# Set verbose flag for ansible playbook command
+if [ "$VERBOSE" = true ]; then
+  VERBOSE="-e verbose=true"
+else
+  VERBOSE=""
+fi
+
+# Set debug flag for ansible playbook command
+if [ "$DEBUG" = true ]; then
+  DEBUG="-e debug=true"
+else
+  DEBUG=""
+fi
+
+# Set remoteuser to override default remote user if specified
+if [ -z "$REMOTEUSER" ]; then
+  DIMSREMOTEUSER=""
+else
+  DIMSREMOTEUSER="-e dims_remote_user=$REMOTEUSER"
+fi
+
+# Set limit flag to limit to $GROUP if that was specified
+if [ -z "$GROUP" ]; then
+  LIMIT=""
+else
+  LIMIT="-l $GROUP"
+fi
+
+echo "[+] $BASE: Variables"
+echo "[+]   BASE=$BASE"
+echo "[+]   CWD=$CWD"
+echo "[+]   BASEPATH=$BASEPATH"
+echo "[+]   REPO=$REPO"
+echo "[+]   BRANCH=$BRANCH"
+echo "[+]   ANSIBLEHOSTFILE=$ANSIBLEHOSTFILE"
+echo "[+]   ANSIBLEBRANCH=$ANSIBLEBRANCH"
+echo "[+]   INVENTORYBRANCH=$INVENTORYBRANCH"
+echo "[+]   ARTIFACTPATH=$ARTIFACTPATH"
+echo "[+]   HOSTPATH=$HOSTPATH"
+echo "[+]   REMOTEUSER=$REMOTEUSER"
+echo "[+]   DIMSREMOTEUSER=$DIMSREMOTEUSER"
+echo "[+]   DEBUG=$DEBUG"
+echo "[+]   VERBOSE=$VERBOSE"
+echo "[+]   LIMIT=$LIMIT"
+echo "[+]"
+
+# EOF
+

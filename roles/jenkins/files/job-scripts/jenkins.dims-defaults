@@ -1,0 +1,64 @@
+#!/bin/bash +x
+#
+# Variables used by multiple scripts
+
+# Base path for dims-ci-utils executable scripts
+BASEPATH="/opt/dims/bin"
+
+# Ansible repo names
+PLAYBOOKSREPO="ansible-playbooks"
+INVENTORYREPO="ansible-inventory"
+
+# GIT URL - append with name and .git
+GITURLPREFIX=${GITURLPREFIX:-"git@git.devops.develop:/opt/git/"}
+
+# Standard branch names 
+MASTERBRANCH="master"
+# Will change this when we move to "develop" as the development branch name
+DEVBRANCH="develop"
+
+# Names of hosts files in ansible inventory
+
+# Development ansible hosts file name. This hosts file contains machines that would typically
+# have dev or develop branch code deployed. 
+DEVHOSTS="development"
+# Production ansible hosts file name. This hosts file contains machines that would typically
+# have master branch code deployed
+MASTERHOSTS="production"
+
+# Default branches a script can build and deploy
+# If a script is called with a branch other than one in the list, the script will exit
+# This can be overridden in scripts if needed. Note that for deploying a hosts file also
+# would need to be specified if the defaults aren't used
+DEFAULTBRANCHESTOBUILD=( $MASTERBRANCH $DEVBRANCH )
+# Corresponding hosts files for default branches
+ANSIBLEHOSTFILES=( $MASTERHOSTS $DEVHOSTS )
+# Corresponding ansible branches for default branches - needed due to current name mis-match
+ANSIBLEBRANCHES=( $MASTERBRANCH $DEVBRANCH )
+INVENTORYBRANCHES=( $MASTERBRANCH $DEVBRANCH )
+
+# Default branch to use for Ansible if none given
+DEFAULTANSIBLEBRANCH=$DEVBRANCH
+DEFAULTINVENTORYBRANCH=$DEVBRANCH
+
+# Default hosts file to use if none given
+DEFAULTHOSTFILE=$DEVHOSTS
+
+# Default remote user used by Jenkins
+DEFAULTREMOTEUSER="ansible"
+
+echo "[+] jenkins.dims-defaults Default variables"
+echo "[+]    PLAYBOOKSREPO=$PLAYBOOKSREPO"
+echo "[+]    INVENTORYREPO=$INVENTORYREPO"
+echo "[+]    GITURLPREFIX=$GITURLPREFIX"
+echo "[+]    MASTERBRANCH=$MASTERBRANCH"
+echo "[+]    DEVBRANCH=$DEVBRANCH"
+echo "[+]    DEVHOSTS=$DEVHOSTS"
+echo "[+]    MASTERHOSTS=$MASTERHOSTS"
+echo "[+]    DEFAULTHOSTFILE=$DEFAULTHOSTFILE"
+echo "[+]    DEFAULTANSIBLEBRANCH=$DEFAULTANSIBLEBRANCH"
+echo "[+]    DEFAULTINVENTORYBRANCH=$DEFAULTINVENTORYBRANCH"
+echo "[+]    DEFAULTREMOTEUSER=$DEFAULTREMOTEUSER"
+echo "[+]"
+
+# EOF

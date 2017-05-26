@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Check to see if $REPO has already been cloned (this may be true in Jenkins),
+# otherwise, clone it
+
+cd $CWD
+
+if [ ! -d "$CWD/$REPO" ]; then
+  # Clone the repo
+  echo "[+] $BASE: Cloning the repo ${GITURLPREFIX}${REPO}.git"
+  echo "[+]        and checking out ${BRANCH}"
+  git clone ${GITURLPREFIX}${REPO}.git || { echo >&2; exit 1; }
+  cd $REPO && git checkout $BRANCH || { echo >&2; exit 1; }
+else
+  echo "[+] $BASE: Checking out $REPO branch $BRANCH"
+  cd $REPO && git checkout $BRANCH && git pull || { echo >&2; exit 1;}
+fi
+
+# End up in original directory
+cd $CWD

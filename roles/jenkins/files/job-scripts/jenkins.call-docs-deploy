@@ -1,0 +1,56 @@
+#!/bin/bash +x
+
+# This script checks for changes in the ./docs directory in the current jenkins job and
+# calls the dims-docs-deploy parameterized job if changes exist
+
+# Inputs: 
+# BRANCH - branch to build
+# REPO - name of repo
+
+# These are available as part of jenkins env vars:
+# BUILD_URL - url of the build
+# BUILD_NUMBER
+
+
+# This is called in a jenkins job, therefore..
+
+BASEPATH="/opt/dims/bin"
+
+# Parameterized job name
+JOB="dims-docs-deploy"
+# Jenkins URL
+JENKINSURL="http://jenkins.prisem.washington.edu"
+# Path to docs
+DOCPATH='./docs'
+
+# Explicit Parameters
+BRANCH=${BRANCH}
+REPO=${REPO}
+
+echo "[+] jenkins.call-docs-deploy"
+echo "[+] BRANCH=$BRANCH"
+echo "[+] REPO=$REPO"
+echo "[+] DOCPATH=$DOCPATH"
+echo "[+] BUILD_URL=$BUILD_URL"
+echo "[+] "
+
+
+# Check for missing requiredparameters
+if [ -z "$REPO" ] || [  -z "$BRANCH" ]  || [  -z "$BUILD_URL" ] ; then
+  echo "[+] jenkins.call-docs-deploy: An input parameter is missing - exit."
+  exit 1
+fi
+
+# Get changes for this build
+RESULT=$(curl -s "${BUILD_URL}api/xml?wrapper=changes&xpath=//changeSet//file")
+echo "[+] RESULT=$RESULT"
+MODIFIED=$(echo $RESULT | grep \<file\>docs/)
+echo "[+] MODIFIED=$MODIFIED"
+
+if [ ! -z "$MODIFIED" ]; then
+
+  curl --data-urlencode "DOCREPO=${REPO}" --data-urlencode "DOCBRANCH=${BRANCH}" --data-urlencode "DOCPATH=${DOCPATH}" --data-urlencode "DOCTYPE=html" $JENKINSURL/job/$JOB/buildWithParameters
+  curl --data-urlencode "DOCREPO=${REPO}" --data-urlencode "DOCBRANCH=${BRANCH}" --data-urlencode "DOCPATH=${DOCPATH}" --data-urlencode "DOCTYPE=pdf" $JENKINSURL/job/$JOB/buildWithParameters
+else
+  echo "[+] No changes in docs to build."
+fi

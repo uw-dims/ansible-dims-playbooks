@@ -1,0 +1,20 @@
+#!bin/bash
+
+# This file contains the generalized playbook command used by most
+# deployment jobs. 
+#
+# If the deployment job uses variables other than the standard ones,
+# they can be specified in $EXTRAVARS
+# For example
+# EXTRAVARS="-e variable1=true -e variable2=bob"
+
+EXTRAVARS=${EXTRAVARS:-""}
+
+cd $CWD/$PLAYBOOKSREPO
+
+echo "[+] $BASE: Will run the following ansible command:"
+echo ansible-playbook -i $HOSTPATH $ANSIBLEPLAYBOOK -e artifact_path=$ARTIFACTPATH \
+       $LIMIT $DIMSREMOTEUSER $DEBUG $VERBOSE $EXTRAVARS -vv
+
+ansible-playbook -i $HOSTPATH $ANSIBLEPLAYBOOK -e artifact_path=$ARTIFACTPATH \
+       $LIMIT $DIMSREMOTEUSER $DEBUG $VERBOSE $EXTRAVARS -vv

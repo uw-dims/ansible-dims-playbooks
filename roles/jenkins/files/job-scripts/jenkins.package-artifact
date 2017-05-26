@@ -1,0 +1,10 @@
+#! /bin/bash
+
+BASE=$(basename "$0")
+DATE=$(iso8601dateshort)
+
+if [ $# -eq 0 ]; then
+  echo "[+] Name of file not provided." && exit 1
+fi
+
+tar -cvzf ./${1}.tgz ./* --exclude='.git'

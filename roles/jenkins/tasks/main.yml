@@ -1,0 +1,123 @@
+---
+
+# file: roles/jenkins/tasks/main.yml
+
+# Install Jenkins on debian/ubuntu
+# https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu 
+
+- include: '{{ tasks }}/pre_tasks.yml'
+  tags: [ jenkins, packages ]
+
+- name: Ensure apt key is present
+  apt_key:
+    id:  D50582E6
+    url: https://pkg.jenkins.io/debian/jenkins.io.key 
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins, packages ]
+
+- name: Add repo to sources and update
+  apt_repository:
+    repo: 'deb https://pkg.jenkins.io/debian binary/'
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins, packages ]
+
+- name: Install packages via apt
+  shell: "apt-get -y install {{ item }}"
+  with_items:
+    - git
+    - jenkins
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins, packages ]
+
+- name: Copy files to jenkins home directory
+  copy:
+    src: '{{ item }}'
+    dest: '/var/lib/jenkins'
+    owner: 'jenkins'
+  with_items:
+    - 'plugins.sh'
+    - 'plugins.txt'
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+- name: Copy template scripts to target
+  template:
+    src: '{{ item }}.j2'
+    dest: '/tmp/{{ item }}'
+  with_items:
+    - install-plugins.sh
+    - get-cli.sh
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+- name: Copy describe installation script to target
+  template:
+    src: 'describe-installation.sh.j2'
+    dest: '/tmp/describe-installation.sh'
+    owner: '{{ dims_user }}'
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+- name: Copy wait script to target
+  copy: src=waitForJenkins.sh dest=/tmp
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+- name: Wait for Jenkins server to be ready
+  shell: bash /tmp/waitForJenkins.sh
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+- name: Get the Jenkins CLI and save to /tmp
+  shell: bash /tmp/get-cli.sh
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+# Using Jenkins CLI works best for updating installed plugins
+- name: Update default plugins using Jenkins CLI
+  shell: bash /tmp/install-plugins.sh
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+# plugins.sh best for adding new plugins - doesn't seem to affect installed plugins
+- name: Install new plugins using script plugins.sh
+  shell: bash /var/lib/jenkins/plugins.sh /var/lib/jenkins/plugins.txt
+  sudo: yes
+  sudo_user: jenkins
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+# Do safe-restart to make sure plug-ins have all been installed
+- name: Restart Jenkins to load updated plugins
+  shell: "java -jar {{ jenkins_cli_path }} -s http://127.0.0.1:8080/ safe-restart"
+  tags: [ jenkins ]
+
+# Wait for jenkins server to come back up
+# - name: Wait for jenkins server to be up 
+#   wait_for: port=8080 delay=30
+#   when: ansible_os_family == "Debian"
+
+- name: Wait for Jenkins server to be ready
+  shell: bash /tmp/waitForJenkins.sh
+  when: ansible_os_family == "Debian"
+  tags: [ jenkins ]
+
+# Save installed package and installed plugin info to /opt/dims/deploy
+- name: Save info regarding installed software
+  shell: "bash /tmp/describe-installation.sh"
+  when: ansible_os_family == "Debian"
+  sudo_user: "{{ dims_user }}"
+  sudo: yes
+  tags: [ jenkins ]
+
+- include: post_tasks.yml
+  tags: [ jenkins, packages ]
+
+# vim: ft=ansible :

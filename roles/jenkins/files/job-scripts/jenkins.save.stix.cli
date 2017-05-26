@@ -1,0 +1,42 @@
+#/bin/bash +x
+
+# This script saves the STIX cli package created by a build
+# to the sources server.
+
+BASE=$(basename "$0")
+
+# Uses Jenkins env variables:
+# JENKINS_HOME
+# JOB_NAME
+# BUILD_NUMBER
+# GIT_BRANCH
+
+# Exit if a required env var does not exist
+if [ "x$JENKINS_HOME" == "x" ]; then
+  echo "JENKINS_HOME must be defined. Example /var/lib/jenkins"
+  exit 1
+fi
+
+if [ "x$JOB_NAME" == "x" ]; then
+  echo "JOB_NAME must be defined. Example build-tupelo-develop"
+  exit 1
+fi
+
+if [ "x$BUILD_NUMBER" == "x" ]; then
+  echo "BUILD_NUMBER must be defined. Example 10"
+  exit 1
+fi
+
+if [ "x$GIT_BRANCH" == "x" ]; then
+  echo "GIT_BRANCH must be defined. Example origin/develop"
+  exit 1
+fi
+
+SOURCE_PATH=/data/src
+ARTIFACT_PATH=$JENKINS_HOME/jobs/$JOB_NAME/builds/${BUILD_NUMBER}/archive
+ARTIFACT_NAME=stix-java-cli
+BRANCH=$(basename "$GIT_BRANCH")
+
+cp $ARTIFACT_PATH/$ARTIFACT_NAME.tar.gz $SOURCE_PATH/$ARTIFACT_NAME-${BRANCH}.tgz
+
+exit 0
