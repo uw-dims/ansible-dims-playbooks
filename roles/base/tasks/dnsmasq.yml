@@ -45,6 +45,7 @@
     name: dnsmasq
     state: restarted
     enabled: yes
+  ignore_errors: true
   when: ansible_os_family == "Debian"
   tags: [ base, config, dns ]
 
