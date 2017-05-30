@@ -1,6 +1,6 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
-# This is the default file installed via v2/roles/base and
+# This is the default file installed via roles/base and
 # is just to make the system run and configurable, if no
 # other template for a host can be found.
 
@@ -15,12 +15,13 @@
 auto lo
 iface lo inet loopback
 
+{% if networking is defined %}
+
 # The following logic allows definition of multiple interfaces
 # via the array 'networking' containing dictionaries of interface
 # definitions. If no dictionary exists, a minimalist interfaces
 # file allowing DHCP for all unspecified interfaces is produced.
 
-{% if networking is defined %}
 {%  for interface in networking.interfaces %}
 {%   if interface.inet == 'dhcp' %}
 
@@ -39,8 +40,12 @@ iface {{ interface.device }} inet {{ interface.inet }}
 {%    if interface.gateway is defined %}
       gateway {{ interface.gateway }}
 {%    endif %}
+{%    if interface.dns_search is defined %}
       dns-search {{ interface.dns_search }}
+{%    endif %}
+{%    if interface.dns_servers is defined %}
       dns-servers {{ interface.dns_servers }}
+{%    endif %}
 
 {%   endif %}
 {%  endfor %}
