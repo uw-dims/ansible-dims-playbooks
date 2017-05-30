@@ -417,7 +417,7 @@
         - hosts/
   sudo: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
+  tags: [ base, hosts, config ]
 
 - name: Make sure blacklisted packages are absent (Debian)
   apt: state=absent name={{ item }} force=yes
