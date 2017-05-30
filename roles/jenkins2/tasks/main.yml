@@ -52,8 +52,8 @@
 
 # Use the following role for installation
 
-- include_role: "{{ imported_roles }}/ansible-jenkins2"
-  tags: [ jenkins2 ] }
+- include_role:
+    name: ansible-jenkins2
 
 - name: Ensure (templated) job scripts are present
   template:
@@ -63,7 +63,7 @@
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
   with_fileglob:
-    - ../templates/scripts/*.j2'
+    - "../templates/scripts/*.j2"
   tags: [ jenkins2, scripts ]
 
 - name: Ensure (non-templated) job scripts are present
@@ -74,10 +74,15 @@
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
   with_fileglob:
-    - ../files/scripts/*.sh'
+    - "../files/scripts/*.sh"
   tags: [ jenkins2, scripts ]
 
-- include: post_tasks.yml
+- name: Make defined bats tests present
+  include: "{{ tasks }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ jenkins2, tests ]
+
+- include: "{{ tasks }}/post_tasks.yml"
   tags: [ jenkins2, packages ]
 
 # vim: ft=ansible :
