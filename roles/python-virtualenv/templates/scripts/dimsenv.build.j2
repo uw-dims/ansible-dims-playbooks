@@ -172,10 +172,6 @@ function main()
     ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py ||
         error_exit $? "Execution of ${DIMS_SRC}/get-pip/get-pip.py failed"
 
-    verbose "Installing 'distribute' with easy_install"
-    ${DIMS_BIN}/easy_install distribute ||
-        error_exit $? "Command \"${DIMS_BIN}/easy_install distribute\" failed."
-
     verbose "Attempting to upgrade pip"
     ${DIMS_BIN}/pip install ${USE_PROXY} --upgrade pip ||
         error_exit $? "Upgrade of pip failed"
