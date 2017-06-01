@@ -50,7 +50,11 @@
   become: yes
   tags: [ jenkins2 ]
 
-# Use the following role for installation
+# Use the 'ansible-jenkins2' role for installation.
+# There is a bug that doesn't load handlers properly
+# when using 'include_role'. Working around it by
+# loading the handlers manually.
+# https://github.com/ansible/ansible/issues/18140
 
 - include_role:
     name: ansible-jenkins2

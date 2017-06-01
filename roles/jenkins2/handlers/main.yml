@@ -1,0 +1,10 @@
+---
+
+# File: roles/jenkins2/handlers/main.yml
+
+# There is a bug that doesn't load handlers properly
+# when using 'include_role'. Working around it by
+# loading the handlers manually.
+# https://github.com/ansible/ansible/issues/18140
+
+- include: '{{ imported_roles }}/ansible-jenkins2/handlers/main.yml'
