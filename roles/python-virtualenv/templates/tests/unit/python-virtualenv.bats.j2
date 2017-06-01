@@ -33,7 +33,7 @@ load helpers
     [[ -f {{ ansible_python_virtualenv }}/bin/activate ]]
 }
 
-{% for item in [ 'logmon', 'blueprint', 'mr', 'dimscli', 'sphinx-autobuild', 'ansible' ] %}
+{% for item in [ 'logmon', 'blueprint', 'dimscli', 'sphinx-autobuild', 'ansible' ] %}
 @test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/{{ item }} exists" {
     [[ -x {{ ansible_python_virtualenv }}/bin/{{ item }} ]]
 }
