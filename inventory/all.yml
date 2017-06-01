@@ -5,7 +5,7 @@
 all:
   vars:
     ansible_user: ansible
-    ansible_ssh_private_key_file: "{{ lookup('dims_functions', 'get_ssh_private_key_file {{ ansible_user }} local') }}"
+    ansible_ssh_private_key_file: "{{ lookup('dims_functions', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     category: devops
     deployment: local
     playbooks_root: "{{ lookup('env', 'PBR') }}"
@@ -16,6 +16,7 @@ all:
     'node02.devops.local':
     'node03.devops.local':
     'yellow.devops.local':
+    'orange.devops.local':
     'purple.devops.local':
     'blue14.devops.local':
 

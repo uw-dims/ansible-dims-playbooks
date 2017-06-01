@@ -55,6 +55,7 @@ vagrants:
     'yellow.devops.local':
     'purple.devops.local':
     'blue14.devops.local':
+    'orange.devops.local':
   children:
     production:
       hosts:
@@ -63,6 +64,7 @@ vagrants:
         'node02.devops.local':
         'node03.devops.local':
         'yellow.devops.local':
+        'orange.devops.local':
     development:
       hosts:
         'purple.devops.local':
