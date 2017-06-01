@@ -245,11 +245,6 @@ function main()
         git hf version) ||
         error_exit $? "Installation of hub-flow failed"
 
-    verbose "Installing mr"
-    cp ${DIMS_SRC}/myrepos/mr ${WORKON_HOME}/${VENV}/bin/mr ||
-        error_exit $? "Installation of mr failed"
-    chmod {{ mode_0755 }} ${WORKON_HOME}/${VENV}/bin/mr
-
     verbose "Installing git-crypt"
     (cd ${DIMS_SRC}/git-crypt && \
         make PREFIX=${WORKON_HOME}/${VENV} ENABLE_MAN=yes && \
