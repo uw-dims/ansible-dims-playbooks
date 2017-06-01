@@ -25,7 +25,7 @@
 # system Python virtual environment, which is intended to remain stable
 # and functional.
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ python-virtualenv, packages, config ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
@@ -234,7 +234,7 @@
   tags: [ python-virtualenv ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ python-virtualenv, tests ]
 
 - name: Run {{ venv_name }}.build script
@@ -256,7 +256,7 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ python-virtualenv ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ python-virtualenv, packages, configs, tests ]
 
 # vim: ft=ansible :

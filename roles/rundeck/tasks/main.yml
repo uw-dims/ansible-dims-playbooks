@@ -4,7 +4,7 @@
 
 # Prepare system for using rundeck
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rundeck, packages ]
 
 - name: Stop rundeckd daemon
@@ -70,11 +70,11 @@
   tags: [ rundeck, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ rundeck ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rundeck, packages ]
 
 # vim: ft=ansible :

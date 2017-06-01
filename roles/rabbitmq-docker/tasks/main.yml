@@ -2,10 +2,10 @@
 
 # File: roles/rabbitmq-docker/tasks/main.yml
 
-- include: "{{ tasks }}/ansible2check.yml"
+- include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rabbitmq-docker ]
 
 - name: Kill any current running instance and remove
@@ -24,7 +24,7 @@
   sudo: yes
   tags: [ rabbitmq-docker ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rabbitmq-docker ]
 
 # vim: ft=ansible :

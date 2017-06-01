@@ -13,10 +13,10 @@
 # http://michlstechblog.info/blog/openvpn-set-a-static-ip-address-for-a-client/
 # http://beenje.github.io/blog/posts/installing-openvpn-on-a-raspberry-pi-with-ansible/
 
-- include: "{{ tasks }}/ansible2check.yml"
+- include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ openvpn-server ]
 
 - name: Make sure staticclients directory exists.
@@ -24,7 +24,7 @@
   sudo: yes
   tags: [ openvpn-server ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ openvpn-server ]
 
 # vim: ft=ansible :

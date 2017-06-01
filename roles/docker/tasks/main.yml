@@ -7,7 +7,7 @@
 #   https://docs.docker.com/engine/installation/linux/ubuntu/
 #   https://docs.docker.com/engine/installation/linux/debian/
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ docker, packages, config ]
 
 # Debian wheezy requires backports (newer releases not)
@@ -206,10 +206,10 @@
   tags: [ docker, config ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ docker, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ docker, packages, config ]
 
 # vim: ft=ansible :

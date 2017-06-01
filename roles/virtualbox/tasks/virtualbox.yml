@@ -4,7 +4,7 @@
 
 # https://www.virtualbox.org/wiki/Linux_Downloads
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ virtualbox, packages ]
 
 - name: Make deb sources for virtualbox present
@@ -104,11 +104,11 @@
   tags: [ virtualbox, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ virtualbox, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ virtualbox, packages ]
 
 

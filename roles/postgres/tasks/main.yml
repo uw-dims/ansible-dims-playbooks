@@ -2,7 +2,7 @@
 
 # File: roles/postgres/tasks/main.yml
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postgres, config, packages ]
 
 - name: Make deb sources for postgresql present
@@ -122,10 +122,10 @@
   tags: [ postgres, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ postgres, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postgres, config, packages ]
 
 # vim: ft=ansible :

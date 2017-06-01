@@ -3,7 +3,7 @@
 # File: roles/apache_directory_studio/tasks/main.yml
 
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ apache-directory-studio, packages, ldap ]
 
 - name: Make ADS (64-bit) archive present
@@ -40,11 +40,11 @@
   tags: [ apache-directory-studio, packages, ldap ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ apache-directory-studio, ldap, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ apache-directory-studio, packages, ldap ]
 
 # vim: ft=ansible :

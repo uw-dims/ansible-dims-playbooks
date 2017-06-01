@@ -4,7 +4,7 @@
 
 # Install Packer on Linux 
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ packer, packages ]
 
 - name: Get packer zip 
@@ -30,11 +30,11 @@
   tags: [ packer, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ packer, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ packer, tests ]
 
 # vim: ft=ansible :

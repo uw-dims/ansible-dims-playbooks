@@ -3,10 +3,10 @@
 # File: roles/consul-docker/tasks/main.yml
 
 # This playbook requires Ansible 2.x features.
-- include: "{{ tasks }}/ansible2check.yml"
+- include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ consul-docker, config ]
 
 - name: Kill any current running instance and remove
@@ -41,7 +41,7 @@
   sudo: yes
   tags: [ consul-docker ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ consul-docker, config ]
 
 # vim: ft=ansible :

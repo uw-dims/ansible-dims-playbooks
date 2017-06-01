@@ -31,7 +31,7 @@
 # the scripts in dims-ci-utils/git.
 #
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dims-ci-utils, packages ]
 
 # Include file to retrieve and unpack artifact
@@ -94,10 +94,10 @@
   tags: [ dims-ci-utils, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ base, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dims-ci-utils, packages ]
 
 # vim: ft=ansible :

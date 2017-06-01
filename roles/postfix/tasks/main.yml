@@ -2,7 +2,7 @@
 
 # File: roles/postfix/tasks/main.yml
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postfix, config, packages ]
 
 - name: Only "update_cache=yes" if >3600s since last update
@@ -246,7 +246,7 @@
   service: name=postfix state=running enabled=yes
   tags: [ postfix, config ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postfix, config, packages ]
 
 # vim: ft=ansible :

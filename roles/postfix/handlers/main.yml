@@ -2,7 +2,7 @@
 
 # File: roles/postfix/handlers/main.yml
 
-- include: "{{ handlers }}/restart_services.yml"
+- include: "{{ handlers_path }}/restart_services.yml"
   static: yes
 
 - name: reload postfix

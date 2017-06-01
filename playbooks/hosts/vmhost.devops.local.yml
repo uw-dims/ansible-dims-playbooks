@@ -15,7 +15,7 @@
   remote_user: "ansible"
 
   tasks:
-   - include: "{{ tasks }}/debug-dump-vars.yml"
+   - include: "{{ tasks_path }}/debug-dump-vars.yml"
 
 - name: Configure host "vmhost.devops.local"
   hosts: vmhost.devops.local
@@ -33,4 +33,4 @@
   roles:
 
   handlers:
-   - include: "{{ handlers }}/restart_services.yml"
+   - include: "{{ handlers_path }}/restart_services.yml"

@@ -4,7 +4,7 @@
 
 # Tasks for setting up a Consul agent/peer.
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ consul, config, packages ]
 
 - include: tasks/debian-main.yml
@@ -16,10 +16,10 @@
   tags: [ consul, config, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ consul, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ consul, config, packages ]
 
 # vim: ft=ansible :

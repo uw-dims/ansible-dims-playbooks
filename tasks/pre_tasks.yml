@@ -11,7 +11,7 @@
     dimsenv_activate: "{{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
 
 - name: PRE_TASK - Check proxy availability
-  include: "{{ tasks }}/proxy_check.yml"
+  include: "{{ tasks_path }}/proxy_check.yml"
 
 - name: PRE_TASK - Test for existence of dimsenv virtualenv
   shell: ". {{ dimsenv_activate }}"

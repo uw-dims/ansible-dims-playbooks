@@ -19,7 +19,7 @@
    - "{{ playbooks_root }}/vars/global.yml"
 
   tasks:
-  - include: "{{ tasks }}/debug-dump-vars.yml"
+  - include: "{{ tasks_path }}/debug-dump-vars.yml"
     when: debug
 
 - include: "{{ imported_roles }}/swarm-ansible-playbook/swarm.yml"

@@ -5,7 +5,7 @@
 # Install Jenkins on debian/ubuntu
 # https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu
 
-- include: '{{ tasks }}/pre_tasks.yml'
+- include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ jenkins2, packages ]
 
 - name: Install PPA for Java 8
@@ -78,11 +78,11 @@
   tags: [ jenkins2, scripts ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ jenkins2, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ jenkins2, packages ]
 
 # vim: ft=ansible :

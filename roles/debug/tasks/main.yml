@@ -4,6 +4,6 @@
 
 # Simple playbook to dump variables for debugging
 
-- include: "{{ tasks }}/debug-dump-vars.yml"
+- include: "{{ tasks_path }}/debug-dump-vars.yml"
 
 # vim: ft=ansible :

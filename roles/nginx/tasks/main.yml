@@ -2,7 +2,7 @@
 
 # File: roles/nginx/tasks/main.yml
 
-- include: '{{ tasks }}/pre_tasks.yml'
+- include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # Following instructions from http://nginx.org/en/linux_packages.html
@@ -126,7 +126,7 @@
   tags: [ nginx, config ]
 
 # Letsencrypt support
-- include: '{{ tasks }}/install-certbot-auto.yml'
+- include: '{{ tasks_path }}/install-certbot-auto.yml'
   when: use_letsencrypt is defined and use_letsencrypt
   tags: [ nginx, packages ]
 
@@ -142,10 +142,10 @@
   tags: [ nginx, packages ]
 
 - name: Make defined bats tests present
-  include: '{{ tasks }}/bats-tests.yml'
+  include: '{{ tasks_path }}/bats-tests.yml'
   tags: [ nginx, tests ]
 
-- include: '{{ tasks }}/post_tasks.yml'
+- include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # vim: ft=ansible :

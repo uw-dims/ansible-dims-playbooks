@@ -3,7 +3,7 @@
 # File: roles/base/tasks/main.yml
 
 - name: Check for ansible 2.x
-  include: "{{ tasks }}/ansible2check.yml"
+  include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
 - debug: msg=System "{{ inventory_hostname }}"
@@ -11,7 +11,7 @@
   tags: [ base ]
 
 - name: Check proxy availability
-  include: "{{ tasks }}/proxy_check.yml"
+  include: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, packages ]
 
 - name: Make DIMS-specific resources present
@@ -560,7 +560,7 @@
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
-  include: "{{ tasks }}/install-shflags.yml"
+  include: "{{ tasks_path }}/install-shflags.yml"
 
 # Note: All scripts end up without extensions. In the directory, they
 # have names that end in .j2 or .sh to differentiate between templated
@@ -729,7 +729,7 @@
   tags: [ base, config ]
 
 - name: Ensure bashpass is present
-  include: "{{ tasks }}/install-bashpass.yml"
+  include: "{{ tasks_path }}/install-bashpass.yml"
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -767,15 +767,15 @@
   tags: [ base, config ]
 
 - name: Ensure bats is present
-  include: "{{ tasks }}/install-bats.yml"
+  include: "{{ tasks_path }}/install-bats.yml"
   tags: [ base, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ base, tests ]
 
 - name: Make defined triggers present
-  include: "{{ tasks }}/triggers.yml"
+  include: "{{ tasks_path }}/triggers.yml"
   tags: [ base, triggers ]
 
 - name: Make CoreOS resources present

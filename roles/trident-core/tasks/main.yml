@@ -39,7 +39,7 @@
     msg: "Debian Jessie is required for running Trident."
   when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
 
-- include: '{{ tasks }}/pre_tasks.yml'
+- include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-core, config, packages ]
 
 - name: Load deployment secret variables file
@@ -474,11 +474,11 @@
   tags: [ trident-core ]
 
 - name: Make defined bats tests present
-  include: '{{ tasks }}/bats-tests.yml'
+  include: '{{ tasks_path }}/bats-tests.yml'
   ignore_errors: yes
   tags: [ trident-core, tests ]
 
-- include: '{{ tasks }}/post_tasks.yml'
+- include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-core, config, packages ]
 
 # vim: ft=ansible :

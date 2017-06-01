@@ -3,13 +3,13 @@
 # File: roles/dns/tasks/main.yml
 
 # We are using Ansible 2 only features.
-- include: "{{ tasks }}/ansible2check.yml"
+- include: "{{ tasks_path }}/ansible2check.yml"
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dns, packages, config ]
 
 # Install dnsmasq consistently from source.
-- include: "{{ tasks }}/dnsmasq.yml"
+- include: "{{ tasks_path }}/dnsmasq.yml"
   tags: [ dns, packages, config ]
 
 - name: Make sure additional user-supplied config directory exists
@@ -161,7 +161,7 @@
     - restart dnsmasq
   tags: [ dns, config ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dns, packages, config ]
 
 # vim: ft=ansible :

@@ -15,7 +15,7 @@
 # http://askubuntu.com/questions/157154/how-do-i-include-lines-in-resolv-conf-that-wont-get-lost-on-reboot
 
 # Install dnsmasq consistently from source.
-- include: "{{ tasks }}/dnsmasq.yml"
+- include: "{{ tasks_path }}/dnsmasq.yml"
   tags: [ base, packages, config ]
 
 - name: Make dnsmasq configuration present on Debian
