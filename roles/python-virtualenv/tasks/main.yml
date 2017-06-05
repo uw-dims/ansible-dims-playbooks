@@ -75,7 +75,7 @@
     - texlive-extra-utils
     - texlive-fonts-recommended
     - texlive-fonts-extra
-  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx == "true")
+  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx)
   become: yes
   tags: [ python-virtualenv, packages ]
 
