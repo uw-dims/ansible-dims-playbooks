@@ -3,14 +3,15 @@
 # Variables used by multiple scripts
 
 # Base path for dims-ci-utils executable scripts
-BASEPATH="/opt/dims/bin"
+BASEPATH="{{ dims_bin }}"
 
 # Ansible repo names
-PLAYBOOKSREPO="ansible-playbooks"
-INVENTORYREPO="ansible-inventory"
+PLAYBOOKSREPO="{{ playbooks_root | basename }}"
+INVENTORYREPO="{{ inventory_dir | dirname | basename }}"
 
 # GIT URL - append with name and .git
-GITURLPREFIX=${GITURLPREFIX:-"git@git.devops.develop:/opt/git/"}
+GITHOST="git.{{ lookup('ENV', 'DIMS_DOMAIN') | default('{{ category }}.{{ deployment }}') }}"
+GITURLPREFIX=${GITURLPREFIX:-git@${GITHOST}:/opt/git/}
 
 # Standard branch names 
 MASTERBRANCH="master"
