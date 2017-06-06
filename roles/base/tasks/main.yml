@@ -12,7 +12,7 @@
 
 - name: Check proxy availability
   include: "{{ tasks_path }}/proxy_check.yml"
-  tags: [ base, packages ]
+  tags: [ always ]
 
 - name: Make DIMS-specific resources present
   include: dims_base.yml
@@ -426,13 +426,13 @@
   sudo: yes
   when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
   ignore_errors: yes
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
   sudo: yes
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
@@ -441,7 +441,7 @@
   sudo: yes
   ignore_errors: yes
   when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
@@ -449,7 +449,7 @@
     autoremove: yes
   sudo: yes
   when: packages_upgrade and ansible_os_family == "Debian"
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Disable IPv6 in kernel on non-CoreOS
   shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
