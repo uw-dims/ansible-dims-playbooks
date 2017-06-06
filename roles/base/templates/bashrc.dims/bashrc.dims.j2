@@ -45,6 +45,8 @@ if [[ -d $HOME/dims/git ]]; then
   export GIT="$HOME/dims/git"
 fi
 
+DIMS="${DIMS:-{{ dims }}}"
+
 # This section is for things that MUST be done for every
 # shell (regardless of whether it is an interactive shell
 # or not (as determined by PS1 being set or not).
