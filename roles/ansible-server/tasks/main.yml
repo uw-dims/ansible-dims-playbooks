@@ -78,7 +78,7 @@
   become: yes
   tags: [ ansible-server, config ]
 
-- name: Create directory for additional (non-DIMS) ansible roles and plugins
+- name: Create imported plugins/roles directory
   file:
     path: '{{ item }}'
     owner: '{{ root_user }}'

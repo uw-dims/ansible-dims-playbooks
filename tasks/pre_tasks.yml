@@ -6,24 +6,24 @@
   shell: "echo pre_tasks for role: {{ role_name | quote }}"
   when: verbose
 
-- name: PRE_TASK - Set the path to virtual environment activate
+- name: PRE_TASK - Set path to venv activate
   set_fact:
     dimsenv_activate: "{{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
 
 - name: PRE_TASK - Check proxy availability
   include: "{{ tasks_path }}/proxy_check.yml"
 
-- name: PRE_TASK - Test for existence of dimsenv virtualenv
+- name: PRE_TASK - Test for existence of dimsenv venv
   shell: ". {{ dimsenv_activate }}"
   register: dimsenv_check
   ignore_errors: yes
 
-- name: PRE_TASK - Log start of role with virtualenv logmon
+- name: PRE_TASK - Log start of role with venv logmon
   shell: ". {{ dimsenv_activate }} && which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
   ignore_errors: yes
   when: dimsenv_check.rc == 0
 
-- name: PRE_TASK - Log the start of this role w/o virtualenv logmon
+- name: PRE_TASK - Log the start of role w/o venv logmon
   shell: "which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
   ignore_errors: yes
   when: dimsenv_check.rc != 0
