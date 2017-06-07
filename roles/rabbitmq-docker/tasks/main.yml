@@ -10,7 +10,7 @@
 
 - name: Kill any current running instance and remove
   shell: "docker stop rabbitmq && docker rm rabbitmq"
-  sudo: yes
+  become: yes
   ignore_errors: yes
   tags: [ rabbitmq-docker ]
 
@@ -21,7 +21,7 @@
 
 - name: Start new instance of rabbitmq container
   shell: /bin/bash -c "/tmp/start_rabbitmq.sh"
-  sudo: yes
+  become: yes
   tags: [ rabbitmq-docker ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"

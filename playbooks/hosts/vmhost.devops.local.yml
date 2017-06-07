@@ -28,7 +28,7 @@
    - "{{ playbooks_root }}/vars/trusty.yml"
 
   remote_user: "ansible"
-  sudo: yes
+  become: yes
 
   roles:
 

@@ -8,7 +8,7 @@
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   tags: [ postfix, packages ]
 
 - name: Make related mail utilities present
@@ -21,7 +21,7 @@
     - mailutils
     - alpine
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   tags: [ postfix, packages ]
 
 - name: Make /var/mail directory permissions present
@@ -31,7 +31,7 @@
     owner=root
     group=mail
     mode={{ mode_1777 }}
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postfix, packages ]
 

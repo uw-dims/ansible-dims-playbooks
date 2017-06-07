@@ -11,7 +11,7 @@
 
 - name: Stop squid service if running - ignore errors
   service: "name={{ squidBasename }} state=stopped"
-  sudo: yes
+  become: yes
   ignore_errors: true
   tags: [ squid-proxy ]
 

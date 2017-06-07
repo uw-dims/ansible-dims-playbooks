@@ -12,11 +12,11 @@
 
 # NOTE(mboggess): from 'v2' fakebase handlers/main.yml
 - name: restart dnsmasq on Debian
-  sudo: yes
+  become: yes
   service: name=dnsmasq state=restarted
 
 - name: restart network-manager on Debian
-  sudo: yes
+  become: yes
   service: name=network-manager state=restarted
 
 - name: restart iptables

@@ -35,7 +35,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify: restart dnsmasq
   tags: [ base, config, dns ]
@@ -67,7 +67,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/nsswitch.conf/'
         - nsswitch.conf/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
@@ -98,7 +98,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
   tags: [ base, config ]
 
@@ -120,12 +120,12 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
   tags: [ base, config ]
 
 - name: Update resolvconf file from base
   shell: "resolvconf -u"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
   tags: [ base, config ]

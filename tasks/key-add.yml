@@ -16,17 +16,17 @@
 
 - name: Ensure select user public keys present in authorized-keys
   authorized_key: user={{ dims_user }} key="{{ lookup('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_authorized_keys') }}"
-  sudo: yes
+  become: yes
 
 - name: Make sure users' public key present in authorized_keys
   authorized_key: user={{ item }} key="{{ lookup ('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_'+item + '_rsa.pub') }}"
   with_items: accounts
-  sudo: yes
+  become: yes
 
 - name: Update git account authorized_keys with member keys
   authorized_key: user=git key="{{ lookup('file', '/tmp/dims-keys-'+r+'/ssh-pub/dims_authorized_keys') }}"
   when: "'git' in group_names"
-  sudo: yes
+  become: yes
 
 - name: Delete keys repo on host
   file: "state=absent path=/tmp/dims-keys-{{r}}"

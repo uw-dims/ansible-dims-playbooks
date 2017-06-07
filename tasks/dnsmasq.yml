@@ -11,22 +11,22 @@
 
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
 
 - name: Make full dnsmasq present (Debian, Trusty)
   apt: name=dnsmasq=2.68-1ubuntu0.1 state=present force=yes
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
 - name: Make full dnsmasq package present (Debian, not Trusty)
   apt: name=dnsmasq state=present force=yes
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename != "trusty"
 
 - name: Make dbus-1 development libraries present
   apt: name=libdbus-1-dev state=present force=yes
-  sudo: yes
+  become: yes
 
 - name: Download dnsmasq source
   get_url:
@@ -34,7 +34,7 @@
     sha256sum: "{{ dnsmasq.sha256_sum }}"
     dest: "{{ dims_deploy }}/{{ dnsmasq.archive }}"
     validate_certs: false
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
 - name: Unpack dnsmasq archive file
@@ -42,14 +42,14 @@
     src:  "{{ dims_deploy }}/{{ dnsmasq.archive }}"
     dest: "{{ dims_deploy }}/"
     copy: no
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
 - name: Compile and install dnsmasq
   shell: >
     cd {{ dims_deploy }}/dnsmasq-{{ dnsmasq.version }} &&
     make COPTS="-DHAVE_DBUS" PREFIX=/usr install
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
 - name: Clean up dnsmasq build artifacts
@@ -57,6 +57,6 @@
   with_items:
     - "{{ dims_deploy }}/dnsmasq-{{ dnsmasq.version }}"
     - "{{ dims_deploy }}/{{ dnsmasq.archive }}"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
