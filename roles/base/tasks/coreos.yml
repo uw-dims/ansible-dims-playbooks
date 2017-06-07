@@ -25,19 +25,19 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/user-data/'
         - user-data/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Run coreos-cloudinit to install user-data configs (CoreOS)
   shell: "coreos-cloudinit --from-file=/var/lib/coreos-vagrant/user-data"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Ensure kernel parameter changes are applied
   shell: "sysctl --system"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -58,7 +58,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
         - profile.d/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 

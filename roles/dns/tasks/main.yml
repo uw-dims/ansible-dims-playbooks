@@ -19,7 +19,7 @@
     owner: "{{ root_user }}"
     group: "{{ root_group }}"
     mode: "{{ mode_0755 }}"
-  sudo: yes
+  become: yes
   tags: [ dns, packages, config ]
 
 - name: Update dnsmasq defaults on Debian
@@ -39,7 +39,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
         - default/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
@@ -62,7 +62,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
       skip: true
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
@@ -85,7 +85,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
         - default/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
@@ -108,7 +108,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/init.d/'
         - init.d/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
@@ -121,7 +121,7 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  sudo: yes
+  become: yes
   tags: [ dns, config ]
 
 - name: Add additional user-supplied configurations
@@ -134,7 +134,7 @@
   with_nested:
     - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
     - '{{ zones }}'
-  sudo: yes
+  become: yes
   ignore_errors: yes
   when: ansible_os_family == "Debian"
   notify:
@@ -154,7 +154,7 @@
   with_nested:
     - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
     - "{{ zones }}"
-  sudo: yes
+  become: yes
   ignore_errors: yes
   when: ansible_os_family == "Debian"
   notify:

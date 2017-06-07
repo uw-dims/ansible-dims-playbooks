@@ -22,7 +22,7 @@
 #    sha256sum: "{{ pycharm.sha256_sum }}"
 #    dest: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }}"
 #    validate_certs: false
-#  sudo: yes
+#  become: yes
 #  tags: [ pycharm, packages ]
 
 - name: Get pycharm community edition tgz file
@@ -50,7 +50,7 @@
 
 - name: Make link to pycharm run script
   shell: "ln -sf /opt/pycharm-community-{{ pycharm.version }}/bin/pycharm.sh {{ dims_bin }}/pycharm"
-  sudo: yes
+  become: yes
   tags: [ pycharm, packages ]
 
 - name: Make pycharm desktop configuration present
@@ -60,7 +60,7 @@
      owner={{ root_user }}
      group={{ root_group }}
      mode={{ mode_0644 }}
-  sudo: yes
+  become: yes
   tags: [ pycharm, packages ]
 
 - name: Make defined bats tests present

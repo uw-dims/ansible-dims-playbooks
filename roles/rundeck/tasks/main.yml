@@ -9,7 +9,7 @@
 
 - name: Stop rundeckd daemon
   service: name=rundeckd state=stopped
-  sudo: yes
+  become: yes
   notify: restart rundeckd
   ignore_errors: true
   when: ansible_os_family == "Debian"
@@ -20,7 +20,7 @@
     id: '{{ rundeck.gpg_key_id }}'
     url: '{{ rundeck.gpg_key_url }}'
     state: present
-  sudo: yes
+  become: yes
   args:
     warn: false
   when: ansible_os_family == "Debian"
@@ -31,13 +31,13 @@
     url={{ rundeck.dist_url }}/{{ rundeck.artifact }}
     dest={{ dims_deploy }}/{{ role_name }}
     sha256sum={{ rundeck.sha256_sum}}
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ rundeck, packages ]
 
 - name: Install
   shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ rundeck.artifact }}"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify: restart rundeckd
   tags: [ rundeck, packages ]
@@ -59,14 +59,14 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/realm.properties/'
         - realm.properties/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify: restart rundeckd
   tags: [ rundeck, config ]
 
 - name: Ensure rundeckd is running and enabled
   service: name=rundeckd state=running enabled=yes
-  sudo: yes
+  become: yes
   tags: [ rundeck, packages ]
 
 - name: Make defined bats tests present

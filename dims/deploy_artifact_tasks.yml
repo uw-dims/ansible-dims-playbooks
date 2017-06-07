@@ -83,19 +83,19 @@
 # We delete the download directory (if it exists) since a prior failure may have failed to delete it.
 - name: Delete download directory to clean up (in case prior runs failed)
   file: "state=absent path={{ dims_deploy }}/{{ role_name }}"
-  sudo: yes
+  become: yes
 
 # Create the directory to copy the document artifact to
 - name: Create the download directory for the document artifact
   file: "state=directory path={{ dims_deploy }}/{{ role_name }}"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
 
 # Copy and unzip the artifact if on the file system
 - name: Copy the artifact to the deploy directory and unpack
   copy: "src={{ artifact_path }} dest={{ dims_deploy }}/{{ role_name }}"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   when: artifact_path is defined
 
 # TODO(dittrich): Temporary fix
@@ -104,8 +104,8 @@
 #    dest={{ dims_deploy }}/{{ role_name }}
 #    use_proxy=yes
 #    force=yes
-# sudo_user: "{{ dims_user }}"
-# sudo: yes
+# become_user: "{{ dims_user }}"
+# become: yes
 # when: artifact_path is not defined and artifact_branch is defined and artifact_server_visibility == "private"
 # Returns: "failed to create temporary content file: 'NoneType' object has no attribute 'read'"
 # See: https://github.com/ansible/ansible-modules-core/issues/4269
@@ -125,8 +125,8 @@
 # shell:
 #   chdir={{ dims_deploy }}/{{ role_name }}
 #   curl -s -O {{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
-# sudo_user: "{{ dims_user }}"
-# sudo: yes
+# become_user: "{{ dims_user }}"
+# become: yes
 # when: artifact_path is not defined and artifact_branch is defined and artifact_server_visibility == "private"
 
 # Get the artifact from http on public artifacts server instead
@@ -134,8 +134,8 @@
   shell:
     chdir={{ dims_deploy }}/{{ role_name }}
     curl -s -O {{ artifacts_url }}/{{ repo_name }}-{{ artifact_branch }}.tgz
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   when: artifact_path is not defined and artifact_branch is defined
 
 - name: Unpack and remove artifact
@@ -143,13 +143,13 @@
     cd {{ dims_deploy }}/{{ role_name }} &&
     tar -xzf {{ repo_name }}-{{ artifact_branch }}.tgz &&
     rm -f {{ repo_name }}-{{ artifact_branch }}.tgz
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
 
 - name: Set ownership of unpacked files to dims:dims
   file: "state=directory path={{ dims_deploy }}/{{ role_name }} recurse=yes owner={{ dims_user }} group={{ dims_group }}"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
 
 # We won't alter permissions here since some apps might need RW for dims group and others
 # might need R only for dims group. We'll let the role determine that after doing

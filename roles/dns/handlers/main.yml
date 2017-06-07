@@ -7,6 +7,6 @@
 
 # TODO(dittrich): This differs from {{ handlers_path }}/restart_services.yml. Why? Which is right?
 - name: restart dnsmasq on Debian
-  sudo: yes
+  become: yes
   service: name=dnsmasq state=restarted
 

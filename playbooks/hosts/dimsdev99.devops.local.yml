@@ -32,7 +32,7 @@
    - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
 
   remote_user: "ansible"
-  sudo: yes
+  become: yes
 
   roles:
     - { role: base }

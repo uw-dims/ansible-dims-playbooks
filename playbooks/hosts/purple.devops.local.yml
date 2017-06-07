@@ -28,7 +28,7 @@
    - "{{ playbooks_root }}/vars/jessie.yml"
 
   remote_user: "ansible"
-  sudo: yes
+  become: yes
 
   roles:
     - { role: base }

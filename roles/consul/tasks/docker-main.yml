@@ -7,7 +7,7 @@
 
 - name: Kill any current running instance and remove
   shell: "docker stop consul && docker rm consul"
-  sudo: yes
+  become: yes
   ignore_errors: yes
 #  docker: 
 #    name: consul
@@ -27,7 +27,7 @@
 
 - name: Start new instance of consul container
   shell: sh /tmp/start_consul.sh
-  sudo: yes
+  become: yes
 
 #- include: post_tasks.yml
 

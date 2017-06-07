@@ -5,7 +5,7 @@
 # Use group= rather than groups= otherwise primary group is users [LP]
 - name: Ensure dims group exists
   group: "name={{ dims_group }} state=present system=no"
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 - name: Ensure ansible user is in dims group
@@ -13,7 +13,7 @@
     name: ansible
     append: yes
     groups: '{{ dims_group }}'
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 
@@ -25,7 +25,7 @@
     home: '{{ dims }}'
     shell: /bin/bash
     comment: 'DIMS Service Account'
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 - name: Ensure dims top level directory exists
@@ -35,14 +35,14 @@
     group={{ dims_group }}
     state=directory
     mode={{ mode_0775 }}
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 - name: Ensure tests directory absent if initializing clean-up
   file:
     state=absent
     path={{ dims_tests }}
-  sudo: yes
+  become: yes
   when: dims_initialize_tests
   tags: [ base, config, tests ]
 
@@ -54,7 +54,7 @@
     state=directory
     mode={{ mode_0775 }}
   with_items: '{{ dims_dirs }}'
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 - name: Ensure private directory ("secrets" storage) is present
@@ -64,7 +64,7 @@
     group={{ dims_group }}
     state=directory
     mode={{ mode_0770 }}
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 # Note that /etc/environment is not read on CoreOS the same way that
@@ -89,14 +89,14 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/environment/'
         - environment/
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 # TODO(dittrich): Do this for Darwin as well
 #- name: Populate /etc/environment on Darwin
 #  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode={{ mode_0644 }}"
 #  when: ansible_os_family == "Darwin"
-#  sudo: yes
+#  become: yes
 #  tags: [ base, config ]
 
 # These are used by tests, so the 'tests' tag is applied specifically for this library.
@@ -107,7 +107,7 @@
     owner={{ dims_user }}
     group={{ dims_group }}
     mode={{ mode_0644 }}
-  sudo: yes
+  become: yes
   tags: [ base, config, tests ]
 
 - name: Ensure DIMS system shell init hook is present (Debian, CoreOS)
@@ -127,7 +127,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/bash.bashrc/'
         - bash.bashrc/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -148,7 +148,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
         - profile.d/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -159,7 +159,7 @@
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     mode: '{{ mode_0775 }}'
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 - name: Make DIMS-specific bashrc setup file present
@@ -180,7 +180,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/bashrc.dims/'
         - bashrc.dims/
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  sudo: yes
+  become: yes
   tags: [ base, config ]
 
 # vim: ft=ansible :

@@ -21,7 +21,7 @@
 
 - name: Make sure staticclients directory exists.
   file: "state=directory path=/etc/openvpn/staticclients owner={{ root_user }} group={{ root_group }} mode={{ mode_0770 }}"
-  sudo: yes
+  become: yes
   tags: [ openvpn-server ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"

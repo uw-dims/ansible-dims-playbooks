@@ -11,7 +11,7 @@
     id: ABF5BD827BD9BF62
     url: http://nginx.org/keys/nginx_signing.key
     state: present
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ nginx, packages ]
 
@@ -23,20 +23,20 @@
   with_items:
     - deb http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
     - deb-src http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ nginx, packages ]
 
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   tags: [ nginx, packages ]
 
 - name: Make nginx present
   apt: name=nginx state=present dpkg_options='force-confold,force-confdef'
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart nginx
   tags: [ nginx, packages ]
 
@@ -58,7 +58,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
         - nginx/
-  sudo: yes
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
@@ -80,7 +80,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx_confd/'
         - nginx_confd/
-  sudo: yes
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
@@ -93,7 +93,7 @@
     mode: '{{ mode_0755 }}'
   with_items:
     - /var/www/health_check
-  sudo: yes
+  become: yes
   tags: [ nginx, config ]
 
 - name: Make base Nginx configuration present
@@ -114,14 +114,14 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/html/'
         - html/
-  sudo: yes
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
 - name: Remove default sites-enabled file
   file: path=/etc/nginx/sites-enabled/default state=absent
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
@@ -133,12 +133,12 @@
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
 - name: Generate Strong Diffie-Hellman Group
   shell: "openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048"
-  sudo: yes
+  become: yes
   tags: [ nginx, config ]
 
 - name: Ensure nginx is running and enabled
   service: name=nginx state=running enabled=yes
-  sudo: yes
+  become: yes
   tags: [ nginx, packages ]
 
 - name: Make defined bats tests present

@@ -7,7 +7,7 @@
 
 - name: Make deb sources for postgresql present
   shell: echo "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
@@ -16,14 +16,14 @@
     id: 7FCC7D46ACCC4CF8
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
 - name: Force apt cache update in case config changed
   apt: update_cache=yes
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   tags: [ postgres, packages ]
 
 - name: Make PostgreSQL present
@@ -32,7 +32,7 @@
     - postgresql-{{ postgresql_version }}
     - postgresql-client-{{ postgresql_version }}
     - pgadmin3
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
@@ -65,7 +65,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -87,7 +87,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -109,7 +109,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -118,7 +118,7 @@
     name: postgresql
     state: running
     enabled: yes
-  sudo: yes
+  become: yes
   tags: [ postgres, packages ]
 
 - name: Make defined bats tests present
