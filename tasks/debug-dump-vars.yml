@@ -87,79 +87,49 @@
 # }
 
 - debug: var=inventory_hostname
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=inventory_hostname_short
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=inventory_dir
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=inventory_file
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=role_path
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=ansible_check_mode
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=ansible_hostname
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=delegate_to
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=play_hosts
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=group_names
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=groups
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=environment
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=defaults
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=hostvars[item]
   with_items: play_hosts
-  when: debug
   run_once: true
-  tags: [ always ]
 
 - debug: var=vars
-  when: debug
   run_once: true
-  tags: [ always ]
 
 # vim: ft=ansible :

@@ -2,21 +2,6 @@
 
 # File: playbooks/hosts/orange.devops.local.yml
 
-- name: Dump all vars if debug enabled
-  hosts: orange.devops.local
-
-  vars:
-    playbooks_root: "{{ lookup('env', 'PBR') }}"
-
-  vars_files:
-   - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/trusty.yml"
-
-  remote_user: "ansible"
-
-  tasks:
-   - include: "{{ tasks_path }}/debug-dump-vars.yml"
-
 - name: Configure host "orange.devops.local
   hosts: orange.devops.local
 
@@ -31,6 +16,7 @@
   become: yes
 
   roles:
+    - { role: debug }
     - { role: base, packages_upgrade: true }
     - { role: python-virtualenv, use_sphinx: true }
     - { role: docker }

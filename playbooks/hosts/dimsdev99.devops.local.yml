@@ -6,21 +6,6 @@
 # replicating DIMS developer laptop.
 #
 
-- name: Dump all vars if debug enabled
-  hosts: dimsdev99.devops.local
-
-  vars:
-    playbooks_root: "{{ lookup('env', 'PBR') }}"
-
-  vars_files:
-   - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/{{ ansible_distribution_release }}.yml"
-
-  remote_user: "ansible"
-
-  tasks:
-   - include: "{{ tasks_path }}/debug-dump-vars.yml"
-
 - name: Configure host "dimsdev99.devops.local"
   hosts: dimsdev99.devops.local
 
@@ -35,6 +20,7 @@
   become: yes
 
   roles:
+    - { role: debug }
     - { role: base }
     - { role: hosts }
     - { role: dims-ci-utils }
