@@ -2,21 +2,6 @@
 
 # File: playbooks/hosts/vmhost.devops.local.yml
 
-- name: Dump all vars if debug enabled
-  hosts: vmhost.devops.local
-
-  vars:
-    playbooks_root: "{{ lookup('env', 'PBR') }}"
-
-  vars_files:
-   - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/trusty.yml"
-
-  remote_user: "ansible"
-
-  tasks:
-   - include: "{{ tasks_path }}/debug-dump-vars.yml"
-
 - name: Configure host "vmhost.devops.local"
   hosts: vmhost.devops.local
 
@@ -31,6 +16,7 @@
   become: yes
 
   roles:
+    - { role: debug }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
