@@ -1,0 +1,10 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+# 
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Java version is 8" {
+    assert "8" bash -c "java -version 2>&1 | head -n 1 | awk '{ print \$3; }' | awk -F. '{ print \$2; }'"

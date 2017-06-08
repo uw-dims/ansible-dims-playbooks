@@ -50,6 +50,11 @@
   become: yes
   tags: [ java8, packages ]
 
+- name: Make defined bats tests present
+  include: '{{ tasks_path }}/bats-tests.yml'
+  tags: [ java8, tests ]
+
+
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ java8, packages ]
 
