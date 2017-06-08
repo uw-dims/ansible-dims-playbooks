@@ -1,0 +1,56 @@
+---
+
+# File: roles/java8/tasks/main.yml
+
+# Jenkins 2 requires Java8. This simple role ensures that
+# Java8 is present and that Java 7 is not.
+
+- include: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ java8, packages ]
+
+- name: Ensure PPA for Java 8 is present
+  apt_repository:
+    repo: 'ppa:openjdk-r/ppa'
+    state: present
+    update_cache: yes
+  become: yes
+  tags: [ java8, packages ]
+
+- name: Ensure Java8 is installed
+  apt:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - openjdk-8-jdk
+    - openjdk-8-jre
+    - openjdk-8-jre-headless
+  become: yes
+  tags: [ java8, packages ]
+
+- name: Ensure Java 7 is purged
+  apt:
+    name: '{{ item }}'
+    state: absent
+    purge: yes
+  with_items:
+    - openjdk-7-jre
+    - openjdk-7-jre-headless
+    - openjdk-7-jdk
+  become: yes
+  tags: [ java8, packages ]
+
+- name: Prevent Java 7 from coming back
+  dpkg_selections:
+    name: '{{ item }}'
+    selection: hold
+  with_items:
+    - openjdk-7-jre
+    - openjdk-7-jre-headless
+    - openjdk-7-jdk
+  become: yes
+  tags: [ java8, packages ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ java8, packages ]
+
+# vim: ft=ansible :
