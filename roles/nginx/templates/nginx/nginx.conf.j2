@@ -13,13 +13,6 @@ user www-data;
 worker_processes {{ nginx_worker_processes | default(4) }};
 pid /run/nginx.pid;
 
-# Don't allow requests without the "Host" header being set.
-server {
-	listen {{ nginx_default_port | default(80) }};
-	server_name "";
-	return 444;
-}
-
 events {
 	worker_connections 768;
 	# multi_accept on;
