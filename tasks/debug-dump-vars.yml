@@ -6,7 +6,7 @@
 # code:
 
 #- name: Dump variables
-#  debug: "var={{ item }}"
+#  debug: verbosity=5 "var={{ item }}"
 #  with_items:
 #    - inventory_hostname
 #    - inventory_hostname_short
@@ -86,50 +86,50 @@
 #     "role_path": "VARIABLE IS NOT DEFINED!"
 # }
 
-- debug: var=inventory_hostname
+- debug: verbosity=5 var=inventory_hostname
   run_once: true
 
-- debug: var=inventory_hostname_short
+- debug: verbosity=5 var=inventory_hostname_short
   run_once: true
 
-- debug: var=inventory_dir
+- debug: verbosity=5 var=inventory_dir
   run_once: true
 
-- debug: var=inventory_file
+- debug: verbosity=5 var=inventory_file
   run_once: true
 
-- debug: var=role_path
+- debug: verbosity=5 var=role_path
   run_once: true
 
-- debug: var=ansible_check_mode
+- debug: verbosity=5 var=ansible_check_mode
   run_once: true
 
-- debug: var=ansible_hostname
+- debug: verbosity=5 var=ansible_hostname
   run_once: true
 
-- debug: var=delegate_to
+- debug: verbosity=5 var=delegate_to
   run_once: true
 
-- debug: var=play_hosts
+- debug: verbosity=5 var=play_hosts
   run_once: true
 
-- debug: var=group_names
+- debug: verbosity=5 var=group_names
   run_once: true
 
-- debug: var=groups
+- debug: verbosity=5 var=groups
   run_once: true
 
-- debug: var=environment
+- debug: verbosity=5 var=environment
   run_once: true
 
-- debug: var=defaults
+- debug: verbosity=5 var=defaults
   run_once: true
 
-- debug: var=hostvars[item]
+- debug: verbosity=5 var=hostvars[item]
   with_items: play_hosts
   run_once: true
 
-- debug: var=vars
+- debug: verbosity=5 var=vars
   run_once: true
 
 # vim: ft=ansible :
