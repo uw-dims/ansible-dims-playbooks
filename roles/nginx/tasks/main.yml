@@ -62,10 +62,10 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Configure simple server directive
+- name: Configure health check server directive
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/conf.d/simple.conf
+    dest: /etc/nginx/conf.d/health_check.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -73,10 +73,10 @@
   with_first_found:
     - files:
         - '{{ directive_nginx_conf }}'
-        - simple.conf.{{ inventory_hostname }}.j2
-        - simple.conf.category-{{ category }}.j2
-        - simple.conf.deployment-{{ deployment }}.j2
-        - simple.conf.j2
+        - health_check.conf.{{ inventory_hostname }}.j2
+        - health_check.conf.category-{{ category }}.j2
+        - health_check.conf.deployment-{{ deployment }}.j2
+        - health_check.conf.j2
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx_confd/'
         - nginx_confd/

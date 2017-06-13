@@ -50,16 +50,16 @@ function setup() {
 	assert 755 stat --printf "%a" /etc/nginx/conf.d
 }
 
-@test "[S][EV] File /etc/nginx/conf.d/simple.conf exists" {
-    [ -f /etc/nginx/conf.d/simple.conf ]
+@test "[S][EV] File /etc/nginx/conf.d/health_check.conf exists" {
+    [ -f /etc/nginx/conf.d/health_check.conf ]
 }
 
-@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d/simple.conf" {
-	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d/simple.conf
+@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d/health_check.conf" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d/health_check.conf
 }
 
-@test "[S][EV] Assert permisions 644 for /etc/nginx/conf.d/simple.conf" {
-	assert 644 stat --printf "%a" /etc/nginx/conf.d/simple.conf
+@test "[S][EV] Assert permisions 644 for /etc/nginx/conf.d/health_check.conf" {
+	assert 644 stat --printf "%a" /etc/nginx/conf.d/health_check.conf
 }
 
 @test "[S][EV] Directory /var/www/health_check exists" {
