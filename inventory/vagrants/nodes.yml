@@ -32,7 +32,9 @@ vagrants:
         netmask: "255.255.255.0"
         cidr_bits: "24"
         broadcast: "192.168.56.255"
-        gateway: "192.168.56.1"
+        # Use NAT via VM Host, unless one VM set up for NAT
+        #gateway: "192.168.56.1"
+        gateway: "10.0.2.2"
         dns_search: "{{ deployment }}"
         dns_servers: "10.0.2.2"
         vagrant_net: "private_network"
