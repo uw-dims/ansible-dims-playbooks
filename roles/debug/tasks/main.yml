@@ -8,7 +8,6 @@
 # this role is included in the appropriate playbook.
 
 - include: "{{ tasks_path }}/debug-dump-vars.yml"
-  when: debug
   tags: [ always ]
 
 # vim: ft=ansible :
