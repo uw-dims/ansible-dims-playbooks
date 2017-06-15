@@ -14,6 +14,10 @@ verbose: true
 dims_vault_password_file: '{{ private }}/vault_pass.txt'
 
 dims_ansible_version: 2.3.1.0
+dims_ansible_imported_roles:
+  - https://github.com/nextrevision/ansible-swarm-playbook
+  - https://github.com/uw-dims/ansible-role-jenkins
+  - https://github.com/geerlingguy/ansible-role-certbot
 
 dimscli_version: 0.26.0
 
@@ -48,11 +52,6 @@ rsyslog_domains: [
 ]
 
 dims_etcd2_reboot_strategy: 'off'
-
-# Imported Ansible Git repos
-dims_ansible:
-  roles_git:
-      - https://github.com/nextrevision/ansible-swarm-playbook
 
 # Vagrant
 vagrant_version: 1.8.6
