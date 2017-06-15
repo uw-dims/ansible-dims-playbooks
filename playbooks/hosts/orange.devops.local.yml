@@ -19,9 +19,13 @@
     - { role: debug }
     - { role: base, packages_upgrade: true }
     - { role: python-virtualenv, use_sphinx: true }
+    - { role: nginx }
+    - { role: java8 }
+    - { role: ansible-role-jenkins, tags: jenkins2 }
+    - { role: jenkins2 }
+    - { role: ansible-server }
     - { role: docker }
     - { role: consul }
-    - { role: jenkins2 }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
