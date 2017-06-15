@@ -1,0 +1,79 @@
+---
+
+# Example playbook from geerlingguy/ansible-role-jenkins
+# - hosts: ci-server
+#   vars:
+#     jenkins_hostname: jenkins.devops.local
+#   roles:
+#     - ansible-role-jenkins
+
+ci-server:
+  vars:
+    jenkins_version: 2.19.4
+    jenkins_connection_delay: 5
+    jenkins_connection_retries: 60
+    jenkins_home: /var/lib/jenkins
+    jenkins_hostname: localhost
+    jenkins_http_port: 8080
+    jenkins_jar_location: "{{ dims_etc }}/jenkins-cli.jar"
+    jenkins_plugins:
+      - git
+      - git-client
+      - git-parameter
+      - translation
+      - job-dsl
+      - build-name-setter
+      - credentials
+      - google-login
+      - ws-cleanup
+      - copyartifact
+      - matrix-project
+      - matrix-auth
+      - ssh-credentials
+      - ssh-slaves
+      - ssh-agent
+      - mailer
+      - junit
+      - shiningpanda
+      - pam-auth
+      - maven-plugin
+      - nodejs
+      - script-security
+      - ldap
+      - envinject
+      - external-monitor-job
+      - antisamy-markup-formatter
+      - publish-over-ssh
+      - token-macro
+      - ant
+      - postbuild-task
+      - javadoc
+      - scm-api
+      - parameterized-trigger
+      - blueocean
+    jenkins_url_prefix: "/jenkins"
+    jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
+    jenkins_plugin_updates_expiration: 86400
+
+    jenkins_admin_username: admin
+    jenkins_admin_password: admin
+    jenkins_admin_password_file: ""
+
+    jenkins_init_changes:
+      - option: "JENKINS_ARGS"
+        value: "--prefix={{ jenkins_url_prefix }}"
+      - option: "{{ jenkins_java_options_env_var }}"
+        value: "{{ jenkins_java_options }}"
+
+    jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
+    jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
+
+# Left over from previous attempt using ansible-jenkins2 role
+#   jenkins_url_external: 'http://jenkins.devops.local/jenkins'
+#   jenkins_admin_users:
+#     - 'hudson.security.HudsonPrivateSecurityRealm:admin'
+  hosts:
+    'orange.devops.local':
+
+# vim: ft=ansible :
