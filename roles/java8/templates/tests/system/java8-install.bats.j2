@@ -8,3 +8,4 @@ load helpers
 
 @test "[S][EV] Java version is 8" {
     assert "8" bash -c "java -version 2>&1 | head -n 1 | awk '{ print \$3; }' | awk -F. '{ print \$2; }'"
+}
