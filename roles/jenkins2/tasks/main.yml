@@ -19,6 +19,18 @@
 # Install bats tests first so we can use them to validate
 # installation of Java and Jenkins.
 
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ jenkins2, tests ]
+
+- name: Run system test for Java8 installation
+  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  tags: [ jenkins2 ]
+
 - name: Make Jenkins nginx front end present
   template:
     src: '{{ item }}'
@@ -48,6 +60,7 @@
     group: www-data
     mode: '{{ mode_0664 }}'
   become: yes
+  notify: restart nginx
   tags: [ jenkins2, config ]
 
 - name: Ensure jenkins user is in www-data group
@@ -56,19 +69,8 @@
     append: yes
     groups: www-data
   become: yes
+  notify: restart nginx
   tags: [ jenkins2, config ]
-
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
-  ignore_errors: yes
-  tags: [ jenkins2, tests ]
-
-- name: Run system test for Java8 installation
-  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
-  environment:
-    DIMS: '{{ dims }}'
-    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-  tags: [ jenkins2 ]
 
 - name: Ensure (templated) job scripts are present
   template:
