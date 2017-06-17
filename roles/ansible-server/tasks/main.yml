@@ -99,6 +99,7 @@
   become: yes
   with_items:
     - '{{ dims_ansible_imported_roles }}'
+  when: dims_ansible_imported_roles is defined
   tags: [ ansible-server ]
 
 - include: '{{ tasks_path }}/post_tasks.yml'
