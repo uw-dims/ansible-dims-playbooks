@@ -451,6 +451,27 @@
   when: packages_upgrade and ansible_os_family == "Debian"
   tags: [ base, packages, patches ]
 
+- name: Ensure pip installed for system python
+  apt:
+    name: '{{ item }}'
+    state: installed
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Ensure required system python packages present
+  shell: 'pip install {{ item }}'
+  with_items:
+    - urllib3
+    - pyOpenSSL
+    - ndg-httpsclient
+    - pyasn1
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
 - name: Disable IPv6 in kernel on non-CoreOS
   shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
   when: ansible_os_family != "Container Linux by CoreOS"
