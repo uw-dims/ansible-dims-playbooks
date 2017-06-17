@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# This script ensures that a Python virtual environment is
+# invoked before executing the remaining command line
+# arguments. This is done to facilitate using Jenkins
+# pipelines in a Jenkinsfile stored in a Git repo.
+
+if [[ ! -f $HOME/dims/envs/dimsenv/bin/activate ]]; then
+  echo "No virtual environment $HOME/dims/envs/dimsenv found"
+  exit 1
+fi
+
+. $HOME/dims/envs/dimsenv/bin/activate
+exec $@

@@ -4,12 +4,12 @@
 
 # Install byobu on debian/ubuntu 
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ byobu, packages ]
 
 - name: Add PPA for Byobu
   apt_repository: repo='ppa:byobu/ppa' state=present
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ byobu, packages ]
 
@@ -20,11 +20,11 @@
 
 - name: Install byobu
   apt: name=byobu state=latest update_cache=yes
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ byobu, packages ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ byobu, packages ]
 
 # vim: ft=ansible :

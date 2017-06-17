@@ -1,0 +1,62 @@
+#!/bin/bash +x
+#
+# This script simply clones the Ansible repositories
+
+# Exit on uncaught errors
+set -e
+
+# The jenkins scripts must be installed  
+BASEPATH="/opt/dims/bin"
+CWD=$WORKSPACE
+
+# Get the default global vars
+. $BASEPATH/jenkins.dims-defaults
+
+PLAYBOOKSREPOURL="${GITURLPREFIX}${PLAYBOOKSREPO}.git"
+INVENTORYREPOURL="${GITURLPREFIX}${INVENTORYREPO}.git"
+
+# Get the branches from parameters, if supplied
+ANSIBLEBRANCH=${ANSIBLEBRANCH:-$DEFAULTANSIBLEBRANCH}
+INVENTORYBRANCH=${INVENTORYBRANCH:-$DEFAULTINVENTORYBRANCH}
+
+echo "[+] Clone ansible repositories"
+echo "[+] Parameters: "
+echo ANSIBLEBRANCH=$ANSIBLEBRANCH
+echo INVENTORYBRANCH=$INVENTORYBRANCH
+echo "[+] Other variables"
+echo CWD=$CWD
+echo PLAYBOOKSREPOURL=$PLAYBOOKSREPOURL
+echo INVENTORYREPOURL=$INVENTORYREPOURL
+echo "[+]"
+
+# Make sure we're in the base directory
+cd $CWD
+
+# Only clone if directory does not exist. Useful for testing
+if [ ! -d "$CWD/$PLAYBOOKSREPO" ]; then
+  # Clone the repo
+  echo "[+] jenkins.checkout-ansible: Cloning the repo ${GITURLPREFIX}${PLAYBOOKSREPO}.git"
+  echo "[+]        and checking out ${ANSIBLEBRANCH}"
+  git clone ${GITURLPREFIX}${PLAYBOOKSREPO}.git || { echo >&2; exit 1; }
+  cd $CWD/$PLAYBOOKSREPO && git checkout $ANSIBLEBRANCH || { echo >&2; exit 1; }
+else
+  echo "[+] jenkins.checkout-ansible: Getting latest code from ${GITURLPREFIX}${PLAYBOOKSREPO}.git"
+  cd $CWD/$PLAYBOOKSREPO && git checkout $ANSIBLEBRANCH && git pull  || { echo >&2; exit 1; }
+fi
+
+cd $CWD
+
+if [ ! -d "$CWD/$INVENTORYREPO" ]; then
+  # Clone the repo
+  echo "[+] jenkins.checkout-ansible: Cloning the repo ${GITURLPREFIX}${INVENTORYREPO}.git"
+  echo "[+]        and checking out ${INVENTORYBRANCH}"
+  git clone ${GITURLPREFIX}${INVENTORYREPO}.git || { echo >&2; exit 1; }
+  cd $CWD/$INVENTORYREPO && git checkout $INVENTORYBRANCH  || { echo >&2; exit 1; }
+else
+  echo "[+] jenkins.checkout-ansible: Getting latest code from ${INVENTORYREPO} branch ${INVENTORYBRANCH}"
+  cd $CWD/$INVENTORYREPO && git checkout $INVENTORYBRANCH && git pull  || { echo >&2; exit 1; }
+fi
+cd $CWD
+
+
+# EOF

@@ -1,10 +1,11 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
 #
-# file: bashrc.dims.network
-
 # This file is sourced by Bash at startup. DO NOT use 'exit'
 #
 # Check to see if OpenVPN has started required VPN(s).
+
+# Only execute if explicitly set to do so.
+[ -f $HOME/.DIMS_VPN_ACTIVATE ] || return 0
 
 if [ "$OS" == "Darwin" ]; then
 	if [[ -d "$HOME/Library/Application Support/Tunnelblick/Configurations" ]]; then

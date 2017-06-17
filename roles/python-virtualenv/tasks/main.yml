@@ -25,7 +25,7 @@
 # system Python virtual environment, which is intended to remain stable
 # and functional.
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ python-virtualenv, packages, config ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
@@ -47,6 +47,7 @@
     - libgdbm-dev
     - libsqlite3-dev
     - libffi-dev
+    - gettext
     - graphviz
     - libgraphviz-dev
     - libxml2-dev
@@ -74,7 +75,7 @@
     - texlive-extra-utils
     - texlive-fonts-recommended
     - texlive-fonts-extra
-  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx == "true")
+  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx)
   become: yes
   tags: [ python-virtualenv, packages ]
 
@@ -170,15 +171,6 @@
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
 
-- name: Ensure source for 'mr' is present
-  git:
-    repo=https://git.joeyh.name/git/myrepos.git/
-    dest={{ dims_src }}/myrepos
-    force=yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
 - name: Ensure source for 'git-crypt' is present
   git:
     repo=https://github.com/AGWA/git-crypt.git
@@ -242,7 +234,7 @@
   tags: [ python-virtualenv ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ python-virtualenv, tests ]
 
 - name: Run {{ venv_name }}.build script
@@ -264,7 +256,7 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ python-virtualenv ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ python-virtualenv, packages, configs, tests ]
 
 # vim: ft=ansible :

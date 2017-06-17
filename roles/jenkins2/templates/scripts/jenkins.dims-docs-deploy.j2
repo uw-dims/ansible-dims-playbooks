@@ -1,0 +1,147 @@
+#!/bin/bash +x
+#
+# This is a script to build a DIMS document and
+# use ssh to push the document to the appropriate destination. It is
+# usually called by a parameterized Jenkins job, which provides it
+# with its required input parameters.
+#
+# Accepts the following named parameters:
+# REPO - required - name of documentation repo (e.g. dims-sr)
+# BRANCH - required - branch of repo to build and deploy
+# DOCPATH - required - path to sphinx Makefile from root of repo
+# DOCTYPE - required - type of repo to build. Currently supports 'html' and 'pdf'
+#
+# Optional parameters, set to defaults if not supplied:
+# DOCDEST - Root directory for documentation deployments
+# DOCHOST - FQDN of host to receive docs
+# DOCURL - URL to index of docs. This is not used in calculations, but could be
+#          used to display URL for the docs
+# REMOTEUSER - Used to connect to the target machine. This is a default variable
+#              in our Ansible infrastructure, but we are not using Ansible here,
+#              so we need to specify it.
+# DOCDELETE - set to true if docs for this branch are supposed to be deleted
+
+# Exit on uncaught errors
+set -e
+
+BASE=$(basename "$0")
+CWD=$(pwd)
+
+BASEPATH="/opt/dims/bin"
+
+# Some defaults in case this isn't called by Jenkins job
+DEFAULTDEST="/opt/dims/docs/"
+DEFAULTHOST="app.devops.develop"
+DEFAULTURL="https:${DEFAULTHOST}:8443/docs"
+DEFAULTDELETE="false"
+# Need to set these here since we're not using Ansible
+DIMSUSER="dims"
+DIMSGROUP="dims"
+
+echo "[+] $BASE: Deploying documentation"
+
+REPO=${REPO}
+BRANCH=${BRANCH}
+DOCPATH=${DOCPATH}
+DOCTYPE=${DOCTYPE}
+
+# Check for missing required parameters
+if [  -z "$DOCPATH" ] || [  -z "$DOCTYPE" ] || [ -z "$REPO" ] || [  -z "$BRANCH" ]; then
+  echo "[+] $BASE: BRANCH, REPO, DOCPATH, or DOCTYPE are missing - exit."
+  exit 1
+fi
+
+# Note that we would normally call jenkins.initialize-deploy here. But since
+# we want to echo the URL near the top of the output, and because we are not
+# using Ansible, we will simply get the standard defaults
+
+# Get default global vars
+echo "[+] $BASE: Get global vars from jenkins.dims-defaults."
+. $BASEPATH/jenkins.dims-defaults
+
+
+# Set other parameters with defaults if not supplied
+# Initial Destination for the documentation on the target machine
+DOCDEST=${DOCDEST:-${DEFAULTDEST}}
+DOCHOST=${DOCHOST:-${DEFAULTHOST}}
+DOCURL=${DOCURL:=${DEFAULTURL}}
+DOCDELETE=${DOCDELETE:=${DEFAULTDELETE}}
+# Set the remote user for the ssh commands
+REMOTEUSER=${REMOTEUSER:=${DEFAULTREMOTEUSER}}
+
+# Set the directory name for the branch. This works for
+# deleted branches too
+FINALBRANCH=$(basename "$BRANCH")
+
+# Set the final destination based upon branch, type, repo
+FINALDEST=$DOCDEST/$FINALBRANCH/$DOCTYPE/$REPO/
+
+echo "[+] $BASE: Docs URL:"
+echo "[+]   $DOCURL/$FINALBRANCH/$DOCTYPE/$REPO"
+
+# Echo variables
+echo "[+] $BASE: Variables"
+echo "[+]   REPO=${REPO}"
+echo "[+]   BRANCH=${BRANCH}"
+echo "[+]   DOCPATH=${DOCPATH}"
+echo "[+]   DOCTYPE=${DOCTYPE}"
+echo "[+]   DOCDEST=${DOCDEST}"
+echo "[+]   DOCHOST=${DOCHOST}"
+echo "[+]   DOCURL=${DOCURL}"
+echo "[+]   DOCDELETE=${DOCDELETE}"
+echo "[+]   REMOTEUSER=${REMOTEUSER}"
+echo "[+]   FINALBRANCH=${FINALBRANCH}"
+echo "[+]   FINALDEST=${FINALDEST}"
+echo "[+]"
+
+
+if [ $DOCDELETE = "true" ]; then
+  echo "[+] $BASE: Branch was deleted. Deleting the documentation."
+  # Delete the docs for current type
+  ssh $REMOTEUSER@$DOCHOST "sudo rm -rf $FINALDEST"
+  # Delete empty directories
+  ssh $REMOTEUSER@$DOCHOST "sudo find $DOCDEST -type d -empty -delete"
+else
+  # Branch exists - check it out
+  . $BASEPATH/jenkins.get-repo
+  cd $CWD/$REPO
+  # Get the latest revision and echo it - helps to coordinate with git push notifications
+  echo "[+] $BASE: git rev is $(git rev-parse $BRANCH)"
+  cd $DOCPATH
+
+  # Build the docs and deploy over ssh
+  if [ $DOCTYPE = "pdf" ]; then
+    make latexpdf
+    echo "[+] $BASE: Sending pdf docs to target"
+    cd $CWD/$REPO/$DOCPATH/build/latex
+    # Create the destination path if it doesn't exist
+    ssh $REMOTEUSER@$DOCHOST "sudo mkdir -p $FINALDEST"
+    # Rsync over just the pdf file
+    rsync -vr --delete --delete-excluded --include="./*.pdf" --exclude="./*" --rsync-path="sudo rsync" ./ $REMOTEUSER@$DOCHOST:$FINALDEST
+    # Reset ownership
+    ssh $REMOTEUSER@$DOCHOST "sudo chown -R $DIMSUSER:$DIMSGROUP $DOCDEST"
+    echo "[+] $BASE: Deployed pdf documentation."
+
+  elif [ $DOCTYPE = "html" ]; then
+    make $DOCTYPE
+    echo "[+] $BASE: Sending html docs to target"
+    cd $CWD/$REPO/$DOCPATH/build/html
+    # Create the destination path if it doesn't exist
+    ssh $REMOTEUSER@$DOCHOST "sudo mkdir -p $FINALDEST"
+    # Rsync the files over to the target server
+    rsync -vr --delete --rsync-path="sudo rsync" ./ $REMOTEUSER@$DOCHOST:$FINALDEST
+    # Reset ownership
+    ssh $REMOTEUSER@$DOCHOST "sudo chown -R $DIMSUSER:$DIMSGROUP $DOCDEST"
+    echo "[+] $BASE: Deployed html documentation."
+  else
+    echo "$BASE: You must build either pdf or html, but you chose $DOCTYPE. Exiting..."
+    exit 1
+  fi
+  # Echo location again
+  echo "[+] $BASE: Docs were deployed to:"
+  echo "[+]   $DOCURL/$FINALBRANCH/$DOCTYPE/$REPO"
+fi
+
+echo "[+] $BASE finished"
+
+# EOF

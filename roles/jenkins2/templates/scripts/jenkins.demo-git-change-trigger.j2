@@ -1,0 +1,29 @@
+#!/bin/bash +x
+
+BASE=$(basename "$0")
+CWD=$(pwd)
+ 
+BASEPATH="/opt/dims/bin"
+
+GIT_BRANCH=${GIT_BRANCH}
+REPO="configstest"
+
+echo "[+] $BASE: Starting..."
+
+echo GIT_BRANCH=$GIT_BRANCH
+echo BRANCH from GIT_BRANCH=$(basename "$GIT_BRANCH")
+echo BUILD_NUMBER=$BUILD_NUMBER
+
+#check for changes to  systems/ipgrep
+MODIFIED=$(curl -s "${JOB_URL}${BUILD_NUMBER}/api/xml?wrapper=changes&xpath=//changeSet//file" 2>&1 | grep \<file\>systems/ipgrep/)
+
+echo "[+] MODIFIED=$MODIFIED"
+
+if [ ! -z $MODIFIED ]; then
+	echo "Would call job or script based upon changes to systems/ipgrep here"
+else
+  echo "systems/ipgrep not modified"
+fi
+
+echo "[+] $BASE: End of script"
+

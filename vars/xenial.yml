@@ -19,6 +19,7 @@ packages_install:
     'iptables-persistent',
     'ifstat',
     'make',
+    'myrepos',
     'netcat',
     'nfs-common',
     'chrony',

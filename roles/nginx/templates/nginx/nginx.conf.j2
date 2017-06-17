@@ -1,7 +1,16 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
+# This is the standard NGINX configuration file that should handle
+# basic NGINX configuration using the generic role "nginx". Other more
+# specific roles should drop in their own configuration files to handle
+# specific services using server{} blocks for each service. This allows
+# multiple services to be served on the same server (possibly even using
+# the same TCP port) using NGINX reverse proxy features. When doing this,
+# pay attention to the nginx_default_port to ensure that rewriting rules
+# are properly coupled with the configuration of the base 'nginx' role.
+
 user www-data;
-worker_processes 4;
+worker_processes {{ nginx_worker_processes | default(4) }};
 pid /run/nginx.pid;
 
 events {

@@ -8,7 +8,7 @@
   when: verbose
 
 # WARNING: Terse "if" statement ahead!
-- name: POST_TASK - List files created during role (verbose+debug mode)
+- name: POST_TASK - List files created by role
   #shell: >
   #       [ -f "{{ deploy_dir }}/CURRENT_ROLE" ] && find /bin /boot /etc /home /lib /lib64 /opt /root /run /sbin /sys /usr /var -newer "{{ deploy_dir }}/CURRENT_ROLE" -ls 2>/dev/null | egrep -v '\.ansible|/run/utmp$|/var/log/|/opt/dims/deploy|/etc/apt' > "{{ deploy_dir }}/createdby-{{ role_name.stdout }}.txt"
   shell: >
@@ -16,20 +16,20 @@
   ignore_errors: yes
   when: listfiles is defined and listfiles
 
-- name: POST_TASK - Set the path to virtual environment activate
+- name: POST_TASK - Set path to venv activate
   set_fact: "dimsenv_activate={{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
 
-- name: POST_TASK - Test for existence of dimsenv virtualenv
+- name: POST_TASK - Test for existence of dimsenv venv
   shell: ". {{ dimsenv_activate }}"
   register: dimsenv_check
   ignore_errors: yes
 
-- name: POST_TASK - Log end of role (virtualenv + logmon exist)
+- name: POST_TASK - Log end of role (venv+logmon exist)
   shell: ". {{ dimsenv_activate }} && which logmon >/dev/null && logmon -l devops -m 'post_tasks: Ending role: {{ role_name | quote }}'"
   when: dimsenv_check.rc == 0
   ignore_errors: yes
 
-- name: POST_TASK - Log end of role (logmon exists, virtualenv does not)
+- name: POST_TASK - Log end of role (logmon exists, venv does not)
   shell: "which logmon >/dev/null && logmon -l devops -m 'post_tasks: Ending role: {{ role_name | quote }}'"
   when: dimsenv_check.rc != 0
   ignore_errors: yes

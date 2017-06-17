@@ -1,0 +1,46 @@
+#!/bin/bash -x
+#
+# This script provisions a developer workstation.
+#
+# It is designed to run in a Jenkins job which 1) has the SSH Agent set
+# for the build environment so the Jenkins machine can communicate
+# with the target workstation and 2) requires a RUNHOST parameter
+# (which will become part of the ENVIRONMENT for the run).
+#
+# The ansible-playbook commands use the dynamic inventory script
+# dyn_inv.py, which uses environment variables RUNHOST (required),
+# RUNGROUP (optional) and SSHPORT (optional). 
+# This script uses:
+# RUNHOST - target host to run against. Must be supplied or the script
+#    will fail. Can be IP, FQDN, or other resolvable name
+# RUNGROUP - defined in this script to be dev-workstations. Some playbooks
+#    work on all hosts, others work on dev-workstations. We set the group
+#    to dev-workstations to ensure these plays will run on the target host.
+
+# BRANCH can be overridden to use a different branch other than develop
+BRANCH=${BRANCH:-"develop"}
+PLAYBOOKSURL=git@git.prisem.washington.edu:/opt/git/ansible-playbooks.git
+
+# Make sure RUNHOST is defined
+if [ -z "$RUNHOST" ]; then
+  echo "[+] RUNHOST parameter missing"
+  exit 1
+fi
+
+# Get the playbooks
+git clone $PLAYBOOKSURL
+cd ansible-playbooks
+git checkout $BRANCH
+
+export RUNGROUP="dev-workstations"
+
+# Run the plays
+ansible-playbook -i ./dyn_inv.py base-os.yml -vv
+ansible-playbook -i ./dyn_inv.py common.yml -vv
+ansible-playbook -i ./dyn_inv.py provision-dims-users.yml -vv
+ansible-playbook -i ./dyn_inv.py dims-ci-utils-deploy.yml -vv -e artifact_branch=develop
+ansible-playbook -i ./dyn_inv.py python-virtualenv-install-remote.yml -vv
+ansible-playbook -i ./dyn_inv.py virtualbox-install.yml -vv
+ansible-playbook -i ./dyn_inv.py vagrant-install.yml -vv
+ansible-playbook -i ./dyn_inv.py packer-install.yml -vv
+ansible-playbook -i ./dyn_inv.py docker-install.yml -vv

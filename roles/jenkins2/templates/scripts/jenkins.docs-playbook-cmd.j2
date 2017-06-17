@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This file contains the  playbook command used by doc deployments. 
+#
+# If the deployment job uses variables other than the standard ones,
+# they can be specified in $EXTRAVARS
+# For example
+# EXTRAVARS="-e variable1=true -e variable2=bob"
+
+EXTRAVARS=${EXTRAVARS:-""}
+
+echo "[+] $BASE: Will run the following ansible command:"
+echo ansible-playbook -i $HOSTPATH $ANSIBLEPLAYBOOK -e artifact_path=$ARTIFACTPATH \
+       -e docrepo=$REPO -e docdest=$DOCDEST -e doctype=$DOCTYPE \
+       $LIMIT $DIMSREMOTEUSER $DEBUG $VERBOSE $EXTRAVARS -vv
+
+cd $CWD/$PLAYBOOKSREPO
+
+ansible-playbook -i $HOSTPATH $ANSIBLEPLAYBOOK -e artifact_path=$ARTIFACTPATH \
+       -e docrepo=$REPO -e docdest=$DOCDEST -e doctype=$DOCTYPE \
+       $LIMIT $DIMSREMOTEUSER $DEBUG $VERBOSE $EXTRAVARS -vv
+
+# EOF

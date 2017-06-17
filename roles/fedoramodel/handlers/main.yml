@@ -3,7 +3,7 @@
 # File: fedoramodel/handlers/main.yml
 
 # TODO(dittrich): Making this similar to other v2 roles
-#- include: "{{ handlers }}/restart_services.yml"
+#- include: "{{ handlers_path }}/restart_services.yml"
 #  static: yes
 
 # NOTE(mboggess): from 'v1' common handlers/main.yml
@@ -12,11 +12,11 @@
 
 # NOTE(mboggess): from 'v2' fakebase handlers/main.yml
 - name: restart dnsmasq on Debian
-  sudo: yes
+  become: yes
   service: name=dnsmasq state=restarted
 
 - name: restart network-manager on Debian
-  sudo: yes
+  become: yes
   service: name=network-manager state=restarted
 
 - name: restart iptables

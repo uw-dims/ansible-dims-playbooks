@@ -69,7 +69,8 @@
 
 - name: Identify bats test templates
   set_fact:
-    bats_test_templates="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests && find . -type f -name \"*.bats.j2\"').split() }}"
+    bats_test_templates="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests 2>/dev/null && find . -type f -name \"*.bats.j2\"').split() }}"
+  ignore_errors: yes
 
 - name: Make defined bats tests present
   template:

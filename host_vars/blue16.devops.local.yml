@@ -17,14 +17,6 @@ eth2:
   ip: "10.168.56.10"
   auto_config: "false"
 
-debian_vagrantfile: [
-  '  # Change the following to the ansible_dsa key on your machine',
-  '  # HOME comes from Makefile',
-  '  # vmKey comes from host_vars host file',
-  '  config.ssh.private_key_path = "{{ HOME }}/.ssh/{{ vmKey }}"',
-  '  config.ssh.forward_agent = true',
-]
-
 # Variables for building "ovf" and "box" files
 box_baseos: "ubuntu"
 box_osversion: "16.04.1"

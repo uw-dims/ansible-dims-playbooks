@@ -1,0 +1,47 @@
+#!/bin/bash +x
+#
+# A standard job-script to build and deploy dims-ci-utils.
+# Standard job-scripts follow this pattern:
+# Set the playbook to run to do the deployment
+# Call the initialization script dims-deploy-initialize
+# Package/build the artifact
+# Checkout ansible repos
+# Run ansible-playbook command
+#
+
+# Exit on uncaught errors
+set -e
+
+BASE=$(basename "$0")
+CWD=$(pwd)
+
+BASEPATH="/opt/dims/bin"
+REPO="dims-ci-utils"
+
+# Name of playbook which will do the deployment
+ANSIBLEPLAYBOOK='dims-ci-utils-deploy.yml'
+
+# If we had additional parameters (other than standard) we would process them
+# here.
+
+# Call the initialization script - tasks to create variables
+. $BASEPATH/jenkins.initialize-deploy
+
+# Get the repository and branch
+. $BASEPATH/jenkins.get-repo
+
+echo "[+] $BASE: Build and package the artifact"
+# Do the build and package
+tar cvzf $ARTIFACTPATH ./$REPO/*
+
+# Clone and checkout ansible repos so we can deploy the docs after they are built
+echo "[+] $BASE: call script to checkout ansible repositories"
+. $BASEPATH/jenkins.checkout-ansible
+
+echo "[+] $BASE: run the ansible-playbook command"
+# Run the ansible-playbook command
+. $BASEPATH/jenkins.playbook-cmd
+
+echo "[+] $BASE finished"
+
+# EOF

@@ -5,7 +5,7 @@
 # This is a merge of 'v1' base-os and common roles' tasks and 'v2' fakebase tasks.
 
 # This playbook requires Ansible 2.x features.
-- include: "{{ tasks }}/ansible2check.yml"
+- include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
 # NOTE(mboggess): from common
@@ -37,7 +37,7 @@
 # NOTE(mboggess): from base-os
 - name: Ensure locale set
   shell: "locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales"
-  sudo: yes
+  become: yes
   tags: [ base, config ]
    
 # NOTE(mboggess): from base-os
@@ -125,7 +125,7 @@
         - interfaces.j2
       paths:
         - network/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
@@ -146,7 +146,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
         - sshd/
-  sudo: yes
+  become: yes
   notify:
     - restart ssh
   tags: [ base, config ]

@@ -1,0 +1,32 @@
+#!/bin/bash +x 
+# This is a generic script for handling
+# post-build reporting on JIRA. It sends the
+# current project's console log message to both
+# the DIMS devops mailing list and devops AMQP
+# exchange. 
+
+TFILE=$(mktemp --tmpdir $$.jenkins.$RANDOM.XXXXXX)
+BASE=$(basename "$0")
+RECIPIENTS=dims-devops@uw.ops-trust.net
+
+# Cleanup on exit
+trap "rm -f $TFILE" EXIT
+
+JIRA_TICKET="DIMS-noclue"
+
+# Get info to post...
+echo "NOT FINISHED" > $TFILE
+
+# Log to AMQP fanout
+/opt/dims/bin/logmon -l devops -m $JIRA_TICKET -s $TFILE
+
+# Send to DIMS devops email list.
+(echo "To: $RECIPIENTS";
+ echo "From: JIRA <dims@eclipse.prisem.washington.edu>";
+ echo "Subject: [JIRA] $JIRA_TICKET";
+ echo "Date: $(date)";
+ echo "";
+ echo "";
+ cat $TFILE) | /usr/sbin/sendmail -t -oi
+
+exit 0

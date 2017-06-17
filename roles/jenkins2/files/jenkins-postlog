@@ -1,0 +1,51 @@
+#!/bin/bash +x
+# This is a generic script for handling
+# post-build reporting on Jenkins. It sends the
+# current project's console log message to both
+# the DIMS devops mailing list and devops AMQP
+# exchange.
+
+TFILE=$(mktemp --tmpdir $$.jenkins.$RANDOM.XXXXXX)
+BASE=$(basename "$0")
+RECIPIENTS=${RECIPIENTS:-"dims-devops@uw.ops-trust.net"}
+
+# The following are either inherited from the calling
+# program via the environment (called directly by
+# Jenkins as a build step), or as predefined parameters
+# that are passed to the sub-project (called as a
+# post-build step) and inserted on the command line
+# in the post-build step.
+
+BUILD_TAG=${BUILD_TAG:-$1}
+BUILD_URL=${BUILD_URL:-$2}
+
+if [ "x$BUILD_TAG" == "x" -o "x$BUILD_URL" == "x" ]; then
+	echo "Usage: $0 BUILD_TAG BUILD_URL"
+	exit 1
+fi
+
+# Cleanup on exit
+trap "rm -f $TFILE" EXIT
+
+# Get console text for current Jenkins project build
+# and strip out the line reporting the trigger is
+# being run.
+curl -s $BUILD_URL/consoleText |
+	grep -v -a "Triggering a new build of post-notify" > $TFILE
+
+RESULT=$(grep -a "^Finished: " $TFILE | awk -F": " '{print $2;}')
+
+# Send message to AMQP fanout.
+[[ -x /opt/dims/bin/logmon ]] &&
+	/opt/dims/bin/logmon -l devops -m $BUILD_TAG -s $TFILE
+
+# Send email with build status to DIMS email list.
+(echo "To: $RECIPIENTS";
+ echo "From: Jenkins <dims@eclipse.prisem.washington.edu>";
+ echo "Subject: [Jenkins] [$RESULT] $BUILD_TAG";
+ echo "Date: $(date)";
+ echo "";
+ echo "";
+ cat $TFILE) | /usr/sbin/sendmail -t -oi
+
+exit 0

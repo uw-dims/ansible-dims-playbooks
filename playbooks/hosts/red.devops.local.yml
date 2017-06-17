@@ -2,21 +2,6 @@
 
 # File: playbooks/hosts/red.devops.local.yml
 
-- name: Dump all vars if debug enabled
-  hosts: red.devops.local
-
-  vars:
-    playbooks_root: "{{ lookup('env', 'PBR') }}"
-
-  vars_files:
-   - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/trusty.yml"
-
-  remote_user: "ansible"
-
-  tasks:
-   - include: "{{ tasks }}/debug-dump-vars.yml"
-
 - name: Configure host "red.devops.local"
   hosts: red.devops.local
 
@@ -28,9 +13,10 @@
    - "{{ playbooks_root }}/vars/trusty.yml"
 
   remote_user: "ansible"
-  sudo: yes
+  become: yes
 
   roles:
+    - { role: debug }
     - { role: base }
     - { role: hosts }
     - { role: dims-ci-utils }
@@ -41,4 +27,4 @@
     - { role: consul }
 
   handlers:
-   - include: "{{ handlers }}/restart_services.yml"
+   - include: "{{ handlers_path }}/restart_services.yml"

@@ -2,8 +2,12 @@
 
 # File: roles/debug/tasks/main.yml
 
-# Simple playbook to dump variables for debugging
+# Simple role to dump variables for debugging using
+# just one conditional. To invoke, use "-e debug=true"
+# or "debug: true" somewhere in the inventory and ensure
+# this role is included in the appropriate playbook.
 
-- include: "{{ tasks }}/debug-dump-vars.yml"
+- include: "{{ tasks_path }}/debug-dump-vars.yml"
+  tags: [ always ]
 
 # vim: ft=ansible :

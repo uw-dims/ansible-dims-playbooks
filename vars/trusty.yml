@@ -13,12 +13,14 @@ packages_install:
     'curl',
     'dconf-tools',
     'git-core',
+    'default-jdk',
     'gitk',
     'htop',
     'hunspell',
     'iptables-persistent',
     'ifstat',
     'make',
+    'myrepos',
     'netcat',
     'nfs-common',
     'chrony',
@@ -40,6 +42,7 @@ packages_install:
     'chrony',
     'nfs-kernel-server',
     'smartmontools',
+    'unzip',
   ]
 
 packages_remove:

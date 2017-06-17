@@ -1350,7 +1350,7 @@ function get_user_ssh_key_dir() {
         error_exit 1 "Could not determine deployment"
     fi
 
-    echo "${PRIVATE}/${_deployment}/ssh-keys/user/${_user}"
+    echo "${DIMS_PRIVATE}/files/ssh-keys/user/${_user}"
     return 0
 }
 
@@ -1392,7 +1392,7 @@ function get_ssh_private_key_file() {
 function get_user_ssh_key() {
     local _user=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
         echo $UNAVAILABLE
@@ -1418,7 +1418,7 @@ function get_user_ssh_key() {
 function create_user_ssh_key() {
     local _user=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
     local _dir="$(get_user_ssh_key_dir ${_user} ${_deployment} ${_root})"
 
     if [[ ! -d ${_dir} ]]; then
@@ -1442,7 +1442,7 @@ function create_user_ssh_key() {
 function delete_user_ssh_key() {
     local _user=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
         echo $UNAVAILABLE
@@ -1468,7 +1468,7 @@ function get_host_ssh_key_name() {
     local _deployment=$1; shift
     local _state=$1; shift
     local _type=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
     local _dir=$(get_host_ssh_key_dir ${_host} ${_deployment} ${_root})
 
     if [[ -z ${_host} || -z ${_deployment} || -z ${_state} || -z ${_type} || -z ${_root} ]]; then
@@ -1495,7 +1495,7 @@ function get_host_ssh_key_name() {
 function get_host_ssh_key_dir() {
     local _host=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_host} || -z ${_deployment} || -z ${_root} ]]; then
         echo $UNAVAILABLE
@@ -1516,7 +1516,7 @@ function get_host_ssh_key() {
     local _deployment=$1; shift
     local _state=$1; shift
     local _type=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_host} || -z ${_deployment} || -z ${_state} || -z ${_type} || -z ${_root} ]]; then
         echo $UNAVAILABLE
@@ -1540,7 +1540,7 @@ function get_host_ssh_key() {
 function create_host_ssh_key() {
     local _host=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
     local _dir="$(get_host_ssh_key_dir ${_host} ${_deployment} ${_root})"
 
     if [ ! -d ${_dir} ]; then
@@ -1564,7 +1564,7 @@ function create_host_ssh_key() {
 function delete_host_ssh_key() {
     local _host=$1; shift
     local _deployment=$1; shift
-    local _root=${1:-$PRIVATE}
+    local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_host} || -z ${_deployment} || -z ${_root} ]]; then
         echo $UNAVAILABLE

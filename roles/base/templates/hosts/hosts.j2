@@ -1,18 +1,26 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
-# This is the most basic of /etc/hosts files. It can always be replaced;
-# it exists more or less as a placeholder. 
-
-127.0.0.1  localhost
-127.0.1.1  {{ ansible_hostname }}
-
 # Add fully- and partially-qualified name mappings to allow DNS
 # resolution to work properly from localhost. (Since this entry
 # occurs after the short name line, it will never be the answer
 # from a reverse map request (that will be 127.0.1.1)
-127.0.1.1  {{ ansible_hostname }}.{{ category }}.{{ deployment }} {{ ansible_hostname }}.{{ category }}
+
+127.0.0.1  localhost localhost.localdomain localhost4 localhost4.localdomain4
+127.0.1.1  {{ inventory_hostname_short }} {{ inventory_hostname_short }}.{{ category }} {{ inventory_hostname }}
 
 # The following lines are desirable for IPv6 capable hosts
-::1     localhost ip6-localhost ip6-loopback
+::1     localhost localhost.localdomain localhost6 localhost6.localdomain6 ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
+
+{% if custom_hosts is defined %}
+# Per-host custom /etc/hosts entries are included here:
+
+{% for ch_line in custom_hosts %}
+{{ ch_line }}
+{% endfor %}
+
+# End per-host custom entries.
+{% endif %}

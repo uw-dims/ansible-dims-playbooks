@@ -1,0 +1,33 @@
+---
+
+# File: playbooks/hosts/orange.devops.local.yml
+
+- name: Configure host "orange.devops.local
+  hosts: orange.devops.local
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/trusty.yml"
+
+  remote_user: "ansible"
+  become: yes
+
+  roles:
+    - { role: debug }
+    - { role: base, packages_upgrade: true }
+    - { role: python-virtualenv, use_sphinx: true }
+    - { role: nginx }
+    - { role: java8 }
+    - { role: ansible-role-jenkins, tags: jenkins2 }
+    - { role: jenkins2 }
+    - { role: ansible-server }
+    - { role: docker }
+    - { role: consul }
+
+  handlers:
+   - include: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

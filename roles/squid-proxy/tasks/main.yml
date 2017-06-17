@@ -2,7 +2,7 @@
 
 # File: roles/squid-proxy/tasks/main.yml
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ squid-proxy, config ]
 
 #
@@ -11,7 +11,7 @@
 
 - name: Stop squid service if running - ignore errors
   service: "name={{ squidBasename }} state=stopped"
-  sudo: yes
+  become: yes
   ignore_errors: true
   tags: [ squid-proxy ]
 
@@ -28,7 +28,7 @@
   ignore_errors: yes
   tags: [ squid-proxy ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ squid-proxy, config ]
 
 # vim: ft=ansible :

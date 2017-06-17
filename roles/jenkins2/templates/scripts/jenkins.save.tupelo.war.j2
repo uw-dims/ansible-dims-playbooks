@@ -1,0 +1,78 @@
+#!/bin/bash +x
+
+# This script saves the tupelo war created by a tupelo build
+# to the sources server, as well as a tar'd client package.
+# The war is saved both with version number as well as a standard
+# name (so the latest can always be obtained without knowing the
+# current version).
+
+BASE=$(basename "$0")
+
+TARGET_OBJECT=tupelo-http-server
+CLIENT_NAME=tupelo-shell
+
+# Uses Jenkins env variables:
+# POM_VERSION
+# POM_GROUPID
+# JENKINS_HOME
+# JOB_NAME
+# BUILD_NUMBER
+# GIT_BRANCH
+
+# Exit if a required env var does not exist
+
+if [ "x$POM_VERSION" == "x" ]; then
+  echo "POM_VERSION must be defined. Example 1.1.1"
+  exit 1
+fi
+
+if [ "x$POM_GROUPID" == "x" ]; then
+  echo "POM_GROUPID must be defined. Example edu.uw.apl"
+  exit 1
+fi
+if [ "x$JENKINS_HOME" == "x" ]; then
+  echo "JENKINS_HOME must be defined. Example /var/lib/jenkins"
+  exit 1
+fi
+
+if [ "x$JOB_NAME" == "x" ]; then
+  echo "JOB_NAME must be defined. Example build-tupelo-develop"
+  exit 1
+fi
+
+if [ "x$BUILD_NUMBER" == "x" ]; then
+  echo "BUILD_NUMBER must be defined. Example 10"
+  exit 1
+fi
+
+if [ "x$GIT_BRANCH" == "x" ]; then
+  echo "GIT_BRANCH must be defined. Example origin/develop"
+  exit 1
+fi
+
+SOURCE_PATH=/data/src
+TEMPDIR=$(mktemp -d -q --tmpdir $$.jenkins.$RANDOM.XXXXXX)
+ARTIFACT_PATH=$JENKINS_HOME/jobs/$JOB_NAME/builds/${BUILD_NUMBER}/$POM_GROUPID\$${TARGET_OBJECT}/archive/$POM_GROUPID/$TARGET_OBJECT/$POM_VERSION
+ARTIFACT_NAME=$TARGET_OBJECT-$POM_VERSION
+BRANCH=$(basename "$GIT_BRANCH")
+
+cp $ARTIFACT_PATH/$ARTIFACT_NAME.war $TEMPDIR/$ARTIFACT_NAME.war
+cd $TEMPDIR
+tar -czf ./${ARTIFACT_NAME}-${BRANCH}.tgz ./*
+cp $TEMPDIR/${ARTIFACT_NAME}-${BRANCH}.tgz $SOURCE_PATH/${ARTIFACT_NAME}-${BRANCH}.tgz
+# Now make a copy to replace the latest version
+cp $TEMPDIR/${ARTIFACT_NAME}-${BRANCH}.tgz $SOURCE_PATH/${TARGET_OBJECT}-${BRANCH}.tgz
+
+# Now package up the client
+mkdir -p $TEMPDIR/client/shell/target
+cp $WORKSPACE/shell/elvis $TEMPDIR/client/shell/elvis
+cp $WORKSPACE/shell/install-shell.sh $TEMPDIR/client/shell/install-shell.sh
+cp $WORKSPACE/shell/log4j.properties $TEMPDIR/client/shell/log4j.properties
+rsync -vr --include '*.jar' --exclude '*' $WORKSPACE/shell/target/ $TEMPDIR/client/shell/target/
+cd $TEMPDIR/client
+tar -czf ./${CLIENT_NAME}-${BRANCH}.tgz ./*
+cp $TEMPDIR/client/${CLIENT_NAME}-${BRANCH}.tgz $SOURCE_PATH/${CLIENT_NAME}-${BRANCH}.tgz
+
+rm -rf $TEMPDIR
+
+exit 0

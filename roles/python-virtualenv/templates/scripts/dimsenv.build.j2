@@ -36,7 +36,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.3.1
+DIMS_VERSION=2.4.0
 
 DIMS_ETC=${DIMS_ETC:-{{ dims_etc }}}
 DIMS_BIN=${DIMS_BIN:-{{ dims_bin }}}
@@ -172,10 +172,6 @@ function main()
     ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py ||
         error_exit $? "Execution of ${DIMS_SRC}/get-pip/get-pip.py failed"
 
-    verbose "Installing 'distribute' with easy_install"
-    ${DIMS_BIN}/easy_install distribute ||
-        error_exit $? "Command \"${DIMS_BIN}/easy_install distribute\" failed."
-
     verbose "Attempting to upgrade pip"
     ${DIMS_BIN}/pip install ${USE_PROXY} --upgrade pip ||
         error_exit $? "Upgrade of pip failed"
@@ -248,11 +244,6 @@ function main()
         INSTALL_INTO=${WORKON_HOME}/${VENV}/bin ./install.sh && \
         git hf version) ||
         error_exit $? "Installation of hub-flow failed"
-
-    verbose "Installing mr"
-    cp ${DIMS_SRC}/myrepos/mr ${WORKON_HOME}/${VENV}/bin/mr ||
-        error_exit $? "Installation of mr failed"
-    chmod {{ mode_0755 }} ${WORKON_HOME}/${VENV}/bin/mr
 
     verbose "Installing git-crypt"
     (cd ${DIMS_SRC}/git-crypt && \

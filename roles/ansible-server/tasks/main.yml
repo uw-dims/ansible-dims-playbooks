@@ -4,7 +4,7 @@
 
 # Set up system to serve as an Ansible control host.
 
-- include: '{{ tasks }}/pre_tasks.yml'
+- include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ ansible-server ]
 
 - name: Make sure directory exists for ansible configurations
@@ -78,29 +78,30 @@
   become: yes
   tags: [ ansible-server, config ]
 
-- name: Create directory for additional (non-DIMS) ansible roles and plugins
+- name: Create imported plugins/roles directory
   file:
     path: '{{ item }}'
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
     state: directory
-    mode: '{{ mode_0755 }}'
+    mode: '{{ mode_0775 }}'
   with_items:
     - '{{ imported_plugins }}'
     - '{{ imported_roles }}'
   become: yes
   tags: [ ansible-server, config ]
 
-- name: Ensure imported roles present (Git)
+- name: Ensure imported roles present
   git:
     repo: '{{ item }}'
-    dest: '{{ imported_roles }}/{{ item | basename }}'
+    dest: '{{ imported_roles }}/{{ item | basename | regex_replace(".git", "") }}'
     force: true
   become: yes
-  with_items: '{{ dims_ansible.roles_git }}'
+  with_items:
+    - '{{ dims_ansible_imported_roles }}'
   tags: [ ansible-server ]
 
-- include: '{{ tasks }}/post_tasks.yml'
+- include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ ansible-server ]
 
 # vim: ft=ansible :

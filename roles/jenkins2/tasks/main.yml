@@ -1,0 +1,100 @@
+---
+
+# File: roles/jenkins2/tasks/main.yml
+
+# The role 'geerlingguy/ansible-role-jenkins' is being used to
+# install Jenkins. It requires Java8, so the role 'java8' from
+# this repo is required as a pre-requisite. This role is then used
+# to configure Jenkins jobs install bats test scripts that
+# conform with DIMS project requirements.
+#
+# This would be better done with a single role that uses
+# a mechanism like "include_role", but as of Ansible 2.3.0.0,
+# there are still bugs that prevent handlers from executing
+# properly that make this not possible.
+
+- include: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ jenkins2, packages ]
+
+# Install bats tests first so we can use them to validate
+# installation of Java and Jenkins.
+
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ jenkins2, tests ]
+
+- name: Run system test for Java8 installation
+  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  tags: [ jenkins2 ]
+
+- name: Make Jenkins nginx front end present
+  template:
+    src: '{{ item }}'
+    dest: /etc/nginx/conf.d/jenkins.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ nginx_confd_jenkins }}'
+       - jenkins.conf.{{ inventory_hostname }}.j2
+       - jenkins.conf.category-{{ category }}.j2
+       - jenkins.conf.deployment-{{ deployment }}.j2
+       - jenkins.conf.j2
+      paths:
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
+       - nginx/
+  become: yes
+  notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Make artifacts (source) directory present
+  file:
+    path: '{{ dims }}/source'
+    state: directory
+    owner: '{{ dims_user }}'
+    group: www-data
+    mode: '{{ mode_0664 }}'
+  become: yes
+  notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Ensure jenkins user is in www-data group
+  user:
+    name: jenkins
+    append: yes
+    groups: www-data
+  become: yes
+  notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Ensure (templated) job scripts are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_fileglob:
+    - "../templates/scripts/*.j2"
+  tags: [ jenkins2, scripts ]
+
+- name: Ensure (non-templated) job scripts are present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_fileglob:
+    - "../files/scripts/*.sh"
+  tags: [ jenkins2, scripts ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ jenkins2, packages ]
+
+# vim: ft=ansible :

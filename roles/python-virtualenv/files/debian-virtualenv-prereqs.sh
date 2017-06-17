@@ -16,6 +16,7 @@ apt-get -y install \
 	libssl-dev \
 	libcurl4-gnutls-dev \
 	pkg-config \
+	latexmk \
 	texlive-latex-base \
 	texlive-latex-extra \
 	texlive-latex-recommended \

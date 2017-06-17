@@ -7,7 +7,7 @@
 #   https://docs.docker.com/engine/installation/linux/ubuntu/
 #   https://docs.docker.com/engine/installation/linux/debian/
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ docker, packages, config ]
 
 # Debian wheezy requires backports (newer releases not)
@@ -37,7 +37,9 @@
   tags: [ docker, packages ]
 
 - name: Make Docker registry key present
-  shell: sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+  apt_key:
+    id: 58118E89F3A912897C070ADBF76221572C52609D
+    keyserver: hkp://p80.pool.sks-keyservers.net:80
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
@@ -204,10 +206,10 @@
   tags: [ docker, config ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ docker, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ docker, packages, config ]
 
 # vim: ft=ansible :

@@ -4,7 +4,7 @@
 
 # Prepare system for using Vagrant
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ vagrant, packages ]
 
 - name: Get vagrant deb file 
@@ -12,13 +12,13 @@
     url: "{{ vagrant_dist_url }}/{{ vagrant_artifact }}"
     dest: "{{ dims_deploy }}/{{ role_name }}"
     sha256sum: "{{ vagrant_deb_64bit_sum }}"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ vagrant, packages ]
 
 - name: Install
   shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ vagrant_artifact }}"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ vagrant, packages ]
 
@@ -35,7 +35,7 @@
     patch \
       /opt/vagrant/embedded/gems/gems/vagrant-1.8.6/plugins/guests/coreos/cap/configure_networks.rb \
       {{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks
-  sudo: yes
+  become: yes
   tags: [ vagrant, packages ]
 
 - name: Ensure Vagrant working directories exist
@@ -53,7 +53,7 @@
    - 'cache'
    - 'cache/sources'
    - 'cache/isos'
-  sudo: yes
+  become: yes
   tags: [ vagrant ]
 
 # This is related to the squid_deb_proxy Docker container we are using for
@@ -67,15 +67,15 @@
     mode: "{{ mode_0775 }}"
   with_items:
    - 'cache/apt'
-  sudo: yes
+  become: yes
   tags: [ vagrant ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   ignore_errors: yes
   tags: [ vagrant ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ vagrant, packages ]
 
 # vim: ft=ansible :

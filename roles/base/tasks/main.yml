@@ -3,7 +3,7 @@
 # File: roles/base/tasks/main.yml
 
 - name: Check for ansible 2.x
-  include: "{{ tasks }}/ansible2check.yml"
+  include: "{{ tasks_path }}/ansible2check.yml"
   tags: [ always ]
 
 - debug: msg=System "{{ inventory_hostname }}"
@@ -11,8 +11,8 @@
   tags: [ base ]
 
 - name: Check proxy availability
-  include: "{{ tasks }}/proxy_check.yml"
-  tags: [ base, packages ]
+  include: "{{ tasks_path }}/proxy_check.yml"
+  tags: [ always ]
 
 - name: Make DIMS-specific resources present
   include: dims_base.yml
@@ -34,7 +34,7 @@
 
 - name: Add group for rsyslog
   group: name=syslog state=present
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -44,7 +44,7 @@
     state=present
     shell=/bin/true
     group=syslog
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -52,10 +52,10 @@
   file:
     state=directory
     path=/var/log/dims
-    owner=syslog
+    owner={{ syslog_user }}
     group={{ root_group }}
     mode={{ mode_0775 }}
-  sudo: yes
+  become: yes
   tags: [ base, config, rsyslogd ]
 
 - name: Make /etc/rsyslog.conf present
@@ -75,7 +75,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -84,7 +84,7 @@
     path: /etc/rsyslog.d
     state: directory
     mode: '{{ mode_0644 }}'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -105,7 +105,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -132,7 +132,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -155,7 +155,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
@@ -165,14 +165,14 @@
 
 - name: restart rsyslog (init/upstart service)
   action: service name=rsyslog state=restarted
-  sudo: yes
+  become: yes
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   tags: [ base, config, rsyslogd ]
 
 - name: restart rsyslog (systemd service)
   shell: systemctl restart rsyslog.service
-  sudo: yes
+  become: yes
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   tags: [ base, config, rsyslogd ]
@@ -194,25 +194,25 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/logrotate/'
         - logrotate/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, logrotate ]
 
 - name: Set hostname (runtime) (Debian, CoreOS)
   shell: 'hostname {{ name | default(ansible_hostname) }}'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Make /etc/hostname present (Debian, CoreOS)
   shell: 'echo {{ name | default(ansible_hostname) }} > /etc/hostname'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Set domainname (Debian, CoreOS)
   shell: 'domainname {{ category }}.{{ deployment }}'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -224,7 +224,7 @@
     owner={{ root_user }}
     group={{ root_group }}
     mode={{ mode_0644 }}
-  sudo: yes
+  become: yes
   when: ansible_os_family == "MacOSX"
   tags: [ base, config ]
 
@@ -245,7 +245,7 @@
 #    state=present
 #    line='RESOLV_MODS=no'
 #    regexp=^RESOLV_MODS=
-#  sudo: yes
+#  become: yes
 #  tags: [ base, config, dns ]
 
 - name: Make resolv.conf file present on Debian
@@ -265,7 +265,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, dns ]
 
@@ -287,8 +287,9 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/NetworkManager/'
         - NetworkManager/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
+  ignore_errors: true
   tags: [ base, config ]
 
 # Deal with dnsmasq configuration in the face of NetworkManager
@@ -324,7 +325,8 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/network/'
         - network/
-  sudo: yes
+  become: yes
+  ignore_errors: true
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
@@ -337,7 +339,7 @@
 #    state: installed
 #  with_items:
 #    - libnm-glib-dev
-#  sudo: yes
+#  become: yes
 #  when: ansible_distribution == "Debian"
 #  tags: [ base, config ]
 
@@ -358,7 +360,7 @@
 #    ip4={{ networking.interfaces[1].ip }}/{{ networking.interfaces[1].cidr_bits }}
 #    gw4={{ networking.interfaces[1].gateway }}
 #    dns4={{ networking.interfaces[1].dns_servers }}
-#  sudo: yes
+#  become: yes
 #  when: networking is defined and inventory_hostname == "yellow.devops.local"
 
 # As Bill O'Reilly would say, "#%$^$! We'll do it live!"
@@ -369,7 +371,7 @@
 #    ifname {{ networking.interfaces[1].device }}
 #    ip4 {{ networking.interfaces[1].ip }}/{{ networking.interfaces[1].cidr_bits }}
 #    gw4 {{ networking.interfaces[1].gateway }}
-#  sudo: yes
+#  become: yes
 #  when: 'networking is defined and inventory_hostname in ["yellow.devops.local", "yellow.ops.ectf"]'
 #  when: ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8
 #  tags: [ base, config ]
@@ -392,7 +394,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/fstab/'
         - fstab/
       skip: true
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -413,46 +415,67 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
+  tags: [ base, hosts, config ]
 
 - name: Make sure blacklisted packages are absent (Debian)
   apt: state=absent name={{ item }} force=yes
   with_items:
     - '{{ packages_remove[ansible_lsb.id] }}'
-  sudo: yes
+  become: yes
   when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
   ignore_errors: yes
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
-  sudo: yes
-  tags: [ base, packages ]
+  become: yes
+  tags: [ base, packages, patches ]
 
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
   with_items:
    - "{{ packages_install[ansible_lsb.id] }}"
-  sudo: yes
+  become: yes
   ignore_errors: yes
   when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
 
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
     upgrade: safe
     autoremove: yes
-  sudo: yes
+  become: yes
   when: packages_upgrade and ansible_os_family == "Debian"
-  tags: [ base, packages ]
+  tags: [ base, packages, patches ]
+
+- name: Ensure pip installed for system python
+  apt:
+    name: '{{ item }}'
+    state: installed
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Ensure required system python packages present
+  shell: 'pip install {{ item }}'
+  with_items:
+    - urllib3
+    - pyOpenSSL
+    - ndg-httpsclient
+    - pyasn1
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
 
 - name: Disable IPv6 in kernel on non-CoreOS
   shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
   when: ansible_os_family != "Container Linux by CoreOS"
-  sudo: yes
+  become: yes
   tags: [ base, packages ]
 
 - name: iptables v4 rules (Debian)
@@ -475,7 +498,7 @@
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
 
@@ -497,7 +520,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
-  sudo: yes
+  become: yes
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
   when: ansible_os_family == "Container Linux by CoreOS"
@@ -523,7 +546,7 @@
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
 
@@ -545,7 +568,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
-  sudo: yes
+  become: yes
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
   when: ansible_os_family == "Container Linux by CoreOS"
@@ -558,7 +581,7 @@
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
-  include: "{{ tasks }}/install-shflags.yml"
+  include: "{{ tasks_path }}/install-shflags.yml"
 
 # Note: All scripts end up without extensions. In the directory, they
 # have names that end in .j2 or .sh to differentiate between templated
@@ -601,7 +624,7 @@
   shell: "locale-gen {{ locale }}"
   notify:
   - update Ubuntu locales
-  sudo: yes
+  become: yes
   when: ansible_lsb.id == "Ubuntu"
   tags: [ base, packages ]
 
@@ -613,7 +636,7 @@
               state=present
   notify:
   - update Debian locales
-  sudo: yes
+  become: yes
   when: ansible_lsb.id == "Debian"
   tags: [ base, packages ]
 
@@ -626,14 +649,14 @@
         backup=yes
   notify:
   - update timezone
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
 # https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
 - name: Set timezone (CoreOS)
   shell: timedatectl set-timezone {{ dims_timezone }}
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -654,7 +677,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/gai/'
         - gai/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
@@ -664,7 +687,7 @@
   service:
     name: chrony
     state: started
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, services ]
 
@@ -687,7 +710,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
         - sshd/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   notify:
   - restart ssh
@@ -710,12 +733,24 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rc.local/'
         - rc.local/
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
+- name: Ensure bashrc additions are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_etc_bashrc }}/{{ item | basename | regex_replace("\.j2","") }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: '{{ mode_0644 }}'
+  with_fileglob:
+   - ../templates/bashrc.d/*.bash.j2
+  become: yes
+  tags: [ base, config ]
+
 - name: Ensure bashpass is present
-  include: "{{ tasks }}/install-bashpass.yml"
+  include: "{{ tasks_path }}/install-bashpass.yml"
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -736,7 +771,7 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
@@ -748,20 +783,20 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0755 }}'
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Ensure bats is present
-  include: "{{ tasks }}/install-bats.yml"
+  include: "{{ tasks_path }}/install-bats.yml"
   tags: [ base, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ base, tests ]
 
 - name: Make defined triggers present
-  include: "{{ tasks }}/triggers.yml"
+  include: "{{ tasks_path }}/triggers.yml"
   tags: [ base, triggers ]
 
 - name: Make CoreOS resources present

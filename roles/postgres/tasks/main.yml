@@ -2,27 +2,28 @@
 
 # File: roles/postgres/tasks/main.yml
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postgres, config, packages ]
 
 - name: Make deb sources for postgresql present
   shell: echo "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
 - name: Import repository signing key
-  shell: wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-  args:
-    warn: false
-  sudo: yes
+  apt_key:
+    id: 7FCC7D46ACCC4CF8
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
 - name: Force apt cache update in case config changed
   apt: update_cache=yes
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   tags: [ postgres, packages ]
 
 - name: Make PostgreSQL present
@@ -31,7 +32,7 @@
     - postgresql-{{ postgresql_version }}
     - postgresql-client-{{ postgresql_version }}
     - pgadmin3
-  sudo: yes
+  become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgres, packages ]
 
@@ -64,7 +65,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -86,7 +87,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -108,7 +109,7 @@
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
-  sudo: yes
+  become: yes
   notify: restart postgresql
   tags: [ postgres, config ]
 
@@ -117,14 +118,14 @@
     name: postgresql
     state: running
     enabled: yes
-  sudo: yes
+  become: yes
   tags: [ postgres, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ postgres, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postgres, config, packages ]
 
 # vim: ft=ansible :

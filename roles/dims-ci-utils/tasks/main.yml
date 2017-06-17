@@ -31,7 +31,7 @@
 # the scripts in dims-ci-utils/git.
 #
 
-- include: "{{ tasks }}/pre_tasks.yml"
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dims-ci-utils, packages ]
 
 # Include file to retrieve and unpack artifact
@@ -43,8 +43,8 @@
 # DIMS dev users can read and write
 - name: Set file permissions of dims-ci-utils artifacts
   shell: "chmod -R ug+rwX,o-w {{ dims_deploy }}/{{ role_name }}"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   tags: [ dims-ci-utils, packages ]
 
 # Rsync dims-ci-utils to {{ dims_src }}. Note we are installing the source in
@@ -53,8 +53,8 @@
 # behavior is not desired.
 - name: rsync to source directory
   shell: "rsync -avh --delete {{ dims_deploy }}/{{ role_name }}/* {{ dims_src }}/"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   tags: [ dims-ci-utils, packages ]
 
 # On ubuntu systems, we can execute commands as sudo and will still have access to the
@@ -69,35 +69,35 @@
     cd {{ dims_src }}/{{ repo_name }}/dims &&
     make bootstrap &&
     GIT={{ dims_git }} DIMS={{ dims }} make install
-  sudo: yes
+  become: yes
   tags: [ dims-ci-utils, packages ]
 
 - name: Install dims ci jenkins scripts when host in jenkins group
   shell: "cd {{ dims_src }}/{{ repo_name }}/jenkins && make install"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   when: "groups['jenkins'] is defined and inventory_hostname in groups['jenkins']"
   tags: [ dims-ci-utils, packages ]
 
 - name: Install git scripts into /opt/dims/bin when host in git group
   shell: "cd {{ dims_src }}/{{ repo_name }}/git && make install-bin"
-  sudo_user: "{{ dims_user }}"
-  sudo: yes
+  become_user: "{{ dims_user }}"
+  become: yes
   when: "groups['git'] is defined  and inventory_hostname in groups['git']"
   tags: [ dims-ci-utils, packages ]
 
 - name: Install git hooks and gitshell when host in git group
   shell: "cd {{ dims_src }}/{{ repo_name }}/git && make install-hooks && make install-gitshell"
-  sudo_user: git
-  sudo: yes
+  become_user: git
+  become: yes
   when: "groups['git'] is defined and inventory_hostname in groups['git']"
   tags: [ dims-ci-utils, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks }}/bats-tests.yml"
+  include: "{{ tasks_path }}/bats-tests.yml"
   tags: [ base, tests ]
 
-- include: "{{ tasks }}/post_tasks.yml"
+- include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dims-ci-utils, packages ]
 
 # vim: ft=ansible :

@@ -6,7 +6,7 @@
 # code:
 
 #- name: Dump variables
-#  debug: "var={{ item }}"
+#  debug: verbosity=5 "var={{ item }}"
 #  with_items:
 #    - inventory_hostname
 #    - inventory_hostname_short
@@ -86,80 +86,50 @@
 #     "role_path": "VARIABLE IS NOT DEFINED!"
 # }
 
-- debug: var=inventory_hostname
-  when: debug
+- debug: verbosity=5 var=inventory_hostname
   run_once: true
-  tags: [ always ]
 
-- debug: var=inventory_hostname_short
-  when: debug
+- debug: verbosity=5 var=inventory_hostname_short
   run_once: true
-  tags: [ always ]
 
-- debug: var=inventory_dir
-  when: debug
+- debug: verbosity=5 var=inventory_dir
   run_once: true
-  tags: [ always ]
 
-- debug: var=inventory_file
-  when: debug
+- debug: verbosity=5 var=inventory_file
   run_once: true
-  tags: [ always ]
 
-- debug: var=role_path
-  when: debug
+- debug: verbosity=5 var=role_path
   run_once: true
-  tags: [ always ]
 
-- debug: var=ansible_check_mode
-  when: debug
+- debug: verbosity=5 var=ansible_check_mode
   run_once: true
-  tags: [ always ]
 
-- debug: var=ansible_hostname
-  when: debug
+- debug: verbosity=5 var=ansible_hostname
   run_once: true
-  tags: [ always ]
 
-- debug: var=delegate_to
-  when: debug
+- debug: verbosity=5 var=delegate_to
   run_once: true
-  tags: [ always ]
 
-- debug: var=play_hosts
-  when: debug
+- debug: verbosity=5 var=play_hosts
   run_once: true
-  tags: [ always ]
 
-- debug: var=group_names
-  when: debug
+- debug: verbosity=5 var=group_names
   run_once: true
-  tags: [ always ]
 
-- debug: var=groups
-  when: debug
+- debug: verbosity=5 var=groups
   run_once: true
-  tags: [ always ]
 
-- debug: var=environment
-  when: debug
+- debug: verbosity=5 var=environment
   run_once: true
-  tags: [ always ]
 
-- debug: var=defaults
-  when: debug
+- debug: verbosity=5 var=defaults
   run_once: true
-  tags: [ always ]
 
-- debug: var=hostvars[item]
+- debug: verbosity=5 var=hostvars[item]
   with_items: play_hosts
-  when: debug
   run_once: true
-  tags: [ always ]
 
-- debug: var=vars
-  when: debug
+- debug: verbosity=5 var=vars
   run_once: true
-  tags: [ always ]
 
 # vim: ft=ansible :
