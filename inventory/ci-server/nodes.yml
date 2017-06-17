@@ -16,6 +16,7 @@ ci-server:
     jenkins_hostname: localhost
     jenkins_http_port: 8080
     jenkins_jar_location: "{{ dims_etc }}/jenkins-cli.jar"
+    jenkins_plugin_timeout: 60
     jenkins_plugins:
       - git
       - git-client
@@ -35,6 +36,8 @@ ci-server:
       - mailer
       - junit
       - shiningpanda
+      - blueocean
+      - docker-plugin
       - pam-auth
       - maven-plugin
       - nodejs
@@ -50,7 +53,6 @@ ci-server:
       - javadoc
       - scm-api
       - parameterized-trigger
-      - blueocean
     jenkins_url_prefix: "/jenkins"
     jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
     jenkins_plugin_updates_expiration: 86400
