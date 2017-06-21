@@ -115,7 +115,7 @@
 # TODO(dittrich): Link to documentation re: bare-metal network interface config. 
 # TODO(mboggess): add support for other OSes as needed.
 - name: Apply /etc/network/interfaces
-  template: "src={{ item }} dest=/etc/network/interfaces owner={{ root_user }} group={{ root_group }} mode={{ mode_rw_user }}"
+  template: "src={{ item }} dest=/etc/network/interfaces owner={{ root_user }} group={{ root_group }} mode={{ mode_0644 }}"
   with_first_found:
     - files:
         - "{{ network_interfaces }}"
@@ -135,7 +135,7 @@
     dest: /etc/ssh/sshd_config
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_rw_user }}'
+    mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
         - '{{ sshd_config }}'

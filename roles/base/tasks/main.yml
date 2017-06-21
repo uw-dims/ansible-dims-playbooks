@@ -699,7 +699,7 @@
     dest: /etc/ssh/sshd_config
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_rw_user }}'
+    mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
         - '{{ sshd_config }}'
