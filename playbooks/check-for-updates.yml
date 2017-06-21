@@ -1,0 +1,59 @@
+---
+
+# This playbook's purpose is to check the patch status of all hosts
+# in a deployment. This playbook is modelled on its namesake from
+# the Fedora Project's Ansible playbooks.
+
+- name: Check for available updates
+  hosts: all
+  gather_facts: true
+  user: root
+
+  tasks:
+
+  - name: Update package cache (apt)
+    apt:
+      update_cache: yes
+      cache_valid_time: 3600
+    when: ansible_pkg_mgr == 'apt'
+
+  - name: Check for updates (apt)
+    shell: apt list --upgradable
+    register: aptoutput
+    when: ansible_pkg_mgr == 'apt'
+
+  - name: Update package cache (homebrew)
+    shell: brew update
+    when: ansible_pkg_mgr == 'homebrew'
+
+  - name: Check for updates (homebrew)
+    shell: brew outdated --fetch-HEAD
+    register: brewoutput
+    when: ansible_pkg_mgr == 'homebrew'
+
+  - name: Check for updates (yum)
+    yum:
+      list: updates
+      update_cache: true
+    register: yumoutput
+    when: ansible_pkg_mgr == 'yum'
+
+  - name: Check for updates (dnf)
+    dnf:
+      list: updates
+    register: dnfoutput
+    when: ansible_pkg_mgr == 'dnf'
+
+  - debug: "msg={{ inventory_hostname}} {{ aptoutput.results|length }}"
+    when: aptoutput is defined and aptoutput.results|length > 0
+
+  - debug: "msg={{ inventory_hostname}} {{ homebrewoutput.results|length }}"
+    when: homebrewoutput is defined and homebrewoutput.results|length > 0
+
+  - debug: "msg={{ inventory_hostname}} {{ yumoutput.results|length }}"
+    when: yumoutput is defined and yumoutput.results|length > 0
+
+  - debug: "msg={{ inventory_hostname}} {{ dnfoutput.results|length }}"
+    when: dnfoutput is defined and dnfoutput.results|length > 0
+
+# vim: ft=ansible :
