@@ -59,6 +59,7 @@
     - pkg-config
     - python2.7-dev
     - xsltproc
+    - python-tk
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ python-virtualenv, packages ]
