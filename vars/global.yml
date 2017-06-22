@@ -166,7 +166,7 @@ mode_0440: 'u=r,g=r'
 mode_0400: 'u=r,go='
 
 # Python version for virtualenv
-dims_python_version: 2.7.12
+dims_python_version: 2.7.13
 
 
 # Jenkins variables
