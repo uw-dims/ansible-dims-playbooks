@@ -5,7 +5,7 @@
 # the Fedora Project's Ansible playbooks.
 
 - name: Check for available updates
-  hosts: all
+  hosts: '{{ hosts | default("all") }}'
   gather_facts: true
   user: root
 
