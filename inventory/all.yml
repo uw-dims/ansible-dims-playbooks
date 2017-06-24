@@ -9,6 +9,7 @@ all:
     category: devops
     deployment: local
     playbooks_root: "{{ lookup('env', 'PBR') }}"
+    dims_custom: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}|default('{{ playbooks_root }}')"
 
   hosts:
     'red.devops.local':
