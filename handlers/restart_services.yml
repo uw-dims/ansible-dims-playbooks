@@ -98,14 +98,11 @@
 - name: restart ssh
   action: service name=ssh state=restarted
 
-- name: restart supervisord
-  action: service name=supervisord state=restarted
-
 - name: restart network
   action: service name=network state=restarted
 
-- name: restart supervisord
-  service: name=supervisord state=restarted
+- name: restart supervisor
+  service: name=supervisor state=restarted
 
 - name: reload systemd
   command: systemctl daemon-reload
