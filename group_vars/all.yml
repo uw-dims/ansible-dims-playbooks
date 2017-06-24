@@ -356,7 +356,7 @@ trident_release:
     trident_wikiexport_artifact: '{{ trident_download_dir }}/trident-wikiexport_1.4.5_amd64.deb'
 
 nginx_version: '1.6.2-5+deb8u3'
-nginx_health_check: 8888
+nginx_health_check_port: 8888
 nginx_worker_processes: 4
 nginx_default_port: 80
 
