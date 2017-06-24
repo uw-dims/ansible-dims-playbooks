@@ -15,7 +15,7 @@ ci-server:
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_http_port: 8080
-    jenkins_jar_location: "{{ dims_etc }}/jenkins-cli.jar"
+    jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_plugin_timeout: 60
     jenkins_plugins:
       - git
