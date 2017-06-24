@@ -95,7 +95,7 @@
 #  become: yes
 #  tags: [ virtualbox, packages ]
 
-- name: Prevent virtualbox from being upgraded
+- name: Hold updates of virtualbox package
   dpkg_selections:
     name: virtualbox-{{ virtualbox_major_version }}
     selection: hold

@@ -100,7 +100,7 @@
   become: yes
   tags: [ docker, packages ]
 
-- name: Prevent docker-engine from being upgraded
+- name: Hold updates of docker-engine package
   dpkg_selections:
     name: docker-engine
     selection: hold

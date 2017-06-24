@@ -39,7 +39,7 @@
   become: yes
   tags: [ java8, packages ]
 
-- name: Prevent Java 7 from coming back
+- name: Hold updates of Java 7 packages
   dpkg_selections:
     name: '{{ item }}'
     selection: hold
