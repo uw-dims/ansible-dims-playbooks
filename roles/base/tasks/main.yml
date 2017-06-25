@@ -426,13 +426,13 @@
   become: yes
   when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
   ignore_errors: yes
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
   become: yes
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
@@ -441,7 +441,7 @@
   become: yes
   ignore_errors: yes
   when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
@@ -449,7 +449,7 @@
     autoremove: yes
   become: yes
   when: packages_upgrade and ansible_os_family == "Debian"
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Ensure pip installed for system python
   apt:
