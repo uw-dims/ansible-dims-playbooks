@@ -118,7 +118,7 @@
     state: directory
     owner: '{{ dims_user }}'
     group: www-data
-    mode: '{{ mode_0664 }}'
+    mode: '{{ mode_0775 }}'
   become: yes
   notify: restart nginx
   tags: [ jenkins2, config ]
