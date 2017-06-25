@@ -6,6 +6,7 @@ vagrants:
   vars:
     ansible_port: 22
     swarm_iface: "eth1"
+    vmhost_ip: 192.168.56.1
 
     swarm:
       iface: "{{ swarm_iface }}"
