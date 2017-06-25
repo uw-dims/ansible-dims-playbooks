@@ -1,6 +1,19 @@
 ---
 
 # File: roles/dns/tasks/main.yml
+#
+# To create DNS zone information for serving
+# from a VM host for internal DNS by Vagrants, do the
+# following:
+#
+#  $ ansible-playbook -i $PBR/inventory \
+#  > -e "{'host': 'localhost', 'role': 'dns', 'zones': ['local'], \
+#  > 'deployment': 'local', 'vmhost_ip': '192.168.26.1'}" \
+#  > --tags dnsfiles -c local \
+#  > $PBR/playbooks/base_playbook.yml
+#
+# See also $PBR/playbooks/hosts/vmhost.devops.local.yml and related
+# host_vars file for doing this more easily via a playbook.
 
 # We are using Ansible 2 only features.
 - include: "{{ tasks_path }}/ansible2check.yml"
@@ -20,7 +33,7 @@
     group: "{{ root_group }}"
     mode: "{{ mode_0755 }}"
   become: yes
-  tags: [ dns, packages, config ]
+  tags: [ dns, dnsfiles, packages, config ]
 
 - name: Update dnsmasq defaults on Debian
   template:
@@ -114,16 +127,6 @@
     - restart dnsmasq
   tags: [ dns, config ]
 
-- name: Create directory for additional user-supplied configurations
-  file:
-    state: directory
-    path: /etc/dnsmasq.d
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  become: yes
-  tags: [ dns, config ]
-
 - name: Add additional user-supplied configurations
   template:
     src: '{{ item.0 }}/{{ item.1 }}.j2'
@@ -139,7 +142,7 @@
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
-  tags: [ dns, config ]
+  tags: [ dns, dnsfiles, config ]
 
 # It isn't necessary to have a 1:1 configuration file to mapping file, so don't
 # require the hosts.* version. But load one if it is present.
@@ -159,7 +162,7 @@
   when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
-  tags: [ dns, config ]
+  tags: [ dns, dnsfiles, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dns, packages, config ]
