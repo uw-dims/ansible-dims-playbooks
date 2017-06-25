@@ -1,0 +1,7 @@
+---
+
+# File: roles/geerlinguy.java/tasks/main.yml
+
+# This is a NOP placeholder to get around use of
+# meta and/or pre_tasks creating a dependency that
+# we really don't want.
