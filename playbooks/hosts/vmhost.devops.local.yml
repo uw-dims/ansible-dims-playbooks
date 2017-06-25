@@ -2,11 +2,22 @@
 
 # File: playbooks/hosts/vmhost.devops.local.yml
 
+# This playbook is intended for bootstrapping and maintaining
+# a virtual machine managing host. Development may take place
+# with separate systems, such as laptops, that are not themselves
+# running Virtualbox. If developer systems do also run Virtualbox
+# for portable VMs, run this playbook in addition to the laptop's
+# own host-specific playbook.
+
 - name: Configure host "vmhost.devops.local"
   hosts: vmhost.devops.local
+  connection: local
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
+    #dims_custom: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+    dims_custom: "{{ playbooks_root }}"
+    https_proxy: 'https://127.0.0.1:8000'
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
@@ -17,6 +28,17 @@
 
   roles:
     - { role: debug }
+    - { role: dns, zones: ['local']}
+    - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
+    - { role: ansible-server }
+    - { role: virtualbox }
+    - { role: packer }
+    - { role: vagrant }
+    - { role: docker }
+    - { role: consul }
+    - { role: apache-directory-studio }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

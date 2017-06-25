@@ -84,11 +84,12 @@ private:
           +0kmZGKKBjv/MyGOZQz1oVa/XA==
           -----END PRIVATE KEY-----
   hosts:
+    'vmhost.devops.local':
     'red.devops.local':
+    'orange.devops.local':
     'blue14.devops.local':
     'blue16.devops.local':
     'yellow.devops.local':
-    'orange.devops.local':
     'purple.devops.local':
     'green.devops.local':
     'hub.devops.local':
