@@ -5,7 +5,18 @@
 # *not* be any duplicate IP address assignments. If two names must
 # map to the same IP address, use an appropriate CNAME alias.
 
-{{ vmhost_ip }} vmhost.{{ ansible_dns.domain }}
+{% if groups['private'] is defined %}
+# The following hosts come from Ansible inventory groups['private']
 {% for host in groups['private'] %}
 {{ hostvars[host]['eth1']['ip'] }}	{{ host }}
 {% endfor %}
+{% endif %}
+
+{% if groups['manager'] is defined %}
+# The following hosts come from Ansible inventory groups['manager']
+# (which is assumed to be running consul.)
+{% for host in groups['manager'] %}
+{{ hostvars[host]['eth1']['ip'] }}	consul.devops.{{ deployment }}
+{{ hostvars[host]['eth1']['ip'] }}	consul.ops.{{ deployment }}
+{% endfor %}
+{% endif %}
