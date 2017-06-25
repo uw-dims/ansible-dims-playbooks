@@ -8,12 +8,7 @@
 # The HTTP server that exposed Trident - development only
 
 server {
-  listen *:{{ nginx_health_check }} default_server;
-
-  error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
-  access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
-
-  server_name {{ ansible_fqdn }};
-
+  listen *:{{ nginx_health_check_port }};
+  server_name {{ ansible_hostname }}.{{ ansible_dns.domain }};
   root /var/www/health_check;
 }

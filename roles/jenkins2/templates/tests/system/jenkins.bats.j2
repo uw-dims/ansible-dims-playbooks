@@ -1,0 +1,19 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] The user 'jenkins' is in the 'dims' group" {
+    run bash -c "groups dims | grep -q jenkins"
+}
+
+@test "[S][EV] Package \"jenkins\" is marked \"hold\"" {
+    bash -c "apt-mark showhold | grep -q jenkins"
+}
+
+@test "[S][EV] Jenkins version is {{ jenkins_version }}" {
+    assert "{{ jenkins_version }}" bash -c "jenkins.cli version"
+}

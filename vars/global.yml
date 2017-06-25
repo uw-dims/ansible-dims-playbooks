@@ -96,7 +96,7 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "2.4.1"
+ansibleplaybooks_version: "2.5.0"
 
 # Set Python interpreter to be one from DIMS Python virtual
 # environment (the global one, although would be ideal to
@@ -143,13 +143,6 @@ dims_users: [ ]
 # To calculate permissions masks or symbolic representations of same,
 # you can use http://permissions-calculator.org/symbolic/
 
-# TODO(dittrich): These are deprecated. Remove them in favor of below mode_ variables.
-mode_exec: 'u=rwx,g=rwx,o=rx'       # 0775
-mode_rwx_user: 'u=rwx,g=rx,o=rx'    # 0755
-mode_read: 'u=rw,g=rw,o=r'          # 0664
-mode_rw_user: 'u=rw,g=r,o=r'        # 0644
-mode_rws_group: 'u=rwx,g=rwxs,o=rx' # 2775
-
 # TODO(dittrich): Fill out the set of modes we might use.
 # Use these symbolic mode variables to avoid misinterpretation of
 # octal vs. decimal in Ansible.
@@ -173,7 +166,7 @@ mode_0440: 'u=r,g=r'
 mode_0400: 'u=r,go='
 
 # Python version for virtualenv
-dims_python_version: 2.7.12
+dims_python_version: 2.7.13
 
 
 # Jenkins variables

@@ -468,6 +468,7 @@
     - pyOpenSSL
     - ndg-httpsclient
     - pyasn1
+    - python-dateutil
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
@@ -699,7 +700,7 @@
     dest: /etc/ssh/sshd_config
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_rw_user }}'
+    mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
         - '{{ sshd_config }}'

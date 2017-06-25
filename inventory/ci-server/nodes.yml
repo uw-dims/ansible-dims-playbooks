@@ -9,19 +9,23 @@
 
 ci-server:
   vars:
+    jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
+    jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
     jenkins_version: 2.19.4
+    jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_http_port: 8080
-    jenkins_jar_location: "{{ dims_etc }}/jenkins-cli.jar"
-    jenkins_plugin_timeout: 60
+    jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_plugins:
       - git
       - git-client
       - git-parameter
       - translation
+      - timestamper
       - job-dsl
       - build-name-setter
       - credentials
@@ -56,10 +60,16 @@ ci-server:
     jenkins_url_prefix: "/jenkins"
     jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
     jenkins_plugin_updates_expiration: 86400
+    jenkins_plugin_timeout: 60
 
     jenkins_admin_username: admin
-    jenkins_admin_password: admin
+    jenkins_admin_password: "admin"
     jenkins_admin_password_file: ""
+    jenkins_admin_token: "" # "07ce05c0b5209c43ce434231b2c90866"
+    jenkins_admin_token_file: ""
+
+    jenkins_process_user: jenkins
+    jenkins_process_group: "{{ jenkins_process_user }}"
 
     jenkins_init_changes:
       - option: "JENKINS_ARGS"
@@ -67,9 +77,6 @@ ci-server:
       - option: "{{ jenkins_java_options_env_var }}"
         value: "{{ jenkins_java_options }}"
 
-    jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
-    jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
-    jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
 
 # Left over from previous attempt using ansible-jenkins2 role
 #   jenkins_url_external: 'http://jenkins.devops.local/jenkins'

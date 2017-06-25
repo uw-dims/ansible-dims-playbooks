@@ -59,6 +59,7 @@
     - pkg-config
     - python2.7-dev
     - xsltproc
+    - python-tk
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ python-virtualenv, packages ]
@@ -216,8 +217,8 @@
 - name: Check for processes actively using virtualenv
   shell: "ps auxwwwww | grep -v ' grep ' | grep '{{ dims }}/envs/{{ venv_name }}/bin'"
   ignore_errors: true
-  tags: [ python-virtualenv ]
   register: result
+  tags: [ python-virtualenv ]
 
 - debug: "msg={{ result.stdout }}"
   when: result.stdout != ""
@@ -239,13 +240,14 @@
 
 - name: Run {{ venv_name }}.build script
   command:
-    bash {{ dims_bin }}/{{ venv_name }}.build --verbose
+    bash {{ dims_bin }}/{{ venv_name }}.build --verbose 2>&1
   args:
     chdir={{ deploy_dir }}/{{ role_name }}
   environment:
     DIMS: '{{ dims }}'
     GIT: '{{ dims_git }}'
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  register: build_result
   become: yes
   tags: [ python-virtualenv ]
 
@@ -254,6 +256,12 @@
   environment:
     DIMS: '{{ dims }}'
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  register: unit_test_result
+  tags: [ python-virtualenv ]
+
+- name: Debug on build or test failure
+  debug: "msg={{ build_result.stdout }}"
+  when: build_result.rc|int != 0 or unit_test_result.rc|int != 0
   tags: [ python-virtualenv ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"

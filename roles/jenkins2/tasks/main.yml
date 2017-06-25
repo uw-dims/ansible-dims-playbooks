@@ -16,6 +16,25 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ jenkins2, packages ]
 
+## We want to pin the version of Jenkins for stability
+## reasons.
+
+- name: Hold updates of jenkins package
+  dpkg_selections:
+    name: jenkins
+    selection: hold
+  become: yes
+  tags: [ jenkins2, packages ]
+
+- name: Ensure ansible user is in jenkins group
+  user:
+    name: ansible
+    append: yes
+    groups: jenkins
+  become: yes
+  when: "groups['ci-server'] is defined and inventory_hostname in groups['ci-server']"
+  tags: [ jenkins2 ]
+
 # Install bats tests first so we can use them to validate
 # installation of Java and Jenkins.
 
@@ -34,22 +53,63 @@
 - name: Make Jenkins nginx front end present
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/conf.d/jenkins.conf
+    dest: /etc/nginx/sites-available/jenkins
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
        - '{{ nginx_confd_jenkins }}'
-       - jenkins.conf.{{ inventory_hostname }}.j2
-       - jenkins.conf.category-{{ category }}.j2
-       - jenkins.conf.deployment-{{ deployment }}.j2
-       - jenkins.conf.j2
+       - jenkins.{{ inventory_hostname }}.j2
+       - jenkins.category-{{ category }}.j2
+       - jenkins.deployment-{{ deployment }}.j2
+       - jenkins.j2
       paths:
        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
        - nginx/
   become: yes
   notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Create symlink to enable site
+  file:
+    src: '/etc/nginx/sites-available/{{ item }}'
+    dest: '/etc/nginx/sites-enabled/{{ item }}'
+    state: link
+  with_items:
+    - jenkins
+  notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Ensure members of jenkins group can read secrets
+  file:
+    path: '{{ jenkins_home }}/secrets'
+    state: directory
+    owner: '{{ jenkins_process_user }}'
+    group: '{{ jenkins_process_user }}'
+    mode: '{{ mode_0770 }}'
+  become: yes
+  notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Ensure admin password is absent
+  file:
+    path: '{{ jenkins_home }}/secrets/AdminPassword'
+    state: absent
+  become: yes
+  tags: [ jenkins2, config ]
+
+- name: Ensure admin password is available for jenkins-cli
+  lineinfile:
+    line: '{{ jenkins_admin_password }}'
+    path: '{{ jenkins_home }}/secrets/AdminPassword'
+    backup: yes
+    create: yes
+    state: present
+    owner: '{{ jenkins_process_user }}'
+    group: '{{ jenkins_process_user }}'
+    mode: "{{ mode_0640 }}"
+  become: yes
   tags: [ jenkins2, config ]
 
 - name: Make artifacts (source) directory present

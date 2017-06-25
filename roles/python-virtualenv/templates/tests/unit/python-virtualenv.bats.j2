@@ -14,8 +14,8 @@ load helpers
     [[ $(ls -1 {{ ansible_python_virtualenv }} | wc -l) -gt 0 ]]
 }
 
-@test "[U][EV] Directories {{ ansible_python_virtualenv }}/{bin,lib,man,share} exist" {
-    ls -1d {{ ansible_python_virtualenv }}/{bin,lib,man,share} 2>/dev/null >/dev/null
+@test "[U][EV] Directories {{ ansible_python_virtualenv }}/{bin,lib,share} exist" {
+    ls -1d {{ ansible_python_virtualenv }}/{bin,lib,share} 2>/dev/null >/dev/null
 }
 
 {% for item in [ 'python', 'pip', 'easy_install', 'wheel', 'python-config' ] %}
