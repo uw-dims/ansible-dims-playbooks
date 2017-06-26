@@ -1,0 +1,22 @@
+---
+
+docker_listen_port: 2375
+# TODO(dittrich): Docker engine is updated differently than compose or machine
+docker_engine_pool: 'main'
+docker_engine_version: '17.05.0~ce-0'
+docker_compose_version: '1.13.0'
+docker_machine_version: '0.8.2'
+docker_registry: hub.devops.local:5000
+
+# TODO(dittrich): This should be derived from (a) more global variable(s)
+docker_insecure_registry_net: 192.168.56.0/24
+docker_opts: |
+  -H=tcp://{{ inventory_hostname }}:2376
+  -H=unix:///var/run/docker.sock
+  --log-driver json-file
+  --log-opt max-size=10m
+  --log-opt max-file=10
+  --insecure-registry {{ docker_registry }}
+  --insecure-registry {{ docker_insecure_registry_net }}
+
+# vim: ft=ansible :
