@@ -622,7 +622,7 @@
   tags: [ base, packages, scripts, tests ]
 
 - name: Ensure Ubuntu locale set (Ubuntu)
-  shell: "locale-gen {{ locale }}"
+  shell: "locale-gen {{ dims_locale }}"
   notify:
   - update Ubuntu locales
   become: yes
@@ -631,8 +631,8 @@
 
 - name: Ensure Debian locale set (Debian)
   lineinfile: dest=/etc/locale.gen
-              regexp='^# {{ locale }} UTF-8'
-              line='{{ locale }} UTF-8'
+              regexp='^# {{ dims_locale }} UTF-8'
+              line='{{ dims_locale }} UTF-8'
               backrefs=yes
               state=present
   notify:
