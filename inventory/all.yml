@@ -10,7 +10,8 @@ all:
     deployment: 'local'
     dims_domain: 'devops.local'
     playbooks_root: "{{ lookup('env', 'PBR') }}"
-    dims_custom: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}|default('{{ playbooks_root }}')"
+    #dims_custom: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+    dims_custom: '{{ playbooks_root }}'
 
   hosts:
     'vmhost.devops.local':
