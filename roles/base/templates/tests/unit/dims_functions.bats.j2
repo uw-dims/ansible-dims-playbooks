@@ -235,16 +235,16 @@ function teardown() {
     assert "A.dir B.dir" get_directories_in_directory /tmp/bats.tmp
 }
 
-@test "[U][EV] get_directories_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+@test "[U][EV] get_directories_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_function', 'echo $UNAVAILABLE') }}\"" {
     ! get_directories_in_directory /a/path/that/does/not/exist
-    [[ $(get_directories_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+    [[ $(get_directories_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_function', 'echo $UNAVAILABLE') }}" ]]
 }
 
 @test "[U][EV] get_files_in_directory /tmp/bats.tmp returns \"A.txt B.txt\"" {
     assert "A.txt B.txt" get_files_in_directory /tmp/bats.tmp
 }
 
-@test "[U][EV] get_files_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+@test "[U][EV] get_files_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_function', 'echo $UNAVAILABLE') }}\"" {
     ! get_files_in_directory /a/path/that/does/not/exist
-    [[ $(get_files_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+    [[ $(get_files_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_function', 'echo $UNAVAILABLE') }}" ]]
 }

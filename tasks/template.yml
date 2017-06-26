@@ -9,8 +9,8 @@
 # "dims.ansible-playbook --usage" for more information).
 
 - set_fact:
-    source_msg: "{{ lookup('dims_functions', 'say_raw \"Template source:      {{ tsrc }}\"') }}"
-    dest_msg:   "{{ lookup('dims_functions', 'say_raw \"Template destination: {{ tdest }}\"') }}"
+    source_msg: "{{ lookup('dims_function', 'say_raw \"Template source:      {{ tsrc }}\"') }}"
+    dest_msg:   "{{ lookup('dims_function', 'say_raw \"Template destination: {{ tdest }}\"') }}"
 
 - debug: msg="\n{{ source_msg }}\n{{ dest_msg }}"
 

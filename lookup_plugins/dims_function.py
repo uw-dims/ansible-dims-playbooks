@@ -37,11 +37,12 @@ from sh import sed
 from ansible.plugins.lookup import LookupBase
 
 # This lookup sends the arguments passed to it into a Bash shell that
-# has loaded the dims_functions.sh library. This allows calling the
-# Bash library from within Ansible templates.
+# has loaded the dims_functions.sh library. It works in a similar manner
+# to the dims.function command. It allows calling the Bash library
+# from within Ansible templates.
 #
 # 
-# $ ansible -i $PBR/inventory/local -m debug -a "msg={{ lookup('dims_functions', 'say inventory_hostname={{ inventory_hostname }}') }}" coreos
+# $ ansible -i $PBR/inventory/local -m debug -a "msg={{ lookup('dims_function', 'say inventory_hostname={{ inventory_hostname }}') }}" coreos
 # node01.devops.local | SUCCESS => {
 #     "msg": "[+] inventory_hostname=node01.devops.local"
 # }
@@ -51,7 +52,7 @@ from ansible.plugins.lookup import LookupBase
 # node03.devops.local | SUCCESS => {
 #     "msg": "[+] inventory_hostname=node03.devops.local"
 # }
-# $ ansible -i $PBR/inventory/local -a "msg={{ lookup('dims_functions', 'get_hostname_from_fqdn {{ inventory_hostname }}') }}" coreos
+# $ ansible -i $PBR/inventory/local -a "msg={{ lookup('dims_function', 'get_hostname_from_fqdn {{ inventory_hostname }}') }}" coreos
 # node01.devops.local | SUCCESS => {
 #     "msg": "node01"
 # }

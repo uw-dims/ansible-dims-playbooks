@@ -5,7 +5,7 @@
 all:
   vars:
     ansible_user: 'ansible'
-    ansible_ssh_private_key_file: "{{ lookup('dims_functions', 'get_ssh_private_key_file {{ ansible_user }}') }}"
+    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     category: 'devops'
     deployment: 'local'
     dims_domain: 'devops.local'
