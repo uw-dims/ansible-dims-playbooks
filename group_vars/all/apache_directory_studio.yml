@@ -1,0 +1,10 @@
+---
+
+apache_directory_studio_version: '2.0.0'
+apache_directory_studio_build: 'v20161101-M12'
+apache_directory_studio_release_version: '{{ apache_directory_studio_version }}.{{ apache_directory_studio_build }}'
+apache_directory_studio_archive: 'ApacheDirectoryStudio-{{ apache_directory_studio_release_version }}-linux.gtk.x86_64.tar.gz'
+apache_directory_studio_dist_url: 'http://mirrors.ocf.berkeley.edu/apache/directory/studio/{{ apache_directory_studio_release_version }}'
+apache_directory_studio_sha256_sum: 'aac2790d9cdb0e134cba544e0e387dfd6673023bf1cbaec9a0ed3b58f4105861'
+
+# vim: ft=ansible :
