@@ -17,9 +17,9 @@
 
 - name: Make deb sources present
   apt_repository:
-    repo='{{ item }}'
-    state=present
-    update_cache=yes
+    repo: '{{ item }}'
+    state: present
+    update_cache: yes
   with_items:
     - deb http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
     - deb-src http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
@@ -28,17 +28,35 @@
   tags: [ nginx, packages ]
 
 - name: Only "update_cache=yes" if >3600s since last update
-  apt: update_cache=yes cache_valid_time=3600
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ nginx, packages ]
 
-- name: Make nginx present
-  apt: name=nginx state=present dpkg_options='force-confold,force-confdef'
+- name: Make Nginx present
+  apt:
+    name: nginx
+    state: present
+    dpkg_options: 'force-confold,force-confdef'
   when: ansible_os_family == "Debian"
   become: yes
   notify: restart nginx
   tags: [ nginx, packages ]
+
+- name: Ensure nginx sites directories exist
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: '{{ mode_0755 }}'
+  with_items:
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+  become: yes
+  tags: [ nginx, config ]
 
 - name: Configure Nginx
   template:
@@ -62,10 +80,15 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
+- name: Ensure nginx is running and enabled
+  service: name=nginx state=running enabled=yes
+  become: yes
+  tags: [ nginx, packages ]
+
 - name: Configure default server
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/conf.d/default.conf
+    dest: /etc/nginx/sites-available/default
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -73,13 +96,13 @@
   with_first_found:
     - files:
         - '{{ directive_nginx_conf }}'
-        - default.conf.{{ inventory_hostname }}.j2
-        - default.conf.category-{{ category }}.j2
-        - default.conf.deployment-{{ deployment }}.j2
-        - default.conf.j2
+        - default.{{ inventory_hostname }}.j2
+        - default.category-{{ category }}.j2
+        - default.deployment-{{ deployment }}.j2
+        - default.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/conf.d/'
-        - conf.d/
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sites-available/'
+        - sites-available/
   become: yes
   notify: restart nginx
   tags: [ nginx, config ]
@@ -87,7 +110,7 @@
 - name: Configure health check server directive
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/conf.d/health_check.conf
+    dest: /etc/nginx/sites-available/health_check
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -95,14 +118,25 @@
   with_first_found:
     - files:
         - '{{ directive_nginx_conf }}'
-        - health_check.conf.{{ inventory_hostname }}.j2
-        - health_check.conf.category-{{ category }}.j2
-        - health_check.conf.deployment-{{ deployment }}.j2
-        - health_check.conf.j2
+        - health_check.{{ inventory_hostname }}.j2
+        - health_check.category-{{ category }}.j2
+        - health_check.deployment-{{ deployment }}.j2
+        - health_check.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/conf.d/'
-        - conf.d/
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sites-available/'
+        - sites-available/
   become: yes
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+- name: Create symlink to enable sites
+  file:
+    src: '/etc/nginx/sites-available/{{ item }}'
+    dest: '/etc/nginx/sites-enabled/{{ item }}'
+    state: link
+  with_items:
+    - default
+    - health_check
   notify: restart nginx
   tags: [ nginx, config ]
 
@@ -140,13 +174,6 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Remove default sites-enabled file
-  file: path=/etc/nginx/sites-enabled/default state=absent
-  when: ansible_os_family == "Debian"
-  become: yes
-  notify: restart nginx
-  tags: [ nginx, config ]
-
 # Letsencrypt support
 - include: '{{ tasks_path }}/install-certbot-auto.yml'
   when: use_letsencrypt is defined and use_letsencrypt
@@ -157,11 +184,6 @@
   shell: "openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048"
   become: yes
   tags: [ nginx, config ]
-
-- name: Ensure nginx is running and enabled
-  service: name=nginx state=running enabled=yes
-  become: yes
-  tags: [ nginx, packages ]
 
 - name: Make defined bats tests present
   include: '{{ tasks_path }}/bats-tests.yml'

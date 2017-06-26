@@ -50,17 +50,24 @@ function setup() {
 	assert 755 stat --printf "%a" /etc/nginx/conf.d
 }
 
-@test "[S][EV] File /etc/nginx/conf.d/health_check.conf exists" {
-    [ -f /etc/nginx/conf.d/health_check.conf ]
+{% for item in [ 'health_check', 'default' ] %}
+@test "[S][EV] File /etc/nginx/sites-available/{{ item }} exists" {
+    [ -f /etc/nginx/sites-available/{{ item }} ]
 }
 
-@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d/health_check.conf" {
-	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d/health_check.conf
+@test "[S][EV] Assert ownerships root:root for /etc/nginx/sites-available/{{ item }}" {
+	assert "root:root" stat --printf "%U:%G" /etc/nginx/sites-available/{{ item }}
 }
 
-@test "[S][EV] Assert permisions 644 for /etc/nginx/conf.d/health_check.conf" {
-	assert 644 stat --printf "%a" /etc/nginx/conf.d/health_check.conf
+@test "[S][EV] Assert permisions 644 for /etc/nginx/sites-available/{{ item }}" {
+	assert 644 stat --printf "%a" /etc/nginx/sites-available/{{ item }}
 }
+
+@test "[S][EV] Symbolic link /etc/nginx/sites-enabled/{{ item }} exists" {
+    [ -f /etc/nginx/sites-enabled/{{ item }} ]
+}
+
+{% endfor -%}
 
 @test "[S][EV] Directory /var/www/health_check exists" {
     [ -d /var/www/health_check ]
@@ -84,9 +91,5 @@ function setup() {
 
 @test "[S][EV] Assert permisions 644 for /var/www/health_check/index.html" {
 	assert 644 stat --printf "%a" /var/www/health_check/index.html
-}
-
-@test "[S][EV] Default sites-enabled file is not present" {
-	[ ! -f /etc/nginx/sites-enabled/default ]
 }
 
