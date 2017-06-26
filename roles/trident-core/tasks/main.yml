@@ -256,23 +256,23 @@
   notify: restart trident
   tags: [ trident-core, config ]
 
-- name: Make /etc/nginx/conf.d/trident.conf present
+- name: Make /etc/nginx/sites-available/trident present
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/conf.d/trident.conf
+    dest: /etc/nginx/sites-available/trident
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
-       - '{{ nginx_confd_trident }}'
-       - trident.conf.{{ inventory_hostname }}.j2
-       - trident.conf.category-{{ category }}.j2
-       - trident.conf.deployment-{{ deployment }}.j2
-       - trident.conf.j2
+       - '{{ nginx_conf_trident }}'
+       - trident.{{ inventory_hostname }}.j2
+       - trident.category-{{ category }}.j2
+       - trident.deployment-{{ deployment }}.j2
+       - trident.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/confd/'
-       - nginx/confd/
+       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/sites-available/'
+       - nginx/sites-available/
   become: yes
   notify: restart nginx
   tags: [ trident-core, config ]
