@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>{{ ansible_fqdn }}</title>
+<title>{{ inventory_hostname }}</title>
 <style>
     body {
         width: 35em;
@@ -13,6 +13,6 @@
 </style>
 </head>
 <body>
-<p>Nginx on {{ ansible_fqdn }}</p>
+<p>Nginx on {{ inventory_hostname }}</p>
 </body>
 </html>
