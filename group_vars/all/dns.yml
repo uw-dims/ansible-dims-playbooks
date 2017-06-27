@@ -1,0 +1,20 @@
+---
+
+dnsNameserver: '192.168.56.11'
+dnsSearch: 'local'
+dnsNetworks: [ '192.168.56.0', ]
+
+# TODO(dittrich): Resolve difference between these sets of vars
+# DNS settings
+#dims_dns_domain: 'local'
+#dims_dns_server: 'ns.devops.local'
+#dims_dns_ip: ''
+
+# TODO(dittrich): Prototyping new name server configuration via dhclient/resolvconf
+dns_nameservers: [
+  '127.0.0.1',
+  '192.168.56.11',
+  '10.0.2.2',
+]
+
+# vim: ft=ansible :
