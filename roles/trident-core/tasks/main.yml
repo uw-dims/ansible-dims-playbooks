@@ -256,10 +256,13 @@
   notify: restart trident
   tags: [ trident-core, config ]
 
-- name: Make /etc/nginx/sites-available/trident present
+# TODO(dittrich): Overwriting nginx sites-available/default for now
+# to get this working with shared nginx role used by jenkins
+
+- name: Make /etc/nginx/sites-available/default present
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/sites-available/trident
+    dest: /etc/nginx/sites-available/default
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -277,14 +280,15 @@
   notify: restart nginx
   tags: [ trident-core, config ]
 
-- name: Create symlink to enable trident site
-  file:
-    src: '/etc/nginx/sites-available/trident'
-    dest: '/etc/nginx/sites-enabled/trident'
-    state: link
-  become: yes
-  notify: restart nginx
-  tags: [ trident-core, config ]
+# TODO(dittrich): Overwriting nginx sites-available/default for now
+#- name: Create symlink to enable trident site
+#  file:
+#    src: '/etc/nginx/sites-available/trident'
+#    dest: '/etc/nginx/sites-enabled/trident'
+#    state: link
+#  become: yes
+#  notify: restart nginx
+#  tags: [ trident-core, config ]
 
 - name: Make Trident Daemon upstream configuration present
   template:
