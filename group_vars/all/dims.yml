@@ -18,6 +18,7 @@ dims_ansible_imported_roles:
   - https://github.com/nextrevision/ansible-swarm-playbook
   - https://github.com/uw-dims/ansible-role-jenkins
   - https://github.com/geerlingguy/ansible-role-certbot
+  - https://github.com/geerlingguy/ansible-role-nginx
 
 dimscli_version: 0.26.0
 
