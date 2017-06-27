@@ -129,9 +129,9 @@
 
 - name: Ensure source for Python is present
   get_url:
-    url={{ python.dist_url }}
-    sha256sum={{ python.sha256_sum }}
-    dest={{ dims_src }}/{{ python.archive }}
+    url={{ python_dist_url }}
+    sha256sum={{ python_sha256_sum }}
+    dest={{ dims_src }}/{{ python_archive }}
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
