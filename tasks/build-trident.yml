@@ -79,8 +79,8 @@
   args:
     chdir: "{{ dims_src }}/trident"
   environment:
-    GOROOT: '/opt/go-{{ go.version }}'
-    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+    GOROOT: '/opt/go-{{ go_version }}'
+    PATH: '/opt/go-{{ go_version }}/bin:{{ ansible_env.PATH }}'
   become: yes
   become_user: "{{ dims_user }}"
 
@@ -89,8 +89,8 @@
   args:
     chdir: "{{ dims_src }}/trident"
   environment:
-    GOROOT: '/opt/go-{{ go.version }}'
-    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+    GOROOT: '/opt/go-{{ go_version }}'
+    PATH: '/opt/go-{{ go_version }}/bin:{{ ansible_env.PATH }}'
   become: yes
   become_user: "{{ dims_user }}"
 
@@ -99,8 +99,8 @@
   args:
     chdir: "{{ dims_src }}/trident/ext/_gopath/src/trident.li/pitchfork"
   environment:
-    GOROOT: '/opt/go-{{ go.version }}'
-    PATH: '/opt/go-{{ go.version }}/bin:{{ ansible_env.PATH }}'
+    GOROOT: '/opt/go-{{ go_version }}'
+    PATH: '/opt/go-{{ go_version }}/bin:{{ ansible_env.PATH }}'
   become: yes
   become_user: "{{ dims_user }}"
 
