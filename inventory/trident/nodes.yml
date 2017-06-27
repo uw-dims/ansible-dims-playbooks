@@ -51,9 +51,6 @@ trident:
           - ident: 'dittrich'
             descr: 'Dave Dittrich'
             email: 'dittrich@{{ category }}.{{ deployment }}'
-          - ident: 'mboggess'
-            descr: 'Megan Boggess'
-            email: 'mboggess@{{ category }}.{{ deployment }}'
       cli:
         opts: ''
         sha256_sum: '15f11c986493a67e85aa9cffe6719a15a8c6a65b739a2b0adf62ce61e53f4203' #trident-cli_1.4.5_amd64.deb
