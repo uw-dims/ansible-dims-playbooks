@@ -199,7 +199,7 @@
 - name: Ensure Docker is enabled (CoreOS)
   service:
     name=docker.service
-    state=running
+    state=started
     enabled=true
   when: ansible_os_family == "Container Linux by CoreOS"
   become: yes

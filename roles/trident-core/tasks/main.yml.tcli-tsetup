@@ -472,7 +472,7 @@
 - name: Ensure trident is running and enabled
   service:
     name=trident
-    state=running
+    state=started
     enabled=yes
   when: ansible_lsb.codename == "jessie"
   become: yes

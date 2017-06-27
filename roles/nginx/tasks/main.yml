@@ -81,7 +81,7 @@
   tags: [ nginx, config ]
 
 - name: Ensure nginx is running and enabled
-  service: name=nginx state=running enabled=yes
+  service: name=nginx state=started enabled=yes
   become: yes
   tags: [ nginx, packages ]
 

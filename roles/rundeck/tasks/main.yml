@@ -65,7 +65,7 @@
   tags: [ rundeck, config ]
 
 - name: Ensure rundeckd is running and enabled
-  service: name=rundeckd state=running enabled=yes
+  service: name=rundeckd state=started enabled=yes
   become: yes
   tags: [ rundeck, packages ]
 

@@ -243,7 +243,7 @@
   tags: [ postfix, config ]
 
 - name: enable postfix to start
-  service: name=postfix state=running enabled=yes
+  service: name=postfix state=started enabled=yes
   tags: [ postfix, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
