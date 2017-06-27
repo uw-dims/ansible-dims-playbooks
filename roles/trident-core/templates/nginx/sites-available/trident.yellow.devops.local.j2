@@ -7,7 +7,7 @@ include /etc/trident/nginx/trident-upstream.inc;
 # Trident should only be exposed over HTTPS
 server {
   listen {{ tridentNginxHTTPPort }} default_server;
-  listen [::]:{{ tridentNginxHTTPPort }} default_server;
+  #listen [::]:{{ tridentNginxHTTPPort }} default_server;
 
   server_name _default_;
 

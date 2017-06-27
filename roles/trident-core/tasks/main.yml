@@ -277,6 +277,15 @@
   notify: restart nginx
   tags: [ trident-core, config ]
 
+- name: Create symlink to enable trident site
+  file:
+    src: '/etc/nginx/sites-available/trident'
+    dest: '/etc/nginx/sites-enabled/trident'
+    state: link
+  become: yes
+  notify: restart nginx
+  tags: [ trident-core, config ]
+
 - name: Make Trident Daemon upstream configuration present
   template:
     src: '{{ item }}'
