@@ -1,0 +1,7 @@
+---
+
+prisem_rpc_version: '0.5.10'
+prisem_rpc_artifact: 'prisem-rpc-{{ prisem_rpc_version }}.tar.gz'
+prisem_rpc_dist_url: '{{ artifacts_url }}/prisem-rpc-{{ prisem_rpc_version }}.tar.gz'
+
+# vim: ft=ansible :

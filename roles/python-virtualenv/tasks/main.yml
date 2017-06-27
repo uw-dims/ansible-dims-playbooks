@@ -147,8 +147,8 @@
 
 - name: Ensure prisem-rpc source is present
   get_url:
-    url={{ prisem.dist_url }}
-    dest={{ dims_src }}/{{ prisem.artifact }}
+    url={{ prisem_rpc_dist_url }}
+    dest={{ dims_src }}/{{ prisem_rpc_artifact }}
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
