@@ -137,6 +137,7 @@
   with_items:
     - default
     - health_check
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
