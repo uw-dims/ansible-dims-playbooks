@@ -1,0 +1,8 @@
+---
+
+packer_version: '1.0.2'
+packer_archive: 'packer_{{ packer_version }}_linux_amd64'
+packer_dist_url: 'https://releases.hashicorp.com/packer/{{ packer_version }}/packer_{{ packer_version }}_linux_amd64.zip'
+packer_sha256_sum: '13774108d10e26b1b26cc5a0a28e26c934b4e2c66bc3e6c33ea04c2f248aad7f'
+
+# vim: ft=ansible :
