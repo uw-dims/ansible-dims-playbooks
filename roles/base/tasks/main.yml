@@ -52,7 +52,7 @@
   file:
     state=directory
     path=/var/log/dims
-    owner={{ syslog_user }}
+    owner={{ rsyslog_user }}
     group={{ root_group }}
     mode={{ mode_0775 }}
   become: yes
@@ -97,7 +97,7 @@
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
-        - '{{ rsyslog_default_config }}'
+        - '{{ rsyslog_ignore_config }}'
         - 00-ignore.conf.{{ inventory_hostname }}
         - 00-ignore.conf.category-{{ category }}.j2
         - 00-ignore.conf.deployment-{{ deployment }}.j2
@@ -124,7 +124,7 @@
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
-        - '{{ rsyslog_default_config }}'
+        - '{{ rsyslog_consolidation_config }}'
         - 49-consolidation.conf.{{ inventory_hostname }}
         - 49-consolidation.conf.category-{{ category }}.j2
         - 49-consolidation.conf.deployment-{{ deployment }}.j2

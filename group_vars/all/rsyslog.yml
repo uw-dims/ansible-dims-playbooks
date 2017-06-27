@@ -1,0 +1,13 @@
+---
+
+rsyslog_user: syslog
+rsyslog_server: '10.0.2.2'
+rsyslog_port: 10514
+rsyslog_domains: [
+    '.{{ deployment }}',
+]
+rsyslog_ignore_config:
+rsyslog_consolidation_config:
+
+
+# vim: ft=ansible :
