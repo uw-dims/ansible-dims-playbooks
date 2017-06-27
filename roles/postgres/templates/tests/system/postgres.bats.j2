@@ -68,7 +68,8 @@ function setup() {
 	assert 644 stat --printf "%a" /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf
 }
 
-@test "[S][EV] Postgres is running" {
-    run bash -c "ps aux | grep -q 'consul agent'"
-	[ $status -eq 0 ]
-}
+# TODO(dittrich): This is not right. Needs fix.
+#@test "[S][EV] Postgres is running" {
+#    run bash -c "ps aux | grep -q 'consul agent'"
+#	[ $status -eq 0 ]
+#}
