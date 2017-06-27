@@ -10,7 +10,7 @@
 # own host-specific playbook.
 
 - name: Configure host "vmhost.devops.local"
-  hosts: vmhost.devops.local
+  hosts: '{{ host|default("vmhost.devops.local") }}'
   connection: local
 
   vars:
