@@ -1,0 +1,15 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Hashicorp vault is {{ dims_bin }}/vault" {
+    assert "{{ dims_bin }}/vault" which vault
+}
+
+@test "[S][EV] {{ dims_bin }}/vault version is {{ hashi_vault_version }}" {
+    assert "{{ hashi_vault_version }}" bash -c "{{ dims_bin }}/vault version | awk '{ print \$2; }' | sed 's/v//'"
+}

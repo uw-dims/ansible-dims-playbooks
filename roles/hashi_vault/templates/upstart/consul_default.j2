@@ -1,0 +1,8 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# Debugging support for upstart.
+DIMS_DEBUG=0
+# Whether or not to run the Hashicorp vault daemon; set to 0 to disable.
+ENABLED=1
+# Add any Hashicorp vault flags to what may already be set
+HASHI_VAULT_FLAGS="${HASHI_VAULT_FLAGS} "
