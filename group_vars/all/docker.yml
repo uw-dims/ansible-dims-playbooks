@@ -6,7 +6,7 @@ docker_engine_pool: 'main'
 docker_engine_version: '17.05.0~ce-0'
 docker_compose_version: '1.13.0'
 docker_machine_version: '0.8.2'
-docker_registry: hub.devops.local:5000
+docker_registry: hub.devops.{{ deployment }}:5000
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
 docker_insecure_registry_net: 192.168.56.0/24
