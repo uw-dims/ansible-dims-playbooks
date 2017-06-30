@@ -2,13 +2,22 @@
 
 # File: inventory/all.yml
 
-deployment: 'local'
-
-# Variables for testing and/or illustrating vars layering.
-test_color: 'Salmon'
-
 debug: true
 verbose: true
+
+deployment: 'local'
+
+dims_kibana_port: 8480
+dims_ssh_port: 8422
+dims_ssl_port: 8443
+dims_elasticsearch_kibana_port: 9200
+
+# Default browser page
+dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.json'
+dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
+dims_firefox_default_homepage: '{{ dims_owf_url }}'
+# Variables for testing and/or illustrating vars layering.
+test_color: 'Salmon'
 
 # file name of Vault password file. Path is created in Vagrantfile.
 dims_vault_password_file: '{{ private }}/vault_pass.txt'
@@ -21,8 +30,6 @@ dims_ansible_imported_roles:
   - https://github.com/geerlingguy/ansible-role-nginx
 
 dimscli_version: 0.26.0
-
-mxserver: '192.168.56.11'
 
 dims_timezone: 'US/Pacific'
 dims_locale: 'en_US.UTF-8'
@@ -47,16 +54,5 @@ https_proxy: 'https://10.0.2.2:8000'
 # Bash automated testing system
 bats_version: 'v0.4.0'
 
-git_version: 'v2.8.4'
-
-dims_kibana_port: 8480
-dims_ssh_port: 8422
-dims_ssl_port: 8443
-dims_elasticsearch_kibana_port: 9200
-dims_allowed_ports: '[ {{ dims_kibana_port }}, {{ dims_ssl_port }}, {{ dims_ssh_port }} ]'
-# Default browser page
-dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.json'
-dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
-dims_firefox_default_homepage: '{{ dims_owf_url }}'
 
 # vim: ft=ansible :
