@@ -75,6 +75,7 @@
       paths:
         - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -98,13 +99,14 @@
   with_first_found:
     - files:
         - '{{ rsyslog_ignore_config }}'
-        - 00-ignore.conf.{{ inventory_hostname }}
-        - 00-ignore.conf.category-{{ category }}.j2
-        - 00-ignore.conf.deployment-{{ deployment }}.j2
-        - 00-ignore.conf.j2
+        - '00-ignore.conf.{{ inventory_hostname }}'
+        - '00-ignore.conf.category-{{ category }}.j2'
+        - '00-ignore.conf.deployment-{{ deployment }}.j2'
+        - '00-ignore.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -125,13 +127,14 @@
   with_first_found:
     - files:
         - '{{ rsyslog_consolidation_config }}'
-        - 49-consolidation.conf.{{ inventory_hostname }}
-        - 49-consolidation.conf.category-{{ category }}.j2
-        - 49-consolidation.conf.deployment-{{ deployment }}.j2
-        - 49-consolidation.conf.j2
+        - '49-consolidation.conf.{{ inventory_hostname }}'
+        - '49-consolidation.conf.category-{{ category }}.j2'
+        - '49-consolidation.conf.deployment-{{ deployment }}.j2'
+        - '49-consolidation.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -148,13 +151,13 @@
   with_first_found:
     - files:
         - '{{ rsyslog_default_config }}'
-        - 50-default.conf.{{ inventory_hostname }}
-        - 50-default.conf.category-{{ category }}.j2
-        - 50-default.conf.deployment-{{ deployment }}.j2
-        - 50-default.conf.j2
+        - '50-default.conf.{{ inventory_hostname }}'
+        - '50-default.conf.category-{{ category }}.j2'
+        - '50-default.conf.deployment-{{ deployment }}.j2'
+        - '50-default.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]

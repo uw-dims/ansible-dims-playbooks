@@ -6,8 +6,8 @@ rsyslog_port: 10514
 rsyslog_domains: [
     '.{{ deployment }}',
 ]
-rsyslog_ignore_config:
-rsyslog_consolidation_config:
 
+#rsyslog_ignore_config:
+#rsyslog_consolidation_config:
 
 # vim: ft=ansible :
