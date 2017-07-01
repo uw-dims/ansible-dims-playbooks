@@ -94,21 +94,23 @@
   tags: [ trident-core, config ]
 
 # TODO(dittrich): Need to migrate to public Trident carefully
+# TODO(dittrich): Fix with_dict to be with_items like other packages.
 - name: Make core Trident packages present
   get_url:
     url: '{{ item.value }}'
     dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.value | basename }}'
-  with_dict: '{{ trident_release[trident.version] }}'
+  with_dict: '{{ trident_release[trident_version] }}'
   become: yes
   tags: [ trident-core, packages ]
 
   # NOTE: trident-perl package is from private source currently,
   # so must retrieve from our cache, not the github debs source.
+  # TODO(dittrich): Just use scalar (not with_items w/1 item)
 - name: Make trident-perl package present
   get_url:
     url: '{{ artifacts_url }}/{{ item }}'
     dest: '{{ deploy_dir }}/{{ role_name }}/{{ item }}'
-  with_items: trident-perl_{{ trident_perl.version }}_amd64.deb
+  with_items: trident-perl_{{ trident_perl_version }}_amd64.deb
   become: yes
   tags: [ trident-core ]
 
@@ -154,10 +156,10 @@
   shell: >
     dpkg -i --force-confold {{ deploy_dir }}/{{ role_name }}/{{ item }}
   with_items:
-    - pitchfork-data_{{ pitchfork.version }}_all.deb
-    - trident-cli_{{ trident.version }}_amd64.deb
-    - trident-server_{{ trident.version }}_amd64.deb
-    - trident_{{ trident.version }}_all.deb
+    - '{{ pitchfork_archive }}'
+    - '{{ trident_cli_archive }}'
+    - '{{ trident_server_arhive }}'
+    - '{{ trident_archive }}'
   become: yes
   notify: restart trident
   tags: [ trident-core, packages ]
@@ -173,13 +175,13 @@
 
 - name: Unpack trident-perl (mail handler) package into /
   shell: >
-    dpkg -x {{ deploy_dir }}/{{ role_name }}/trident-perl_{{ trident_perl.version }}_amd64.deb /
+    dpkg -x {{ deploy_dir }}/{{ role_name }}/{{ trident_perl_archive }} /
   become: yes
   tags: [ trident-core, packages ]
 
 - name: Manually extract control files from trident-perl
   shell: >
-    dpkg -e {{ deploy_dir }}/{{ role_name }}/trident-perl_{{ trident_perl.version }}_amd64.deb
+    dpkg -e {{ deploy_dir }}/{{ role_name }}/{{ trident_perl_archive }}
     {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN
   become: yes
   tags: [ trident-core, packages ]
@@ -378,7 +380,7 @@
 - name: Ensure header_image is present
   copy:
     src: '{{ item }}'
-    dest: /usr/share/trident/webroot/{{ trident.header_image }}
+    dest: /usr/share/trident/webroot/{{ trident_site_header_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -466,24 +468,24 @@
   shell: '{{ item }}'
   with_items:
    - 'tcli system swapadmin'
-   - 'tcli system set name "{{ trident.name }}"'
-   - 'tcli system set welcome_text "{{ trident.welcome_text }}"'
-   - 'tcli system set url_public {{ trident.url_public }}'
-   - 'tcli system set adminname "{{ trident.adminname }}"'
-   - 'tcli system set adminemail "{{ trident.adminemail }}"'
-   - 'tcli system set email_domain "{{ trident.email_domain }}"'
-   - 'tcli system set people_domain "{{ trident.people_domain }}"'
-   - 'tcli system set logo_image {{ trident.logo_image }}'
-   - 'tcli system set header_image {{ trident.header_image }}'
+   - 'tcli system set name "{{ trident_site_name }}"'
+   - 'tcli system set welcome_text "{{ trident_site_welcome_text }}"'
+   - 'tcli system set url_public {{ trident_site_url_public }}'
+   - 'tcli system set adminname "{{ trident_site_adminname }}"'
+   - 'tcli system set adminemail "{{ trident_site_adminemail }}"'
+   - 'tcli system set email_domain "{{ trident_site_email_domain }}"'
+   - 'tcli system set people_domain "{{ trident_site_people_domain }}"'
+   - 'tcli system set logo_image {{ trident_site_logo_image }}'
+   - 'tcli system set header_image {{ trident_site_header_image }}'
   tags: [ trident-core ]
 
 - name: Ensure initial sysadmin user account setup
   shell: '{{ item }}'
   with_items:
-   - 'tcli user set descr trident "{{ trident.adminname }}"'
+   - 'tcli user set descr trident "{{ trident_site_adminname }}"'
    - 'tcli user email remove trident@example.net'
-   - 'tcli user email add trident {{ trident.adminemail }}'
-   - 'tcli user email confirm_force trident {{ trident.adminemail }}'
+   - 'tcli user email add trident {{ trident_site_adminemail }}'
+   - 'tcli user email confirm_force trident {{ trident_site_adminemail }}'
   tags: [ trident-core ]
 
 - name: Make defined bats tests present

@@ -24,7 +24,7 @@
     - { role: docker }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: consul,  startup_method: "supervisor" }
-    - { role: postgres, artifact_branch: feature/dims-733 }
+    - { role: postgresql, artifact_branch: feature/dims-733 }
     - { role: nginx, artifact_branch: feature/dims-733 }
     - { role: trident-core, artifact_branch: feature/dims-733 }
     - { role: trident-configure, artifact_branch: feature/dims-733 }

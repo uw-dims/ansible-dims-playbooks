@@ -26,7 +26,7 @@
 # TODO(dittrich): Disabled temporarily due to bug in 1.4.5
 - name: Select setup method
   set_fact: trident_setup='tsetup'
-  when: trident.version in [ '1.4.2', '1.4.5' ]
+  when: trident_version in [ '1.4.2', '1.4.5' ]
 
 - name: Install required perl libraries
   apt: state=present name={{ item }} force=yes
@@ -76,8 +76,8 @@
     url={{ artifacts_url }}/{{ item }}
     dest={{ deploy_dir }}/{{ role_name }}/{{ item }}
   with_items:
-    - "trident-cli_{{ trident.version }}_amd64.deb"
-    - "trident-server_{{ trident.version }}_amd64.deb"
+    - "trident-cli_{{ trident_version }}_amd64.deb"
+    - "trident-server_{{ trident_version }}_amd64.deb"
     - "trident-perl_{{ trident_perl.version }}_amd64.deb"
   when: ansible_lsb.codename == "jessie"
         and trident_setup == 'tcli'
@@ -90,9 +90,9 @@
     url={{ artifacts_url }}/{{ item }}
     dest={{ deploy_dir }}/{{ role_name }}/{{ item }}
   with_items:
-    - "trident-cli_{{ trident.version }}_amd64.deb"
-    - "trident-server_{{ trident.version }}_amd64.deb"
-    - "trident_{{ trident.version }}_all.deb"
+    - "trident-cli_{{ trident_version }}_amd64.deb"
+    - "trident-server_{{ trident_version }}_amd64.deb"
+    - "trident_{{ trident_version }}_all.deb"
     - "pitchfork-data_{{ pitchfork.version }}_all.deb"
     - "trident-perl_{{ trident_perl.version }}_amd64.deb"
   when: ansible_lsb.codename == "jessie"
@@ -145,8 +145,8 @@
 - name: Ensure core Trident packages are installed (tcli)
   shell: "dpkg -i --force-confold {{ deploy_dir }}/{{ role_name }}/{{ item }}"
   with_items:
-    - "trident-cli_{{ trident.version }}_amd64.deb"
-    - "trident-server_{{ trident.version }}_amd64.deb"
+    - "trident-cli_{{ trident_version }}_amd64.deb"
+    - "trident-server_{{ trident_version }}_amd64.deb"
   when: ansible_lsb.codename == "jessie"
         and trident_setup == 'tcli'
   become: yes
@@ -158,9 +158,9 @@
   shell: "dpkg -i --force-confold {{ deploy_dir }}/{{ role_name }}/{{ item }}"
   with_items:
     - "pitchfork-data_{{ pitchfork.version }}_all.deb"
-    - "trident-cli_{{ trident.version }}_amd64.deb"
-    - "trident-server_{{ trident.version }}_amd64.deb"
-    - "trident_{{ trident.version }}_all.deb"
+    - "trident-cli_{{ trident_version }}_amd64.deb"
+    - "trident-server_{{ trident_version }}_amd64.deb"
+    - "trident_{{ trident_version }}_all.deb"
   when: ansible_lsb.codename == "jessie"
         and trident_setup == 'tsetup'
   become: yes
@@ -404,7 +404,7 @@
 - name: Ensure header_image is present
   copy:
     src: '{{ item }}'
-    dest: /usr/share/trident/webroot/{{ trident.header_image }}
+    dest: /usr/share/trident/webroot/{{ trident_site_header_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -546,15 +546,15 @@
   shell: "{{ item }}"
   with_items:
    - "tcli system swapadmin"
-   - "tcli system set name '{{ trident.name }}'"
-   - "tcli system set welcome_text '{{ trident.welcome_text }}'"
-   - "tcli system set url_public {{ trident.url_public }}"
-   - "tcli system set adminname '{{ trident.adminname }}'"
-   - "tcli system set adminemail '{{ trident.adminemail }}'"
-   - "tcli system set email_domain '{{ trident.email_domain }}'"
-   - "tcli system set people_domain '{{ trident.people_domain }}'"
-   - "tcli system set logo_image {{ trident.logo_image }}"
-   - "tcli system set header_image {{ trident.header_image }}"
+   - "tcli system set name '{{ trident_site_name }}'"
+   - "tcli system set welcome_text '{{ trident_site_welcome_text }}'"
+   - "tcli system set url_public {{ trident_site_url_public }}"
+   - "tcli system set adminname '{{ trident_site_adminname }}'"
+   - "tcli system set adminemail '{{ trident_site_adminemail }}'"
+   - "tcli system set email_domain '{{ trident_site_email_domain }}'"
+   - "tcli system set people_domain '{{ trident_site_people_domain }}'"
+   - "tcli system set logo_image {{ trident_site_logo_image }}"
+   - "tcli system set header_image {{ trident_site_header_image }}"
   when: ansible_lsb.codename == "jessie"
         and tcli_login.stdout == "Login successful"
   become: yes
@@ -565,15 +565,15 @@
 #  shell: "/usr/sbin/tsetup sudo trident {{ item }}"
 #  with_items:
 #   - "system swapadmin"
-#   - "system set name '{{ trident.name }}'"
-#   - "system set welcome_text '{{ trident.welcome_text }}'"
-#   - "system set url_public {{ trident.url_public }}"
-#   - "system set adminname '{{ trident.adminname }}'"
-#   - "system set adminemail '{{ trident.adminemail }}'"
-#   - "system set email_domain '{{ trident.email_domain }}'"
-#   - "system set people_domain '{{ trident.people_domain }}'"
-#   - "system set logo_image {{ trident.logo_image }}"
-#   - "system set header_image {{ trident.header_image }}"
+#   - "system set name '{{ trident_site_name }}'"
+#   - "system set welcome_text '{{ trident_site_welcome_text }}'"
+#   - "system set url_public {{ trident_site_url_public }}"
+#   - "system set adminname '{{ trident_site_adminname }}'"
+#   - "system set adminemail '{{ trident_site_adminemail }}'"
+#   - "system set email_domain '{{ trident_site_email_domain }}'"
+#   - "system set people_domain '{{ trident_site_people_domain }}'"
+#   - "system set logo_image {{ trident_site_logo_image }}"
+#   - "system set header_image {{ trident_site_header_image }}"
 #  when: ansible_lsb.codename == "jessie"
 #        and trident_setup == 'tsetup'
 #  become: yes
@@ -584,8 +584,8 @@
   shell: "{{ item }}"
   with_items:
    - "tcli user email remove trident@trident.example.net"
-   - "tcli user email add trident {{ trident.adminemail }}"
-   - "tcli user email confirm_force trident {{ trident.adminemail }}"
+   - "tcli user email add trident {{ trident_site_adminemail }}"
+   - "tcli user email confirm_force trident {{ trident_site_adminemail }}"
   when: ansible_lsb.codename == "jessie"
         and trident_setup == 'tcli'
         and tcli_login.stdout == "Login successful"

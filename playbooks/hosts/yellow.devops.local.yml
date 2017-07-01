@@ -24,7 +24,7 @@
     - { role: python-virtualenv, use_sphinx: false }
     - { role: docker }
     - { role: consul,  startup_method: "supervisor" }
-    - { role: postgres }
+    - { role: postgresql }
     - { role: nginx }
     - { role: trident-core }
     - { role: trident-configure }
