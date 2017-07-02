@@ -51,16 +51,16 @@ ip_of_nic() {
 # Defaults set before used in setting command line options.
 NAME=${1:-$PROGNAME}
 DOMAIN=${DOMAIN:-{{ deployment }}}
-BIND=${BIND:-$(ip_of_nic {{ consulBindInterface }})}
+BIND=${BIND:-$(ip_of_nic {{ consul_bind_interface }})}
 # Don't even bother if we don't have an interface to bind to.
 if [[ -z ${BIND} ]]; then
-    error_exit 1 "Cannot identify IP address for {{ consulBindInterface }}"
+    error_exit 1 "Cannot identify IP address for {{ consul_bind_interface }}"
 fi
 ADVERTISE=${ADVERTISE:-${BIND}}
 LOGLEVEL=${LOGLEVEL:-{{ syslog_severity }}}
 GOMAXPROCS=${GOMAXPROCS:-2}; export GOMAXPROCS
 # TODO(dittrich): Move this to $DIMS somewhere.
-DATADIR="{{ consulDataDir }}"
+DATADIR="{{ consul_data_dir }}"
 
 FLAGS_HELP="usage: $BASE [options] args"
 

@@ -21,9 +21,10 @@ send host-name = {{ ansible_hostname }}.{{ category }}.{{ deployment }}
 #send dhcp-client-identifier 1:0:a0:24:ab:fb:9c;
 #send dhcp-lease-time 3600;
 supersede domain-name "{{ category }}.{{ deployment }}";
-{% if dns_nameservers is defined %}
-{% for nameserver in dns_nameservers %}
-prepend domain-name-servers {{ nameserver }};
+prepend domain-name-servers 127.0.0.1
+{% if groups['nameserver'] is defined %}
+{% for nameserver in groups['nameserver'] %}
+prepend domain-name-servers {{ lookup('dig', nameserver) }};
 {% endfor %}
 {% endif %}
 

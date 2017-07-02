@@ -94,7 +94,7 @@
 - name: Create persistence directory for use by Consul
   file:
     state=directory
-    path={{ consulDataDir }}
+    path={{ consul_data_dir }}
     owner={{ dims_user }}
     group={{ dims_group }}
     mode={{ mode_0770 }}
@@ -106,7 +106,7 @@
 - name: Create inital consul.log file
   file:
     state=touch
-    path={{ consulLogFile }}
+    path={{ consul_log_file }}
     owner={{ dims_user }}
     group={{ dims_user }}
     mode={{ mode_0640 }}

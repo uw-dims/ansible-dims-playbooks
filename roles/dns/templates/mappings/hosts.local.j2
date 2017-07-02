@@ -8,15 +8,20 @@
 {% if groups['private'] is defined %}
 # The following hosts come from Ansible inventory groups['private']
 {% for host in groups['private'] %}
-{{ hostvars[host]['eth1']['ip'] }}	{{ host }}
+{% if hostvars[host].net.iface[zone_iface['local']].ip is defined %}
+{{ hostvars[host].net.iface[zone_iface['local']].ip }}	{{ host }}
+{% endif %}
 {% endfor %}
 {% endif %}
 
-{% if groups['manager'] is defined %}
-# The following hosts come from Ansible inventory groups['manager']
-# (which is assumed to be running consul.)
-{% for host in groups['manager'] %}
-{{ hostvars[host]['eth1']['ip'] }}	consul.devops.{{ deployment }}
-{{ hostvars[host]['eth1']['ip'] }}	consul.ops.{{ deployment }}
-{% endfor %}
+# Aliases for groups to facilitate templating of things like
+# cluster member lists, etc.
+
+{% for group in groups %}
+{% for host in groups[group] %}
+{% if hostvars[host].net.iface[zone_iface['local']].ip is defined %}
+{{ hostvars[host].net.iface[zone_iface['local']].ip }} {{ group }}.group.{{ deployment }}
 {% endif %}
+{% endfor %}
+{% endfor %}
+

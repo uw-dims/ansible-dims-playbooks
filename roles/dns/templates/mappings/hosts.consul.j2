@@ -1,0 +1,11 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+{% if groups['manager'] is defined %}
+# The following hosts come from Ansible inventory groups['manager']
+# (which is assumed to be running consul.)
+{% for host in groups['manager'] %}
+{{ hostvars[host].net.iface[zone_iface['local']].ip }} consul.devops.{{ deployment }}
+{{ hostvars[host].net.iface[zone_iface['local']].ip }} consul.ops.{{ deployment }}
+{% endfor %}
+{% endif %}
+
