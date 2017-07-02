@@ -1,0 +1,18 @@
+---
+
+# TODO(dittrich): This is a start of a prototype... not sure if it will be used.
+networks:
+  'local':
+    network: '192.168.56.0'
+    broadcast: '192.168.56.255'
+    netmask: '255.255.255.0'
+    cidr: '24'
+    gateway: ''
+    nameserver:
+  'vmnet':
+    network: '10.0.2.0'
+    netmask: '255.255.255.0'
+    cidr: '24'
+    gateway: '10.0.2.2'
+    nameserver:
+      - 10.0.2.2
