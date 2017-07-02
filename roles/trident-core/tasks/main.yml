@@ -93,24 +93,22 @@
   become: yes
   tags: [ trident-core, config ]
 
-# TODO(dittrich): Need to migrate to public Trident carefully
-# TODO(dittrich): Fix with_dict to be with_items like other packages.
 - name: Make core Trident packages present
   get_url:
-    url: '{{ item.value }}'
-    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.value | basename }}'
-  with_dict: '{{ trident_release[trident_version] }}'
+    url: '{{ item.url }}'
+    sha256sum: '{{ item.sha256sum }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.url | basename }}'
+  with_items: "{{ trident_dist_bundle }}"
   become: yes
   tags: [ trident-core, packages ]
 
   # NOTE: trident-perl package is from private source currently,
   # so must retrieve from our cache, not the github debs source.
-  # TODO(dittrich): Just use scalar (not with_items w/1 item)
 - name: Make trident-perl package present
   get_url:
-    url: '{{ artifacts_url }}/{{ item }}'
-    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item }}'
-  with_items: trident-perl_{{ trident_perl_version }}_amd64.deb
+    url: '{{ trident_perl_disturl }}'
+    sha256sum: '{{ trident_perl_sha256sum }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ trident_perl_disturl|basename }}'
   become: yes
   tags: [ trident-core ]
 
@@ -151,15 +149,11 @@
   become: yes
   tags: [ trident-core ]
 
-# TODO(dittrich): Need to migrate to public Trident carefully
-- name: Ensure core Trident packages are installed (tsetup)
-  shell: >
-    dpkg -i --force-confold {{ deploy_dir }}/{{ role_name }}/{{ item }}
-  with_items:
-    - '{{ pitchfork_archive }}'
-    - '{{ trident_cli_archive }}'
-    - '{{ trident_server_arhive }}'
-    - '{{ trident_archive }}'
+- name: Ensure core Trident packages are installed
+  apt:
+    deb: '{{ deploy_dir }}/{{ role_name }}/{{ item.url|basename }}'
+    state: present
+  with_items: "{{ trident_dist_bundle }}"
   become: yes
   notify: restart trident
   tags: [ trident-core, packages ]

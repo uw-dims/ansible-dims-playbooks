@@ -11,13 +11,8 @@
 #######################################################
 
 {
-{% if trident.version in [ '1.3.8' ] %}
-	"file_root": "/usr/share/trident/",
-{% endif %}
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	# Where the dbschemas, webroot and templates are located
 	"file_roots": [ "/usr/share/trident/", "/usr/share/pitchfork/" ],
-{% endif %}
 
 	# Where variable files are stored
 	"var_root": "/var/lib/trident/",
@@ -30,7 +25,6 @@
 	"jwt_key_prv": "jwt.prv",
 	"jwt_key_pub": "jwt.pub",
 
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	# Content Security Policy
 	"csp": "default-src 'self'",
 
@@ -47,18 +41,7 @@
 
 	# Weak Password Dictionaries
 	"pw_weakdicts": [ "10k_most_common.txt" ],
-{% endif %}
 
-{% if trident.version in [ '1.3.8' ] %}
-	#########################################
-	# PostgreSQL Database details
-	#########################################
-	# PSQL local unix socket
-	# Uses PSQL peer authentication
-	# This works out of the box on Debian
-	#########################################
-{% endif %}
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	#########################################
 	# PostgreSQL Database details
 	#########################################
@@ -72,23 +55,18 @@
 	#   "db_host": "db.example.org",
 	#   "db_port": "5432",
 	#########################################
-{% endif %}
 	"db_host": "localhost",
 	"db_port": "{{ tridentDBPort }}",
 	"db_name": "{{ tridentDBName }}",
 	"db_user": "{{ tridentDBUser }}",
 	"db_pass": "{{ tridentDBPass }}",
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	"db_ssl_mode": "disable",
-{% endif %}
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	##########################################
 	# Admin postgres user for table management
 	##########################################
 	"db_admin_db": "postgres",
 	"db_admin_user": "postgres",
 	"db_admin_pass": "",
-{% endif %}
 
 	# The Nodename is used to identify this instance
 	# in a cluster of hosts. The name must be unique.
@@ -103,7 +81,6 @@
 	"http_host": "0.0.0.0",
 	"http_port": "{{ tridentHTTPPort }}",
 
-{% if trident.version in [ '1.4.2', '1.4.5' ] %}
 	# Regexp for usernames, should allow email addresses
 	"username_regexp": "^[a-z0-9_.+-@].*$",
 
@@ -116,8 +93,8 @@
 	"smtp_ssl": "ignore",
 
 	# Notification address for all messages
-	"msg_monitor_from": "{{ trident.adminemail }}",
-	"msg_monitor_to": "{{ trident.adminemail }}",
+	"msg_monitor_from": "{{ trident_site_adminemail }}",
+	"msg_monitor_to": "{{ trident_site_adminemail }}",
 
 	# Override some form parameters
 	"username_min_length": "2",
@@ -132,11 +109,5 @@
 		# Application Database version
 		"app_db_schema_version": "0"
 	}
-{% else %}
-	# Just in case one of the conditional blocks above ended
-	# with a comma, put in one last variable without to ensure
-	# proper formatting.
-	"answer": "42"
-{% endif %}
 }
 

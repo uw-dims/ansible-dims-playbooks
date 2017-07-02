@@ -5,11 +5,10 @@
 # Handle testing with real users prior to applying wildcard
 # that will send email to Trident.
 dittrich			dittrich@devops.develop
-mboggess			mboggess@devops.develop
 
-mail-handler@{{ trident.email_domain }}	trident-handler
-@{{ trident.email_domain }} trident-handler
-{% if trident.email_domain != trident.people_domain %}
-mail-handler@{{ trident.people_domain }} trident-handler
-@{{ trident.people_domain }} trident-handler
+mail-handler@{{ trident_site_email_domain }}	trident-handler
+@{{ trident_site_email_domain }} trident-handler
+{% if trident_site_email_domain != trident_site_people_domain %}
+mail-handler@{{ trident_site_people_domain }} trident-handler
+@{{ trident_site_people_domain }} trident-handler
 {% endif %}

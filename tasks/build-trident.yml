@@ -36,20 +36,20 @@
 
 - name: Ensure build directory is present
   file:
-    dest={{ dims_deploy }}/build-trident
-    state=directory
-    owner={{ dims_user }}
-    group={{ dims_user }}
-    mode={{ mode_0750 }}
+    dest: '{{ dims_deploy }}/build-trident'
+    state: directory
+    owner: '{{ dims_user }}'
+    group: '{{ dims_user }}'
+    mode: '{{ mode_0750 }}'
   become: yes
   become_user: '{{ dims_user }}'
 
 - name: Ensure Trident repo is present
   git:
-    repo=https://github.com/tridentli/trident.git
-    dest={{ dims_src }}/trident
-    version=v1.4.5
-    force=yes
+    repo: https://github.com/tridentli/trident.git
+    dest: '{{ dims_src }}/trident'
+    version: 'v{{ trident_version }}'
+    force: yes
   become: yes
   become_user: '{{ dims_user }}'
 
@@ -58,16 +58,16 @@
 
 - name: Ensure trident-perl source archive is present
   get_url:
-    url={{ artifacts_url }}/trident-perl_{{ trident_perl.version }}.tgz
-    dest={{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz
+    url: '{{ artifacts_url }}/trident-perl_{{ trident_perl.version }}.tgz'
+    dest: '{{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz'
   become: yes
   become_user: "{{ dims_user }}"
 
 - name: Ensure trident-perl source archive is present
   unarchive:
-    src={{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz
-    dest={{ dims_src }}/trident
-    remote_src=yes
+    src: '{{ dims_deploy }}/build-trident/trident-perl_{{ trident_perl.version }}.tgz'
+    dest: '{{ dims_src }}/trident'
+    remote_src: yes
   become: yes
   become_user: "{{ dims_user }}"
 
@@ -137,8 +137,8 @@
 
 - name: Ensure build directory is absent
   file:
-    dest={{ dims_deploy }}/build-trident
-    state=absent
+    dest: '{{ dims_deploy }}/build-trident'
+    state: absent
   become: yes
   become_user: '{{ dims_user }}'
 

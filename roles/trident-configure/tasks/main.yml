@@ -42,7 +42,7 @@
 
 - name: Retrieve present trust groups from tcli
   shell: >
-    tcli {{ tcli[trident.version]['tg_SUB'] }} list | grep -v 'No Groups Found' | awk '{ print $1; }'
+    tcli group list | grep -v 'No Groups Found' | awk '{ print $1; }'
   register: results
   tags: [ trident-configure, config ]
 
@@ -51,9 +51,9 @@
     groups_present: '{{ results.stdout_lines }}'
   tags: [ trident-configure, config ]
 
-- name: Determine present members of primary_tg from tcli
+- name: Determine present members of primary TG from tcli
   shell: >
-    tcli {{ tcli[trident.version]['tg_SUB'] }} member list {{ trident.primary_tg.ident }} | awk '{ print $1; }'
+    tcli group member list {{ trident_site_trust_groups.0.name }} | awk '{ print $1; }'
   register: results
   tags: [ trident-configure, config ]
 
@@ -68,44 +68,45 @@
     tcli user new {{ item.ident }} {{ item.email }} &&
     tcli user set descr {{ item.ident }} '{{ item.descr }}' &&
     tcli user email confirm_force {{ item.ident }} {{ item.email }}
-  with_items: '{{ trident.primary_tg.initial_users }}'
+  with_items: '{{ trident_site_trust_groups.0.initial_users }}'
   when: item.ident not in members_present
   tags: [ trident-configure, config ]
 
+# TODO(dittrich): Generalize to loop over all TGs - for now just .0
 - name: Add trust group
   shell: >
-    tcli {{ tcli[trident.version]['tg_SUB'] }} add {{ trident.primary_tg.ident }} &&
-    tcli {{ tcli[trident.version]['tg_SUB'] }} set descr {{ trident.primary_tg.ident }} '{{ trident.primary_tg.descr }}'
-  when: trident.primary_tg.ident not in groups_present
+    tcli group add {{ trident_site_trust_groups.0.name }} &&
+    tcli group set descr {{ trident_site_trust_groups.0.name }} '{{ trident_site_trust_groups.0.settings.descr }}'
+  when: trident_site_trust_groups.0.name not in groups_present
   tags: [ trident-configure, config ]
 
-- name: Add new members to primary_tg
+- name: Add new members to primary tg
   shell: >
-    tcli {{ tcli[trident.version]['tg_SUB'] }} member {{ tcli[trident.version]['addmem'] }} {{ trident.primary_tg.ident }} {{ item.ident }} &&
-    tcli {{ tcli[trident.version]['tg_SUB'] }} member approve {{ trident.primary_tg.ident }} {{ item.ident }}
-  with_items: '{{ trident.primary_tg.initial_users }}'
+    tcli group member add {{ trident_site_trust_groups.0.name }} {{ item.ident }} &&
+    tcli group member approve {{ trident_site_trust_groups.0.name }} {{ item.ident }}
+  with_items: '{{ trident_site_trust_groups.0.initial_users }}'
   register: results
   when:
-    - trident.primary_tg.ident not in groups_present
+    - trident_site_trust_groups.0.name not in groups_present
     - item.ident not in members_present
   tags: [ trident-configure, config ]
  
-- name: Determine present mailing lists of primary_tg from tcli
+- name: Determine present primary TG mailing lists
   shell: >
-    tcli ml list {{ trident.primary_tg.ident }} | awk '{ print $1; }'
+    tcli ml list {{ trident_site_trust_groups.0.name }} | awk '{ print $1; }'
   register: results
   tags: [ trident-configure, config ]
 
-- name: Extract list of present mailing lists
+- name: Isolate mailing list names
   set_fact:
     lists_present: '{{ results.stdout_lines }}'
   tags: [ trident-configure, config ]
 
 - name: Add additional mailing lists
   shell: >
-    tcli ml new {{ trident.primary_tg.ident }} {{ item.ident }} &&
-    tcli ml set descr {{ trident.primary_tg.ident }} {{ item.ident }} '{{ item.descr }}'
-  with_items: '{{ trident.primary_tg.additional_lists }}'
+    tcli ml new {{ trident_site_trust_groups.0.name }} {{ item.ident }} &&
+    tcli ml set descr {{ trident_site_trust_groups.0.name }} {{ item.ident }} '{{ item.descr }}'
+  with_items: '{{ trident_site_trust_groups.0.additional_lists }}'
   when: item.ident not in lists_present
   tags: [ trident-configure, config ]
 
@@ -120,16 +121,16 @@
   # adds all members to all mailing lists.
 - name: Add all members to all mailing lists
   shell: >
-    tcli ml member add {{ trident.primary_tg.ident }} {{ item[0] }} {{ item[1] }}
+    tcli ml member add {{ trident_site_trust_groups.0.name }} {{ item[0] }} {{ item[1] }}
   with_nested:
-    - '{{ trident.primary_tg.additional_lists | map(attribute="ident") | list }}'
-    - '{{ trident.primary_tg.initial_users | map(attribute="ident") | list }}'
+    - '{{ trident_site_trust_groups.0.additional_lists | map(attribute="ident") | list }}'
+    - '{{ trident_site_trust_groups.0.initial_users | map(attribute="ident") | list }}'
   tags: [ trident-configure, config ]
 
 - name: Add admins to admin list
   shell: >
-    tcli ml member add {{ trident.primary_tg.ident }} admin {{ item }}
-  with_items: '{{ trident.admins }}'
+    tcli ml member add {{ trident_site_trust_groups.0.name }} admin {{ item }}
+  with_items: '{{ trident_site_admins }}'
   tags: [ trident-configure, config ]
 
   # We give our admins both system administration rights
@@ -147,8 +148,25 @@
 - name: Give admins sysadmin/tg admin rights
   shell: >
     tcli user set sysadmin {{ item }} true &&
-    tcli {{ tcli[trident.version]['tg_SUB'] }} member promote {{ trident.primary_tg.ident }} {{ item }}
-  with_items: '{{ trident.admins }}'
+    tcli group member promote {{ trident_site_trust_groups.0.name }} {{ item }}
+  with_items: '{{ trident_site_admins }}'
+  tags: [ trident-configure, config ]
+
+- name: Extract list of settings keys
+  set_fact:
+    settings_keys: '{{ trident_site_trust_groups.0.settings.keys() }}'
+  tags: [ trident-configure, config ]
+
+- debug: var=settings_keys
+  tags: [ trident-configure, config ]
+
+  # tcli group set has_wiki main yes
+- name: Ensure settings are applied to trust groups
+  shell: >
+    tcli group set {{ item.1 }} {{ item.0.name }} {{ item.0.settings[item.1] }}
+  with_nested:
+    - '{{ trident_site_trust_groups }}'
+    - '{{ settings_keys }}'
   tags: [ trident-configure, config ]
 
 - name: Run unit test for trident-configure

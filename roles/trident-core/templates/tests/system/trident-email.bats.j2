@@ -10,24 +10,24 @@ load helpers
     grep -q '^trident-handler' /etc/aliases
 }
 
-@test "[S][EV] trident-handler executes {{ trident.mail_handler }}" {
-    assert 'trident-handler: "|{{ trident.mail_handler }}"' grep '^trident-handler' /etc/aliases
+@test "[S][EV] trident-handler executes {{ trident_site_mail_handler }}" {
+    assert 'trident-handler: "|{{ trident_site_mail_handler }}"' grep '^trident-handler' /etc/aliases
 }
 
-@test "[S][EV] mail-handler@{{ trident.email_domain }} maps to trident-handler in /etc/postfix/virtual" {
-    grep -q '^mail-handler@{{ trident.email_domain }}.*trident-handler' /etc/postfix/virtual
+@test "[S][EV] mail-handler@{{ trident_site_email_domain }} maps to trident-handler in /etc/postfix/virtual" {
+    grep -q '^mail-handler@{{ trident_site_email_domain }}.*trident-handler' /etc/postfix/virtual
 }
 
-@test "[S][EV] @{{ trident.email_domain }} maps to trident-handler in /etc/postfix/virtual" {
-    grep -q '^@{{ trident.email_domain }}.*trident-handler' /etc/postfix/virtual
+@test "[S][EV] @{{ trident_site_email_domain }} maps to trident-handler in /etc/postfix/virtual" {
+    grep -q '^@{{ trident_site_email_domain }}.*trident-handler' /etc/postfix/virtual
 }
 
-{% if trident.email_domain != trident.people_domain %}
-@test "[S][EV] mail-handler@{{ trident.people_domain }} maps to trident-handler in /etc/postfix/virtual" {
-    grep -q '^mail-handler@{{ trident.people_domain }}.*trident-handler' /etc/postfix/virtual
+{% if trident_site_email_domain != trident_site_people_domain %}
+@test "[S][EV] mail-handler@{{ trident_site_people_domain }} maps to trident-handler in /etc/postfix/virtual" {
+    grep -q '^mail-handler@{{ trident_site_people_domain }}.*trident-handler' /etc/postfix/virtual
 }
 
-@test "[S][EV] @{{ trident.people_domain }} maps to trident-handler in /etc/postfix/virtual" {
-    grep -q '^@{{ trident.people_domain }}.*trident-handler' /etc/postfix/virtual
+@test "[S][EV] @{{ trident_site_people_domain }} maps to trident-handler in /etc/postfix/virtual" {
+    grep -q '^@{{ trident_site_people_domain }}.*trident-handler' /etc/postfix/virtual
 }
 {% endif %}
