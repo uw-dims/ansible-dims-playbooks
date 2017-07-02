@@ -1,7 +1,36 @@
 ---
 
+swarm_service_delay_seconds: 30
+# TODO(dittrich): Fix this data structure to properly reference items.
+# E.g.:
+# ./stack/visualize/docker-compose.yml.j2:      - "{{ swarm.services.viz.ports.0.host }}:{{ swarm.services.viz.ports.0.client }}"
+swarm_services:
+  viz:
+    nets: []
+    ports: [
+      {
+        host: 9090,
+        client: 8080
+      },
+    ]
+    limit_cpu: 0.5
+    env_vars: [
+      {
+        name: 'PORT',
+        value: 9090
+      },
+    ]
+    constraints: [
+      'node.role == manager',
+    ]
+    mounts: [
+      '/var/run/docker.sock:/var/run/docker.sock',
+    ]
+    image_name: 'manomarks/visualizer'
+    replicas: 1
+
+# TODO(dittrich): DEPRECATED. Use scalars above
 swarm:
-  iface: '{{ swarm_iface }}'
   service_delay_seconds: 30
   services:
     viz:
