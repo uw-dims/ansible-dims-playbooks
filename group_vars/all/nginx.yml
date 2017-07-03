@@ -1,5 +1,7 @@
 ---
 
+# Local settings for geerlingguy/nginx role
+
 nginx_version: '1.6.2-5+deb8u3'
 nginx_health_check_port: 8888
 nginx_worker_processes: 4
