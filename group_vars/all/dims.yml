@@ -19,8 +19,6 @@ dims_elasticsearch_kibana_port: 9200
 dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.json'
 dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
 dims_firefox_default_homepage: '{{ dims_owf_url }}'
-# Variables for testing and/or illustrating vars layering.
-test_color: 'Salmon'
 
 # file name of Vault password file. Path is created in Vagrantfile.
 dims_vault_password_file: '{{ private }}/vault_pass.txt'
@@ -36,8 +34,8 @@ dimscli_version: 0.26.0
 
 dims_timezone: 'US/Pacific'
 dims_locale: 'en_US.UTF-8'
-
 dims_etcd2_reboot_strategy: 'off'
+
 
 # Variables specific to creating host playbook for Ansible provisioning
 remoteUser: '{{ ansible_user_id }}'
@@ -49,6 +47,7 @@ install_mode: 'system'
 
 # TODO(dittrich): Force use of a single method for obtaining artifacts
 artifacts_url: 'file:///home/ansible/sources'
+#artifacts_url: 'http://source.devops.local/sources'
 artifact_server_visibility: 'public'
 
 # Default to using a local squid proxy on the virtual machine host (e.g., dev laptop)
