@@ -23,7 +23,7 @@
     - { role: postfix }
     - { role: python-virtualenv, use_sphinx: true }
     - { role: docker }
-    - { role: consul, consul_startup_method: "supervisor" }
+    - { role: consul }
     - { role: vagrant }
     - { role: pycharm }
     - { role: byobu }

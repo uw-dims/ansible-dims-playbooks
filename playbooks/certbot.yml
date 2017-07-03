@@ -1,0 +1,19 @@
+---
+
+# This playbook follows the example provided at
+# https://github.com/geerlingguy/ansible-role-certbot
+
+- hosts: '{{ host|default("webservers") }}'
+
+  vars:
+    certbot_auto_renew_user: ansible
+    certbot_auto_renew_minute: 20
+    certbot_auto_renew_hour: 5
+    certbot_install_from_source: yes
+    certbot_repo: https://github.com/certbot/certbot.git
+    certbot_version: master
+    certbot_keep_updated: yes
+
+  roles:
+  - ansible-role-letsencrypt
+
