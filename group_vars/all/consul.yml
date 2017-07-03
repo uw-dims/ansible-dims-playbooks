@@ -1,30 +1,21 @@
 ---
 
+# Local customization variables (remainder are in role's vars/main.yml file)
+
 consul_servers: [
   'node01',
   'node02',
   'node03',
 ]
 
-consul_startup_method: upstart
-consul_version: '0.7.0'
-consul_os: 'linux'
-consul_artifact: 'consul_{{ consul_version }}_{{ consul_os }}_amd64.zip'
-# TODO(dittrich): We use "XXX_url" elsewhere to point to directory, not full URL path to file
-consul_dist_url: 'https://releases.hashicorp.com/consul/{{ consul_version }}'
-consul_sha256sum: 'b350591af10d7d23514ebaa0565638539900cdb3aaa048f077217c4c46653dd8'
-consul_agent_type: 'client'
-consul_log_file: '/var/log/consul.log'
 consul_bind_interface: 'eth1'
 # Default is '0.0.0.0'
 consul_bind_address: '0.0.0.0'
 consul_inet_interface: 'eth0'
 # Default is '127.0.0.1'
 consul_client_address: '127.0.0.1'
-consul_dns_port: 8600
 # TODO(dittrich): This should align with dimscli (it handles fallback)
 consul_data_center: 'local'
-# TODO(dittrich): Why both "DataCenter" and "DnsDomain"? Shouldn't these be the same?
 consul_dns_domain: 'local'
 # TODO(dittrich): This should align with dimscli (it handles fallback)
 consul_start_join: '192.168.56.21'
