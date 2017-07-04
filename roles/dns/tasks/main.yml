@@ -160,7 +160,7 @@
 # require the hosts.* version. But load one if it is present.
 - name: Get zone host mappings
   stat:
-    path: '{{ item.0 }}/{{ item.1 }}.j2'
+    path: '{{ item.0 }}/hosts.{{ item.1 }}.j2'
   register: maps_list
   with_nested:
     - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
@@ -169,10 +169,10 @@
   ignore_errors: yes
   tags: [ dns, dnsfiles, config ]
 
-- name: Update dnsmasq hosts file for DIMS
+- name: Update host mappings
   template:
     src: '{{ item.stat.path }}'
-    dest: /etc/hosts.{{ item.stat.path|basename|regex_replace("\.j2$","") }}
+    dest: /etc/{{ item.stat.path|basename|regex_replace("\.j2$","") }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
