@@ -5,23 +5,24 @@
 # *not* be any duplicate IP address assignments. If two names must
 # map to the same IP address, use an appropriate CNAME alias.
 
-{% if groups['private'] is defined %}
-# The following hosts come from Ansible inventory groups['private']
-{% for host in groups['private'] %}
-{% if hostvars[host].net.iface[zone_iface['local']].ip is defined %}
-{{ hostvars[host].net.iface[zone_iface['local']].ip }}	{{ host }}
-{% endif %}
-{% endfor %}
-{% endif %}
+{% set zone = deployment %}
 
-# Aliases for groups to facilitate templating of things like
-# cluster member lists, etc.
-
-{% for group in groups %}
-{% for host in groups[group] %}
-{% if hostvars[host].net.iface[zone_iface['local']].ip is defined %}
-{{ hostvars[host].net.iface[zone_iface['local']].ip }} {{ group }}.group.{{ deployment }}
+{% if groups[zone] is not defined %}
+# WARN: groups['{{ zone }}'] is not defined
+{% else %}
+# The following hosts come from Ansible inventory groups['{{ zone }}']
+{%  for host in groups[zone]|list %}
+{%   if hostvars[host].net is not defined %}
+# WARN: hostvars['{{ host }}'].net is not defined
+{%   elif hostvars[host].net.iface is not defined %}
+# WARN: hostvars['{{ host }}'].net.iface is not defined
+{%   elif hostvars[host].zone_iface[zone] is not defined %}
+# WARN: hostvars['{{ host }}'].zone_iface['{{ zone }}'] is not defined
+{%   elif hostvars[host].net.iface[hostvars[host].zone_iface[zone]].ip is not defined %}
+# WARN: hostvars['{{ host }}'].net.iface[hostvars['{{ host }}'].zone_iface['{{ zone }}']].ip is not defined
+{%   else %}
+{{ hostvars[host].net.iface[hostvars[host].zone_iface[zone]].ip }}	{{ host }}
+{%   endif %}
+{%  endfor %}
 {% endif %}
-{% endfor %}
-{% endfor %}
 
