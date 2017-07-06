@@ -275,11 +275,19 @@ fi
 #HELP get_dims_private_dir()
 #HELP     Return the name of the root of the directory where
 #HELP     all DIMS secrets (SSH keys, passwords, etc) are
-#HELP     stored.
-# TODO(dittrich): Hard coded path (we should template this)
+#HELP     stored (a directory with the name "private-$DEPLOYMENT")
+#HELP     If none is found, returns the public playbooks root.
 
 function get_dims_private_dir() {
-    echo "/opt/dims/private"
+    if [[ ! -z "$DIMS_PRIVATE" ]]; then
+        echo "$DIMS_PRIVATE"
+    elif [[ -d $GIT/private-${DEPLOYMENT} ]]; then
+        echo "$GIT/private-${DEPLOYMENT}"
+    elif [[ ! -z "{{ dims_private|default('') }}" ]]; then
+        echo "{{ dims_private|default('') }}"
+    else
+        echo "${PBR}"
+    fi
 }
 
 #HELP
