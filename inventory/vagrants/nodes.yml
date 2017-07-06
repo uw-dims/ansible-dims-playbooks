@@ -5,12 +5,12 @@
 vagrants:
   vars:
     ansible_port: 22
+
     zone_iface:
       'vmnet': 'eth0'
       'local': 'eth1'
       'swarm': 'eth1'
       'consul': 'eth1'
-    vmhost_ip: 192.168.56.1
 
     # Custom rules for default networks
     custom_rules: [
