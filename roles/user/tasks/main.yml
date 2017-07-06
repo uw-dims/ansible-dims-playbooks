@@ -11,32 +11,62 @@
 # globally.
 
 - name: Make user account present
-  user: "name={{ item }} append=yes groups=become,{{ dims_group }} shell=/bin/bash comment={{ item }}"
+  user:
+    name: '{{ item }}'
+    append: yes
+    groups: '{{ dims_group }}'
+    shell: '/bin/bash'
+    comment: '{{ item }}'
   with_items: dims_users
   become: yes
 
 - name: Make ~user/dims directory present
-  file: "path=/home/{{ item }}/dims owner={{ item }} group={{ item }} state=directory mode={{ mode_0755 }}"
+  file:
+    path: '/home/{{ item }}/dims'
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    state: directory
+    mode: '{{ mode_0755 }}'
   with_items: dims_users
   become: yes
 
 - name: Make ~user/dims/git directory present
-  file: "path=/home/{{ item }}/dims/git owner={{ item }} group={{ item }} state=directory mode={{ mode_0755 }}"
+  file:
+    path: '/home/{{ item }}/dims/git'
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    state: directory
+    mode: '{{ mode_0755 }}'
   with_items: dims_users
   become: yes
 
 - name: Make ~/user/.ssh directory present
-  file: "path=/home/{{ item }}/.ssh owner={{ item }} group={{ item }} state=directory mode={{ mode_0700 }}"
+  file:
+    path: '/home/{{ item }}/.ssh'
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    state: directory
+    mode: '{{ mode_0700 }}'
   with_items: dims_users
   become: yes
 
 - name: Make example ssh config file present
-  template: "src=ssh/config-dims.j2 dest=/home/{{ item }}/.ssh/config-dims owner={{ item }} group={{ item }} mode={{ mode_0600 }}"
+  template:
+    src: 'ssh/config-dims.j2'
+    dest: '/home/{{ item }}/.ssh/config-dims'
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    mode: '{{ mode_0600 }}'
   with_items: dims_users
   become: yes
 
 - name: Make default ~user/.gitconfig file present
-  template: "src=git/gitconfig.j2 dest=/home/{{ item }}/.gitconfig owner={{ item }} group={{ item }} mode={{ mode_0600 }}"
+  template:
+    src: 'git/gitconfig.j2'
+    dest: '/home/{{ item }}/.gitconfig'
+    owner: '{{ item }}'
+    group: '{{ item }}'
+    mode: '{{ mode_0600 }}'
   with_items: dims_users
   become: yes
 
@@ -45,7 +75,7 @@
 #- TODO(dittrich): name: Make user's private ssh key present in their account (if available)
 
 #- TODO(dittrich): name: Make user's public key present in their authorized_keys file
-#  authorized_key: user={{ item }} key="{{ lookup('file', '{{ private }}/dims-keys/ssh-pub/dims_{{ item }}_rsa') }}"
+#  authorized_key: user={{ item }} key="{{ lookup('dims_function', 'get_user_ssh_private_key {{ item }}') }}"
 #  with_items: dims_users
 #  become: yes
 
