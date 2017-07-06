@@ -9,7 +9,7 @@
 dns_zones:
   vars:
     dnsNameserver: '192.168.56.11'
-    dnsSearch: 'local'
+    dnsSearch: '{{ deployment }}'
     dnsNetworks: [ '192.168.56.0', ]
     dns_zone:
       'local':
