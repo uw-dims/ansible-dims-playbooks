@@ -80,7 +80,7 @@
        - pg_hba.conf.deployment-{{ deployment }}.j2
        - pg_hba.conf.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/main/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/main/'
        - postgresql/main/
   become: yes
   tags: [ trident-core, config ]
@@ -201,7 +201,7 @@
        - trident.deployment-{{ deployment }}.j2
        - trident.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/default/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/default/'
        - trident/default/
   become: yes
   notify: restart trident
@@ -222,7 +222,7 @@
        - trident.conf.deployment-{{ deployment }}.j2
        - trident.conf.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.conf/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.conf/'
        - trident/trident.conf/
   become: yes
   notify: restart trident
@@ -246,7 +246,7 @@
        - siteconfig.deployment-{{ deployment }}.j2
        - siteconfig.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/siteconfig/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/siteconfig/'
        - trident/siteconfig/
   become: yes
   notify: restart trident
@@ -270,7 +270,7 @@
        - trident.deployment-{{ deployment }}.j2
        - trident.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/sites-available/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/sites-available/'
        - nginx/sites-available/
   become: yes
   notify: restart nginx
@@ -301,7 +301,7 @@
        - trident-upstream.inc.deployment-{{ deployment }}.j2
        - trident-upstream.inc.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
        - trident-nginx/
   become: yes
   notify: restart nginx
@@ -322,7 +322,7 @@
        - trident-server.inc.deployment-{{ deployment }}.j2
        - trident-server.inc.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
        - trident-nginx/
   become: yes
   notify: restart nginx
@@ -365,7 +365,7 @@
        - logo.svg.deployment-{{ deployment }}
        - logo.svg
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/logo.svg/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/logo.svg/'
        - files/logo.svg/
       skip: true
   become: yes
@@ -386,7 +386,7 @@
        - header_image.jpg.deployment-{{ deployment }}
        - header_image.jpg
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/header_image.jpg/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/header_image.jpg/'
        - files/header_image.jpg/
       skip: true
   become: yes
@@ -407,7 +407,7 @@
        - trident.css.deployment-{{ deployment }}.j2
        - trident.css.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.css/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.css/'
        - trident/trident.css/
       skip: true
   become: yes

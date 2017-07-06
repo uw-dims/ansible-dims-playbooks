@@ -201,7 +201,7 @@
         - 'consul.service.deployment-{{ deployment }}.j2'
         - 'consul.service.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )

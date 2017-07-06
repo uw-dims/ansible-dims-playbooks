@@ -50,7 +50,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
   become: yes
   when: ansible_os_family == "Debian"
@@ -72,7 +72,7 @@
         - dnsmasq.conf.category-{{ category }}.j2
         - dnsmasq.conf.deployment-{{ deployment }}.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
       skip: true
   become: yes
@@ -96,7 +96,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
   become: yes
   when: ansible_os_family == "Debian"
@@ -119,7 +119,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/init.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/init.d/'
         - init.d/
   become: yes
   when: ansible_os_family == "Debian"
@@ -132,7 +132,7 @@
     path: '{{ item.0 }}/{{ item.1 }}.j2'
   register: configs_list
   with_nested:
-    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
+    - [ '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
     - '{{ zones }}'
   delegate_to: 127.0.0.1
   ignore_errors: yes
@@ -163,7 +163,7 @@
     path: '{{ item.0 }}/hosts.{{ item.1 }}.j2'
   register: maps_list
   with_nested:
-    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
+    - [ '{{ dims_private }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
     - '{{ zones }}'
   delegate_to: 127.0.0.1
   ignore_errors: yes

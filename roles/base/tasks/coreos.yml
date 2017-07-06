@@ -23,7 +23,7 @@
         - user-data.deployment-{{ deployment }}.j2
         - user-data.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/user-data/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/user-data/'
         - user-data/
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
@@ -56,7 +56,7 @@
         - coreos.sh.deployment-{{ deployment }}.j2
         - coreos.sh.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/profile.d/'
         - profile.d/
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"

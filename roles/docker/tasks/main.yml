@@ -156,7 +156,7 @@
         - docker.deployment-{{ deployment }}.j2
         - docker.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
   when: ansible_os_family == "Debian"
   become: yes

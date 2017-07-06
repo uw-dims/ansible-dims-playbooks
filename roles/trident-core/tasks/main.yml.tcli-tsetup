@@ -57,7 +57,7 @@
         - pg_hba.conf.deployment-{{ deployment }}.j2
         - pg_hba.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/main/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/main/'
         - postgresql/main/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -205,7 +205,7 @@
         - trident.deployment-{{ deployment }}.j2
         - trident.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/default/'
         - trident/default/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -227,7 +227,7 @@
         - trident.conf.deployment-{{ deployment }}.j2
         - trident.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.conf/'
         - trident/trident.conf/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -252,7 +252,7 @@
         - siteconfig.deployment-{{ deployment }}.j2
         - siteconfig.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/siteconfig/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/siteconfig/'
         - trident/siteconfig/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -274,7 +274,7 @@
         - trident.conf.deployment-{{ deployment }}.j2
         - trident.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/confd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/confd/'
         - nginx/confd/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -296,7 +296,7 @@
         - trident-upstream.inc.deployment-{{ deployment }}.j2
         - trident-upstream.inc.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
         - trident-nginx/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -318,7 +318,7 @@
         - trident-server.inc.deployment-{{ deployment }}.j2
         - trident-server.inc.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident-nginx/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
         - trident-nginx/
   when: ansible_lsb.codename == "jessie"
   become: yes
@@ -370,7 +370,7 @@
         - logo.png.deployment-{{ deployment }}
         - logo.png
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/logo.png/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/files/logo.png/'
         - files/logo.png/
       skip: true
   when: ansible_lsb.codename == "jessie"
@@ -393,7 +393,7 @@
         - logo.svg.deployment-{{ deployment }}
         - logo.svg
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/logo.svg/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/files/logo.svg/'
         - files/logo.svg/
       skip: true
   when: ansible_lsb.codename == "jessie"
@@ -416,7 +416,7 @@
         - header_image.jpg.deployment-{{ deployment }}
         - header_image.jpg
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/files/header_image.png/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/files/header_image.png/'
         - files/header_image.jpg/
       skip: true
   when: ansible_lsb.codename == "jessie"
@@ -438,7 +438,7 @@
         - style.css.deployment-{{ deployment }}.j2
         - style.css.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/style.css/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/style.css/'
         - trident/style.css/
       skip: true
   when: ansible_lsb.codename == "jessie"
@@ -461,7 +461,7 @@
         - trident.css.deployment-{{ deployment }}.j2
         - trident.css.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/trident/trident.css'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.css'
         - trident/trident.css/
       skip: true
   when: ansible_lsb.codename == "jessie"

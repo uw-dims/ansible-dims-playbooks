@@ -73,7 +73,7 @@
         - rsyslog.conf.deployment-{{ deployment }}.j2
         - rsyslog.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
       skip: true
   become: yes
@@ -104,7 +104,7 @@
         - '00-ignore.conf.deployment-{{ deployment }}.j2'
         - '00-ignore.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
       skip: true
   become: yes
@@ -132,7 +132,7 @@
         - '49-consolidation.conf.deployment-{{ deployment }}.j2'
         - '49-consolidation.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
       skip: true
   become: yes
@@ -156,7 +156,7 @@
         - '50-default.conf.deployment-{{ deployment }}.j2'
         - '50-default.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
   become: yes
   when: ansible_os_family == "Debian"
@@ -195,7 +195,7 @@
         - dims.deployment-{{ deployment }}.j2
         - dims.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/logrotate/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/logrotate/'
         - logrotate/
   become: yes
   when: ansible_os_family == "Debian"
@@ -266,7 +266,7 @@
         - resolv.conf.deployment-{{ deployment }}.j2
         - resolv.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
   when: ansible_os_family == "Debian"
@@ -288,7 +288,7 @@
         - NetworkManager.conf.deployment-{{ deployment }}.j2
         - NetworkManager.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/NetworkManager/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/NetworkManager/'
         - NetworkManager/
   become: yes
   when: ansible_os_family == "Debian"
@@ -326,7 +326,7 @@
         - interfaces.deployment-{{ deployment }}.j2
         - interfaces.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/network/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/network/'
         - network/
   become: yes
   ignore_errors: true
@@ -394,7 +394,7 @@
         - fstab.deployment-{{ deployment }}.j2
         - fstab.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/fstab/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fstab/'
         - fstab/
       skip: true
   become: yes
@@ -416,7 +416,7 @@
         - hosts.deployment-{{ deployment }}.j2
         - hosts.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/hosts/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
@@ -498,7 +498,7 @@
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
@@ -522,7 +522,7 @@
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   become: yes
   notify:
@@ -546,7 +546,7 @@
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
@@ -570,7 +570,7 @@
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   become: yes
   notify:
@@ -679,7 +679,7 @@
         - gai.conf.deployment-{{ deployment }}.j2
         - gai.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/gai/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/gai/'
         - gai/
   become: yes
   when: ansible_os_family == "Debian"
@@ -712,7 +712,7 @@
         - sshd_config.deployment-{{ deployment }}.j2
         - sshd_config.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sshd/'
         - sshd/
   become: yes
   when: ansible_os_family == "Debian"
@@ -735,7 +735,7 @@
         - rc.local.deployment-{{ deployment }}.j2
         - rc.local.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rc.local/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rc.local/'
         - rc.local/
   become: yes
   when: ansible_os_family == "Debian"

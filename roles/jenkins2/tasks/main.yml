@@ -65,7 +65,7 @@
        - jenkins.deployment-{{ deployment }}.j2
        - jenkins.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
        - nginx/
   become: yes
   notify: restart nginx

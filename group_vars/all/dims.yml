@@ -21,7 +21,7 @@ dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
 dims_firefox_default_homepage: '{{ dims_owf_url }}'
 
 # file name of Vault password file. Path is created in Vagrantfile.
-dims_vault_password_file: '{{ private }}/vault_pass.txt'
+dims_vault_password_file: '{{ dims_private }}/vault_pass.txt'
 
 dims_ansible_version: 2.3.1.0
 dims_ansible_imported_roles:

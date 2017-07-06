@@ -59,7 +59,7 @@
 
 - name: Ensure private directory ("secrets" storage) is present
   file:
-    path={{ private }}
+    path={{ dims_private }}
     owner={{ dims_user }}
     group={{ dims_group }}
     state=directory
@@ -86,7 +86,7 @@
         - environment.deployment-{{ deployment }}.j2
         - environment.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/environment/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/environment/'
         - environment/
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   become: yes
@@ -125,7 +125,7 @@
         - bash.bashrc.deployment-{{ deployment }}.j2
         - bash.bashrc.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/bash.bashrc/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bash.bashrc/'
         - bash.bashrc/
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
@@ -146,7 +146,7 @@
         - dims.sh.deployment-{{ deployment }}.j2
         - dims.sh.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/profile.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/profile.d/'
         - profile.d/
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
@@ -177,7 +177,7 @@
         - bashrc.dims.deployment-{{ deployment }}.j2
         - bashrc.dims.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/bashrc.dims/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bashrc.dims/'
         - bashrc.dims/
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   become: yes

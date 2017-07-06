@@ -66,7 +66,7 @@
         - postgresql.conf.deployment-{{ deployment }}.j2
         - postgresql.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes
@@ -88,7 +88,7 @@
         - pg_hba.conf.deployment-{{ deployment }}.j2
         - pg_hba.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes
@@ -110,7 +110,7 @@
         - pg_ident.conf.deployment-{{ deployment }}.j2
         - pg_ident.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/postgresql/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes

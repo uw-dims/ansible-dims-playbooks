@@ -44,7 +44,7 @@
         - vaultconfig.hcl.deployment-{{ deployment }}.j2
         - vaultconfig.hcl.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/vaultconfig/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/vaultconfig/'
         - vaultconfig/
   become: yes
   tags: [ vault, config ]
