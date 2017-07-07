@@ -76,12 +76,6 @@ ci-server:
         value: "--prefix={{ jenkins_url_prefix }}"
       - option: "{{ jenkins_java_options_env_var }}"
         value: "{{ jenkins_java_options }}"
-
-
-# Left over from previous attempt using ansible-jenkins2 role
-#   jenkins_url_external: 'http://jenkins.devops.local/jenkins'
-#   jenkins_admin_users:
-#     - 'hudson.security.HudsonPrivateSecurityRealm:admin'
   hosts:
     'orange.devops.local':
 
