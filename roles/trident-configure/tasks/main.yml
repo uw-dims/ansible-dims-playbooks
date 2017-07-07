@@ -53,7 +53,7 @@
    - 'tcli system set people_domain "{{ trident_site_people_domain }}"'
    - 'tcli system set logo_image {{ trident_site_logo_image }}'
    - 'tcli system set header_image {{ trident_site_header_image }}'
-  tags: [ trident-core ]
+  tags: [ trident-configure, config ]
 
 - name: Ensure initial sysadmin user account setup
   shell: '{{ item }}'
@@ -62,7 +62,7 @@
    - 'tcli user email remove trident@example.net'
    - 'tcli user email add trident {{ trident_site_adminemail }}'
    - 'tcli user email confirm_force trident {{ trident_site_adminemail }}'
-  tags: [ trident-core ]
+  tags: [ trident-configure, config ]
 
 - name: Retrieve present trust groups from tcli
   shell: >
@@ -197,14 +197,14 @@
   shell: >
     tcli system logout
   no_log: '{{ nolog }}'
-  tags: [ trident-core ]
+  tags: [ trident-configure, config ]
 
 - name: Run unit test for trident-configure
   command: '{{ dims_bin }}/test.runner --tap --level unit --match "trident-configure"'
   environment:
     DIMS: '{{ dims }}'
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-  tags: [ trident-configure ]
+  tags: [ trident-configure, config ]
 
 - include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-configure, config ]
