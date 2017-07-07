@@ -45,7 +45,7 @@
 - name: Load deployment secret variables file
   include_vars: '{{ dims_private }}/group_vars/vault.yml'
   no_log: '{{ nolog }}'
-  when: vault_tridentSysAdminPass is not defined or ssl_secret_files is not defined
+  when: vault_tridentSysAdminPass is not defined
   tags: [ trident-core, config ]
 
 - name: Install required perl libraries
