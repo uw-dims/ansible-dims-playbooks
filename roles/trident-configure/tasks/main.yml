@@ -40,6 +40,30 @@
   when: tcli_swapadmin.rc != 0
   tags: [ trident-configure, config ]
 
+- name: Ensure system configuration is present (tcli)
+  shell: '{{ item }}'
+  with_items:
+   - 'tcli system swapadmin'
+   - 'tcli system set name "{{ trident_site_name }}"'
+   - 'tcli system set welcome_text "{{ trident_site_welcome_text }}"'
+   - 'tcli system set url_public {{ trident_site_url_public }}'
+   - 'tcli system set adminname "{{ trident_site_adminname }}"'
+   - 'tcli system set adminemail "{{ trident_site_adminemail }}"'
+   - 'tcli system set email_domain "{{ trident_site_email_domain }}"'
+   - 'tcli system set people_domain "{{ trident_site_people_domain }}"'
+   - 'tcli system set logo_image {{ trident_site_logo_image }}'
+   - 'tcli system set header_image {{ trident_site_header_image }}'
+  tags: [ trident-core ]
+
+- name: Ensure initial sysadmin user account setup
+  shell: '{{ item }}'
+  with_items:
+   - 'tcli user set descr trident "{{ trident_site_adminname }}"'
+   - 'tcli user email remove trident@example.net'
+   - 'tcli user email add trident {{ trident_site_adminemail }}'
+   - 'tcli user email confirm_force trident {{ trident_site_adminemail }}'
+  tags: [ trident-core ]
+
 - name: Retrieve present trust groups from tcli
   shell: >
     tcli group list | grep -v 'No Groups Found' | awk '{ print $1; }'
@@ -168,6 +192,12 @@
     - '{{ trident_site_trust_groups }}'
     - '{{ settings_keys }}'
   tags: [ trident-configure, config ]
+
+- name: Ensure trident administator is logged out
+  shell: >
+    tcli system logout
+  no_log: '{{ nolog }}'
+  tags: [ trident-core ]
 
 - name: Run unit test for trident-configure
   command: '{{ dims_bin }}/test.runner --tap --level unit --match "trident-configure"'
