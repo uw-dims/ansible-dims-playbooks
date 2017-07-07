@@ -11,7 +11,7 @@
   tags: [ trident-configure, config ]
 
 - name: Load deployment secrets
-  include_vars: '{{ inventory_dir }}/group_vars/vault.yml'
+  include_vars: '{{ dims_private }}/group_vars/vault.yml'
   no_log: '{{ nolog }}'
   when: vault_tridentSysAdminPass is not defined
   tags: [ trident-configure, config ]

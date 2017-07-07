@@ -23,7 +23,7 @@
 #    where they are actually needed.
 
 - name: Load deployment secrets
-  include_vars: "{{ inventory_dir }}/group_vars/vault.yml"
+  include_vars: "{{ dims_private }}/group_vars/vault.yml"
   no_log: '{{ nolog }}'
   when: ansible_lsb.codename == "jessie"
 
