@@ -21,6 +21,8 @@
 #  > 'template_dest': '/path/to/template-out.txt'}" \
 #  > playbooks/base_playbook.yml
 
+# NOTE: Uses 'tags: [ always ]' to avoid tags preventing templating action.
+
 - name: Ansible (2.x) Base Template
   vars:
     - playbooks_root: "{{ lookup('env', 'PBR') }}"
@@ -34,8 +36,10 @@
         ansible_date_time:
           'iso8601': "{{ lookup('pipe', 'date -u +\"%Y-%m-%dT%H:%M:%SZ\"') }}"
       when: ansible_date_time is not defined
+      tags: [ always ]
 
     - name: Template as local_action
       local_action: template src={{ template_src }} dest={{ template_dest }}
+      tags: [ always ]
 
 # vim: ft=ansible :
