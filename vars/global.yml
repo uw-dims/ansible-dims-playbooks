@@ -115,9 +115,6 @@ nolog: true
 # Set a default hostname base to transient. Override in host vars or command line.
 hostbase: transient
 
-# sudo: False by default so ansible doesn't try and check for it and hang
-sudo: False
-
 # dnsDynamic: False by default; actually set at deployment level (or below)
 dnsDynamic: False
 
