@@ -46,7 +46,8 @@
   include_vars: '{{ dims_private }}/group_vars/vault.yml'
   no_log: '{{ nolog }}'
   when: vault_tridentSysAdminPass is not defined
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Install required perl libraries
   apt:
