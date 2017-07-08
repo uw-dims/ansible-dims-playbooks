@@ -403,6 +403,28 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
+- name: Ensure unknown_image is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_unknown_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+       - '{{ trident_unknown_image }}'
+       - unknown_person.jpg.{{ inventory_hostname }}
+       - unknown_person.jpg.category-{{ category }}
+       - unknown_person.jpg.deployment-{{ deployment }}
+       - unknown_person.jpg
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/unknown_person.jpg/'
+       - files/unknown_person.jpg/
+      skip: true
+  become: yes
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
+
 - name: Ensure cascading style sheet is present (tsetup)
   template:
     src: '{{ item }}'

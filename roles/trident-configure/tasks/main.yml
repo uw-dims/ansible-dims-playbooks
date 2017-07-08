@@ -52,6 +52,7 @@
    - 'tcli system set people_domain "{{ trident_site_people_domain }}"'
    - 'tcli system set logo_image {{ trident_site_logo_image }}'
    - 'tcli system set header_image {{ trident_site_header_image }}'
+   - 'tcli system set unknown_image {{ trident_site_unknown_image }}'
   tags: [ trident-configure, config ]
 
 - name: Ensure initial sysadmin user account setup
