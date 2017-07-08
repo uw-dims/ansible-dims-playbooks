@@ -41,7 +41,7 @@
   tags: [ trident-configure, config ]
 
 - name: Ensure system configuration is present (tcli)
-  shell: '{{ item }}'
+  shell: '{{ item }}; sleep 1'
   with_items:
    - 'tcli system set name "{{ trident_site_name }}"'
    - 'tcli system set welcome_text "{{ trident_site_welcome_text }}"'
@@ -55,7 +55,7 @@
   tags: [ trident-configure, config ]
 
 - name: Ensure initial sysadmin user account setup
-  shell: '{{ item }}'
+  shell: '{{ item }}; sleep 1'
   with_items:
    - 'tcli user set descr trident "{{ trident_site_adminname }}"'
    - 'tcli user email remove trident@example.net'
