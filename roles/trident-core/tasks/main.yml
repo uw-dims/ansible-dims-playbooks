@@ -226,7 +226,8 @@
        - trident/trident.conf/
   become: yes
   notify: restart trident
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 # NOTE: Make sure configuration matches between the
 # /etc/trident/trident.conf file and the following file.
@@ -250,7 +251,8 @@
        - trident/siteconfig/
   become: yes
   notify: restart trident
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 # TODO(dittrich): Overwriting nginx sites-available/default for now
 # to get this working with shared nginx role used by jenkins
@@ -274,7 +276,8 @@
        - nginx/sites-available/
   become: yes
   notify: restart nginx
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 # TODO(dittrich): Overwriting nginx sites-available/default for now
 #- name: Create symlink to enable trident site
@@ -305,7 +308,8 @@
        - trident-nginx/
   become: yes
   notify: restart nginx
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Make Trident Daemon upstream server configuration present
   template:
@@ -326,7 +330,8 @@
        - trident-nginx/
   become: yes
   notify: restart nginx
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure SSL file directory exists
   file:
@@ -350,7 +355,8 @@
   no_log: '{{ nolog }}'
   when: use_letsencrypt is not defined or not use_letsencrypt
   notify: restart nginx
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure 'logo_image' is present (tsetup)
   copy:
@@ -371,7 +377,8 @@
        - files/logo.svg/
       skip: true
   become: yes
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure header_image is present
   copy:
@@ -392,7 +399,8 @@
        - files/header_image.jpg/
       skip: true
   become: yes
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure cascading style sheet is present (tsetup)
   template:
@@ -413,7 +421,8 @@
        - trident/trident.css/
       skip: true
   become: yes
-  tags: [ trident-core, config ]
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure trident is running and enabled
   systemd:
