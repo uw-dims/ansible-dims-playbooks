@@ -30,6 +30,6 @@ networks:
     cidr_bits: '24'
     gateway: '10.0.2.2'
     nameservers:
-      - 10.0.2.2
+      - '10.0.2.2'
 
 # vim: ft=ansible :
