@@ -5,7 +5,7 @@
 vagrants:
   vars:
     ansible_port: 22
-
+    artifacts_url: 'file:///home/ansible/sources'
     zone_iface:
       'vmnet': 'eth0'
       'local': 'eth1'

@@ -45,11 +45,6 @@ artifact_branch: 'develop'
 install_type: 'install'
 install_mode: 'system'
 
-# TODO(dittrich): Force use of a single method for obtaining artifacts
-artifacts_url: 'file:///home/ansible/sources'
-#artifacts_url: 'http://source.devops.local/sources'
-artifact_server_visibility: 'public'
-
 # Default to using a local squid proxy on the virtual machine host (e.g., dev laptop)
 https_proxy: 'https://10.0.2.2:8000'
 
