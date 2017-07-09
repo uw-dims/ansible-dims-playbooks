@@ -18,7 +18,7 @@ for short) repository contents.
    introduction
    license
 
-.. sectionauthor:: Dave Dittrich dittrich@uw.washington.edu
+.. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
 
 .. include:: <isonum.txt>
 
