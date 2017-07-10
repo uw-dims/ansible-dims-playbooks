@@ -55,6 +55,9 @@
         --email {{ certbot_adminemail }}
         creates=/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
       when: _letsencrypt.stat.exists == False
+    - name: Remove image
+      shell: docker rmi certbot/certbot
+      when: _letsencrypt.stat.exists == False
     - name: Install letsencrypt cert directory in /etc
       shell: mv /tmp/letsencrypt /etc && tree -up /etc/letsencrypt
       when: _letsencrypt.stat.exists == False
