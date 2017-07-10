@@ -5,6 +5,12 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
+# Letsencrypt support
+- name: Ensure letsencrypt certs present if used
+  include: '{{ tasks_path }}/install-certbot-auto.yml'
+  when: use_letsencrypt is defined and use_letsencrypt
+  tags: [ nginx, packages ]
+
 # Following instructions from http://nginx.org/en/linux_packages.html
 - name: Import repository signing key
   apt_key:
@@ -174,11 +180,6 @@
   become: yes
   notify: restart nginx
   tags: [ nginx, config ]
-
-# Letsencrypt support
-- include: '{{ tasks_path }}/install-certbot-auto.yml'
-  when: use_letsencrypt is defined and use_letsencrypt
-  tags: [ nginx, packages ]
 
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
 - name: Generate Strong Diffie-Hellman Group
