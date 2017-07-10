@@ -59,7 +59,7 @@
       shell: docker rmi certbot/certbot
       when: _letsencrypt.stat.exists == False
     - name: Install letsencrypt cert directory in /etc
-      shell: mv /tmp/letsencrypt /etc && tree -up /etc/letsencrypt
+      shell: mv /tmp/letsencrypt/ /etc && tree -up /etc/letsencrypt
       when: _letsencrypt.stat.exists == False
   rescue:
     - fail: msg="certbot-auto could not create certificate"
