@@ -15,8 +15,9 @@ tridentDBPort: 5432
 
 tridentNginxHTTPPort: 80
 tridentNginxHTTPSPort: 443
-sslCertDir: '/etc/nginx/ssl'
-sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+# TODO(dittrich): Disabling for now - use playbook instead
+#sslCertDir: '/etc/nginx/ssl'
+#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
 
 # Several trident packages (server, cli, all) share the same
 # version number. Related packages are in the same directory, too.
