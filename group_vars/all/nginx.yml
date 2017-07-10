@@ -8,4 +8,15 @@ nginx_worker_processes: 4
 nginx_default_port: 80
 nginx_default_domain: '{{ category }}.{{ deployment }}'
 
+# For use by ansible-role-certbot
+certbot_auto_renew_user: ansible
+certbot_auto_renew_minute: 20
+certbot_auto_renew_hour: 5
+certbot_install_from_source: yes
+certbot_repo: https://github.com/certbot/certbot.git
+certbot_version: master
+certbot_keep_updated: yes
+certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
+certbot_adminemail: '{{ trident_site_adminemail }}'
+
 # vim: ft=ansible :
