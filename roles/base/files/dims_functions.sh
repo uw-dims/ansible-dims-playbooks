@@ -1393,7 +1393,7 @@ function get_ssh_private_key_file() {
         echo ${_kfile}
         return 0
     else
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 }
@@ -1409,7 +1409,7 @@ function get_user_ssh_key() {
     local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 
