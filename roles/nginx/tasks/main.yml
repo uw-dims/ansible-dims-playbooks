@@ -176,7 +176,7 @@
   tags: [ nginx, config ]
 
 # Letsencrypt support
-(??)- include: '{{ tasks_path }}/install-certbot-auto.yml'
+- include: '{{ tasks_path }}/install-certbot-auto.yml'
   when: use_letsencrypt is defined and use_letsencrypt
   tags: [ nginx, packages ]
 
