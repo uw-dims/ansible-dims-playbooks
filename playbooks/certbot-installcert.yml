@@ -1,0 +1,81 @@
+---
+
+# This playbook follows the example provided at
+# https://github.com/geerlingguy/ansible-role-certbot
+
+- hosts: '{{ host|default("webservers") }}'
+  become: yes
+  vars:
+    certbot_auto_renew_user: ansible
+    certbot_auto_renew_minute: 20
+    certbot_auto_renew_hour: 5
+    certbot_install_from_source: yes
+    certbot_repo: https://github.com/certbot/certbot.git
+    certbot_version: master
+    certbot_keep_updated: yes
+    certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
+    certbot_adminemail: '{{ trident_site_adminemail }}'
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+
+  roles:
+    - ansible-role-certbot
+
+  tasks:
+    - name: Temporarily disable nginx to use port 80/tcp
+      service:
+        name: nginx
+        state: stopped
+      notify: restart nginx
+
+    - block:
+        - name: stat {{ dims_bin }}/certbot-auto
+          stat: path='{{ dims_bin }}/certbot-auto'
+          register: _certbot
+        - name: Ensure certbot-auto is installed
+          include: '{{ tasks }}/install-certbot-auto.yml'
+          when: _certbot.stat.exists == False
+      rescue:
+        - fail: msg="certbot-auto is not available"
+
+    - block:
+        - name: Check for existence of /etc/letsencrypt directory
+          stat: path='/etc/letsencrypt'
+          register: _letsencrypt
+          when: _letsencrypt.stat.exists == True
+        - name: Create temporary directory for generating cert
+          file: path=/tmp/letsencrypt state=directory mode=0700
+          when: _letsencrypt.stat.exists == False
+        - name: Run certbot standalone in Docker container
+          shell: >
+            docker run -i
+            --rm 
+            -p 443:443
+            -p 80:80
+            --name certbot
+            -v "/tmp/letsencrypt/etc/letsencrypt:/etc/letsencrypt"
+            -v "/tmp/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt"
+            -v "/tmp/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt"
+            certbot/certbot
+            certonly
+            --noninteractive
+            --standalone
+            --preferred-challenges tls-sni
+            --domain {{ certbot_sitename }}
+            --agree-tos
+            --email {{ certbot_adminemail }}
+            creates=/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
+          when: _letsencrypt.stat.exists == False
+        - name: Install letsencrypt cert directory in /etc
+          shell: mv /tmp/letsencrypt /etc && tree -up /etc/letsencrypt
+          when: _letsencrypt.stat.exists == False
+      rescue:
+        - fail: msg="certbot-auto could not create certificate"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: started
+
+# vim: ft=ansible :
