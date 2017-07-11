@@ -159,9 +159,8 @@
   notify: restart trident
   tags: [ trident-core, packages ]
 
-- name: Force enable
-  shell: >
-    systemctl enable trident.service
+- name: Ensure trident is enabled
+  service: name=trident enabled=yes
   become: yes
   tags: [ trident-core, packages ]
 
