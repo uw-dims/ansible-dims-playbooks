@@ -14,6 +14,14 @@
   become: yes
   when: ansible_os_family == "Debian"
 
+- name: Make backports present for APT on Debian jessie
+  apt_repository:
+    repo="deb http://http.debian.net/debian jessie-backports main non-free contrib"
+    state=present
+    update_cache=yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  tags: [ base, packages ]
+
 - name: Make full dnsmasq present (Debian, Trusty)
   apt: name=dnsmasq=2.68-1ubuntu0.1 state=present force=yes
   become: yes
