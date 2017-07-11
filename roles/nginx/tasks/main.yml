@@ -86,8 +86,8 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Ensure nginx is running and enabled
-  service: name=nginx state=started enabled=yes
+- name: Ensure nginx is enabled
+  service: name=nginx enabled=yes
   become: yes
   tags: [ nginx, packages ]
 
