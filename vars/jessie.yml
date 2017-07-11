@@ -14,6 +14,7 @@ packages_install:
     'dconf-tools',
     'git-core',
     'gitk',
+    'gnupg2',
     'htop',
     'hunspell',
     'iptables-persistent',
