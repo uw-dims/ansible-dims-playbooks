@@ -15,6 +15,7 @@ packages_install:
     'git-core',
     'default-jdk',
     'gitk',
+    'gnupg2',
     'htop',
     'hunspell',
     'iptables-persistent',
