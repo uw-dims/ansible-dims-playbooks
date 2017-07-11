@@ -1,0 +1,33 @@
+---
+
+# This playbook follows the example provided at
+# https://github.com/geerlingguy/ansible-role-certbot
+
+- hosts: '{{ host|default("webservers") }}'
+  become: yes
+  vars:
+    certbot_auto_renew_user: ansible
+    certbot_auto_renew_minute: 20
+    certbot_auto_renew_hour: 5
+    certbot_install_from_source: yes
+    certbot_repo: https://github.com/certbot/certbot.git
+    certbot_version: master
+    certbot_keep_updated: yes
+    certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
+    certbot_adminemail: '{{ trident_site_adminemail }}'
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+
+  roles:
+    - ansible-role-certbot
+
+  tasks:
+    - include: '{{ tasks_path }}/install-certbot-certs.yml'
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: started
+
+# vim: ft=ansible :

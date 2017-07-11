@@ -32,3 +32,4 @@
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
 
+# vim: ft=ansible :

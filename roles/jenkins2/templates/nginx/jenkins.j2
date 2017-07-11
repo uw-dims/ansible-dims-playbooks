@@ -5,37 +5,86 @@
 
 # The following is for cleartext HTTP access.
 
-server {
-  listen {{ nginx_default_port }} default_server;
-  server_name _;
-  return 301 http://{{ inventory_hostname }}$request_uri;
+upstream jenkins {
+    server 127.0.0.1:8080;
 }
 
-server {
-  listen {{ nginx_default_port }};
-  server_name {{ inventory_hostname }};
+#server {
+#  listen {{ nginx_default_port }};
+#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
+#  return 301 http://{{ ansible_hostname }}.devops.{{ deployment }}$request_uri;
+#}
 
-  location ^~ /jenkins/ {
-    # Fix the "It appears that your reverse proxy set up is broken" error.
-    proxy_pass http://127.0.0.1:8080$request_uri;
-    port_in_redirect on;
+server {
+  listen 80;
+  server_name jenkins.devops.{{ deployment }};
+
+  location ^~ /jenkins {
+    sendfile off;
+    proxy_pass http://jenkins;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
     proxy_redirect off;
-    proxy_read_timeout 90;
+    proxy_http_version 1.1;
+    #proxy_set_header Host jenkins.devops.local;
+    #proxy_set_header Host jenkins.devops.{{ deployment }};
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Required for new HTTP-based CLI
+    proxy_max_temp_file_size 0;
+    client_max_body_size       10m;
+    client_body_buffer_size    128k;
+    proxy_connect_timeout      90;
+    proxy_send_timeout         90;
+    proxy_read_timeout         90;
+    proxy_buffer_size          4k;
+    proxy_buffers              4 32k;
+    proxy_busy_buffers_size    64k;
+    proxy_temp_file_write_size 64k;
+  }
+}
+
+
+upstream source {
+    server 127.0.0.1:8081;
+}
+
+server {
+  listen 8081;
+  server_name source.devops.{{ deployment }};
+
+  #location /source {
+  location / {
+    try_files $uri $uri/ @source;
+  }
+
+}
+
+server {
+  listen 80;
+  server_name source.devops.{{ deployment }};
+  root {{ dims }};
+
+  location @source {
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_pass http://source;
+    proxy_redirect off;
     proxy_http_version 1.1;
-    proxy_request_buffering off;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_max_temp_file_size 0;
+    client_max_body_size       10m;
+    client_body_buffer_size    128k;
+    proxy_connect_timeout      90;
+    proxy_send_timeout         90;
+    proxy_read_timeout         90;
+    proxy_buffer_size          4k;
+    proxy_buffers              4 32k;
+    proxy_busy_buffers_size    64k;
+    proxy_temp_file_write_size 64k;
   }
-
-  location ^~ /source/ {
-    root {{ dims }};
-    index index.html;
-    autoindex on;
-  }
-
 }
 
 
@@ -46,13 +95,13 @@ server {
 # 
 #server {
 #  listen 80;
-#  server_name jenkins.domain.tld;
+#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
 #  return 301 https://$host$request_uri;
 #}
 # 
 #server {
 #  listen 443 ssl;
-#  server_name jenkins.domain.tld;
+#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
 # 
 #  ssl_certificate /etc/nginx/ssl/server.crt;
 #  ssl_certificate_key /etc/nginx/ssl/server.key;
@@ -66,6 +115,5 @@ server {
 #    proxy_pass              http://jenkins;
 #    # Required for new HTTP-based CLI
 #    proxy_http_version 1.1;
-#    proxy_request_buffering off;
 #  }
 #}

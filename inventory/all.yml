@@ -4,20 +4,23 @@
 
 all:
   vars:
-    ansible_user: ansible
-    ansible_ssh_private_key_file: "{{ lookup('dims_functions', 'get_ssh_private_key_file {{ ansible_user }}') }}"
-    category: devops
-    deployment: local
+    ansible_user: 'ansible'
+    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
+    category: 'devops'
+    deployment: 'local'
+    dims_domain: 'devops.local'
     playbooks_root: "{{ lookup('env', 'PBR') }}"
-    dims_custom: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}|default('{{ playbooks_root }}')"
+    #dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+    dims_private: '{{ playbooks_root }}'
 
   hosts:
+    'vmhost.devops.local':
+    'orange.devops.local':
     'red.devops.local':
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
     'yellow.devops.local':
-    'orange.devops.local':
     'purple.devops.local':
     'blue14.devops.local':
 

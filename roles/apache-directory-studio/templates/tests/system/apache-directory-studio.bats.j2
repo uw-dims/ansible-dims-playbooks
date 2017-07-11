@@ -20,6 +20,6 @@ load helpers
     assert "apache-directory-studio is {{ dims_bin }}/apache-directory-studio" type apache-directory-studio
 }
 
-@test "[S][EV] Apache Directory Studio installed version number is {{ apache_directory_studio.release_version }}" {
-    assert "{{ apache_directory_studio.release_version }}" bash -c "grep org.apache.directory.studio.common.core /opt/ApacheDirectoryStudio/artifacts.xml | sed \"s/.*version='\(.*\)'.*/\1/\""
+@test "[S][EV] Apache Directory Studio installed version number is {{ apache_directory_studio_release_version }}" {
+    assert "{{ apache_directory_studio_release_version }}" bash -c "grep org.apache.directory.studio.common.core /opt/ApacheDirectoryStudio/artifacts.xml | sed \"s/.*version='\(.*\)'.*/\1/\""
 }

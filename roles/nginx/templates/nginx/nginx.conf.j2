@@ -31,6 +31,8 @@ http {
 	types_hash_max_size 2048;
 	# server_tokens off;
 
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
 	# server_names_hash_bucket_size 64;
 	# server_name_in_redirect off;
 
@@ -41,8 +43,8 @@ http {
 	# Logging Settings
 	##
 
-	access_log /var/log/nginx/access.log;
-	error_log /var/log/nginx/error.log;
+	access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+	error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
 
 	##
 	# Gzip Settings
@@ -59,27 +61,15 @@ http {
 	# gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
 	##
-	# nginx-naxsi config
-	##
-	# Uncomment it if you installed nginx-naxsi
-	##
-
-	#include /etc/nginx/naxsi_core.rules;
-
-	##
-	# nginx-passenger config
-	##
-	# Uncomment it if you installed nginx-passenger
-	##
-	
-	#passenger_root /usr;
-	#passenger_ruby /usr/bin/ruby;
-
-	##
 	# Virtual Host Configs
 	##
 
+	# Include alternate config files (if any)
 	include /etc/nginx/conf.d/*.conf;
+
+	# Put site configuration dropins here and create symlink
+	# into /etc/nginx/sites-enabled to enable them.
+	include /etc/nginx/sites-enabled/*;
 }
 
 

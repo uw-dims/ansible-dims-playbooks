@@ -275,11 +275,19 @@ fi
 #HELP get_dims_private_dir()
 #HELP     Return the name of the root of the directory where
 #HELP     all DIMS secrets (SSH keys, passwords, etc) are
-#HELP     stored.
-# TODO(dittrich): Hard coded path (we should template this)
+#HELP     stored (a directory with the name "private-$DEPLOYMENT")
+#HELP     If none is found, returns the public playbooks root.
 
 function get_dims_private_dir() {
-    echo "/opt/dims/private"
+    if [[ ! -z "$DIMS_PRIVATE" ]]; then
+        echo "$DIMS_PRIVATE"
+    elif [[ -d $GIT/private-${DEPLOYMENT} ]]; then
+        echo "$GIT/private-${DEPLOYMENT}"
+    elif [[ ! -z "{{ dims_private|default('') }}" ]]; then
+        echo "{{ dims_private|default('') }}"
+    else
+        echo "${PBR}"
+    fi
 }
 
 #HELP
@@ -1355,31 +1363,37 @@ function get_user_ssh_key_dir() {
 }
 
 #HELP
+#HELP get_custom
+#HELP     This function returns the full path to the customization
+#HELP     directory pointed to by the environment variable
+#HELP     DIMS_PRIVATE, if defined, otherwise PBR.
+
+function get_custom() {
+    echo ${DIMS_PRIVATE:-${PBR:-$UNDEFINED}}
+}
+
+#HELP
 #HELP get_ssh_private_key_file
 #HELP     This function returns the full path to the SSH
-#HELP     private key file name. The name of this function
-#HELP     mirrors that of the variable Ansible uses in templates
-#HELP     to point to the private SSH key Ansible uses for remote
-#HELP     SSH access. The path is constructed by concatenating the
-#HELP     output of get_user_ssh_key_dir() and get_user_ssh_key_name().
+#HELP     private RSA key file name for the specified user. The
+#HELP     name of this function mirrors that of the Ansible variable
+#HELP     referencing the private SSH key to use for remote
+#HELP     SSH access. The path is constructed according to the
+#HELP     DIMS path convention for separating "secrets" from public
+#HELP     repositories.
 #HELP     $1 - the user name of the owner of the key (REQUIRED)
-#HELP     $2 - the deployment (OPTIONAL)
+#HELP     $2 - the deployment customization directory (OPTIONAL)
 
 function get_ssh_private_key_file() {
     local _user=$1
-    local _deployment=${2:-$(get_deployment)}
-    local _kdir
-    local _kname
+    local _custom="${2:-$(get_custom)}"
+    local _kfile="${_custom}/files/ssh-keys/user/${_user}/dims_${_user}_rsa"
 
-    # Since the two following calls validate the user/deployment args,
-    # just pass them along as-is explicitly as arguments.
-    _kdir=$(get_user_ssh_key_dir "${_user}" "${_deployment}")
-    _kname=$(get_user_ssh_key_name "${_user}")
-    if [[ ! -z "${_kdir}" && ! -z "${_kname}" ]]; then
-        echo "${_kdir}/${_kname}"
+    if [[ -f ${_kfile}  ]]; then
+        echo ${_kfile}
         return 0
     else
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 }
@@ -1395,61 +1409,13 @@ function get_user_ssh_key() {
     local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 
     local _dir=$(get_user_ssh_key_dir $_user $_deployment $_root)
     local _file=$(get_user_ssh_key_name $_user $_root)
     cat "${_dir}/${_file}"
-    return $?
-}
-
-#HELP
-#HELP create_user_ssh_key()
-#HELP     Returns Bash true (0) if it successfully creates
-#HELP     an RSA SSH key pair. Returns Bash false (1), otherwise.
-#HELP     First argument should be the user name of the owner of the key;
-#HELP     second argument should be the deployment;
-#HELP     third argument should be the root to the private directory.
-#HELP     (We're assuming this is an RSA key. Otherwise, the fourth
-#HELP     argument can be the key type.)
-
-function create_user_ssh_key() {
-    local _user=$1; shift
-    local _deployment=$1; shift
-    local _root=${1:-$DIMS_PRIVATE}
-    local _dir="$(get_user_ssh_key_dir ${_user} ${_deployment} ${_root})"
-
-    if [[ ! -d ${_dir} ]]; then
-        mkdir ${_dir} ||
-            error_exit 1 "create_user_ssh_key: could not mkdir ${_dir}"
-    fi
-
-    ssh-keygen -b 2048 -t rsa -N "" -f ${_dir}/dims_${_user}_rsa | tee ~/ssh.out
-    return $?
-}
-
-#HELP
-#HELP delete_user_ssh_key()
-#HELP     Returns Bash true (0) if it successfully deletes the directory
-#HELP     holding an RSA SSH key pair for the specified user. Returns
-#HELP     Bash false (1), otherwise.
-#HELP     First argument should be the user name of the owner of the key;
-#HELP     second argument should be the deployment;
-#HELP     third argument can be the root to the private directory.
-
-function delete_user_ssh_key() {
-    local _user=$1; shift
-    local _deployment=$1; shift
-    local _root=${1:-$DIMS_PRIVATE}
-
-    if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
-        echo $UNAVAILABLE
-        return 1
-    fi
-
-    rm -rf $(get_user_ssh_key_dir ${_user} ${_deployment} ${_root})
     return $?
 }
 
@@ -2294,13 +2260,17 @@ function file_to_logdir() {
 #HELP
 #HELP get_inventory()
 #HELP     Return the path to the inventory directory for the specified
-#HELP     deployment. $1 is required to be a path to a directory,
-#HELP     and $1 is used to select a deployment. If $1 is not defined,
-#HELP     the deployment is derived from the host's domain name.
+#HELP     deployment. This function checks to see if a directory with
+#HELP     the base name "private-" concatenated with the deployment
+#HELP     (or $1) with an "inventory/" subdirectory within it is
+#HELP     present. If so, it is returned. Otherwise, the inventory
+#HELP     directory is sought within the directory pointed to by
+#HELP     $2. Failing that, the inventory directory within the
+#HELP     playbooks root ($PBR) is returned.
 
 get_inventory() {
-    local _pbr="$1"
-    local _deployment="$2"
+    local _deployment="$1"
+    local _pbr="$2"
     if [[ ! -z "${_deployment}" ]]; then
         if is_fqdn "${_deployment}"; then
             _deployment="$(get_deployment_from_fqdn "${_deployment}")"
@@ -2308,7 +2278,13 @@ get_inventory() {
     else
       _deployment="$(get_deployment)"
     fi
-    echo "${_pbr}/inventory/${_deployment}"
+    if [[ -d "${GIT}/private-${_deployment}/inventory" ]]; then
+        echo "${GIT}/private-${_deployment}/inventory"
+    elif [[ -d "${_pbr}/inventory" ]]; then
+        echo "${_pbr}/inventory"
+    else
+        echo "$PBR/inventory"
+    fi
     return 0
 }
 

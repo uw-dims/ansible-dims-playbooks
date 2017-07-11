@@ -1,0 +1,8 @@
+---
+
+go_version: '1.6.1'
+go_archive: 'go{{ go_version }}.linux-amd64.tar.gz'
+go_dist_url: 'https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz'
+go_sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988'
+
+# vim: ft=ansible :

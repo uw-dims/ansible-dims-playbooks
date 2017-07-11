@@ -23,9 +23,9 @@ coreos:
     box_baseos: "coreos"
     box_osnick: "coreos"
     box_oschannel: "alpha"
-    box_osversion: "1325.1.0"
+    box_osversion: "1451.2.0"
     box_vagrant_boxversion: "0"
-    box_name: "{{ lookup('dims_functions', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
+    box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
   hosts:
     'node01.devops.local':
     'node02.devops.local':

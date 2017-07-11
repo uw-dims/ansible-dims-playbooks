@@ -6,7 +6,9 @@
   static: yes
 
 # TODO(dittrich): This differs from {{ handlers_path }}/restart_services.yml. Why? Which is right?
-- name: restart dnsmasq on Debian
+- name: restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
   become: yes
-  service: name=dnsmasq state=restarted
 

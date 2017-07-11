@@ -1,0 +1,8 @@
+---
+
+# File: roles/ansible-server/defaults/main.yml
+
+_ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
+_ansible_dims_playbooks_version: 'master'
+
+# vim: ft=ansible :

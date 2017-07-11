@@ -52,7 +52,7 @@
   file:
     state=directory
     path=/var/log/dims
-    owner={{ syslog_user }}
+    owner={{ rsyslog_user }}
     group={{ root_group }}
     mode={{ mode_0775 }}
   become: yes
@@ -73,8 +73,9 @@
         - rsyslog.conf.deployment-{{ deployment }}.j2
         - rsyslog.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -97,14 +98,15 @@
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
-        - '{{ rsyslog_default_config }}'
-        - 00-ignore.conf.{{ inventory_hostname }}
-        - 00-ignore.conf.category-{{ category }}.j2
-        - 00-ignore.conf.deployment-{{ deployment }}.j2
-        - 00-ignore.conf.j2
+        - '{{ rsyslog_ignore_config }}'
+        - '00-ignore.conf.{{ inventory_hostname }}'
+        - '00-ignore.conf.category-{{ category }}.j2'
+        - '00-ignore.conf.deployment-{{ deployment }}.j2'
+        - '00-ignore.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -124,14 +126,15 @@
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
-        - '{{ rsyslog_default_config }}'
-        - 49-consolidation.conf.{{ inventory_hostname }}
-        - 49-consolidation.conf.category-{{ category }}.j2
-        - 49-consolidation.conf.deployment-{{ deployment }}.j2
-        - 49-consolidation.conf.j2
+        - '{{ rsyslog_consolidation_config }}'
+        - '49-consolidation.conf.{{ inventory_hostname }}'
+        - '49-consolidation.conf.category-{{ category }}.j2'
+        - '49-consolidation.conf.deployment-{{ deployment }}.j2'
+        - '49-consolidation.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -148,13 +151,13 @@
   with_first_found:
     - files:
         - '{{ rsyslog_default_config }}'
-        - 50-default.conf.{{ inventory_hostname }}
-        - 50-default.conf.category-{{ category }}.j2
-        - 50-default.conf.deployment-{{ deployment }}.j2
-        - 50-default.conf.j2
+        - '50-default.conf.{{ inventory_hostname }}'
+        - '50-default.conf.category-{{ category }}.j2'
+        - '50-default.conf.deployment-{{ deployment }}.j2'
+        - '50-default.conf.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rsyslog/'
-        - rsyslog/
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
+        - rsyslog.d/
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
@@ -163,18 +166,9 @@
 # start logging to central site as soon as possible for diagnositc
 # purposes. Using 'notify' delays execution of handlers to the end.
 
-- name: restart rsyslog (init/upstart service)
-  action: service name=rsyslog state=restarted
+- name: restart rsyslog
+  service: name=rsyslog state=restarted
   become: yes
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
-  tags: [ base, config, rsyslogd ]
-
-- name: restart rsyslog (systemd service)
-  shell: systemctl restart rsyslog.service
-  become: yes
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
@@ -192,7 +186,7 @@
         - dims.deployment-{{ deployment }}.j2
         - dims.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/logrotate/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/logrotate/'
         - logrotate/
   become: yes
   when: ansible_os_family == "Debian"
@@ -263,7 +257,7 @@
         - resolv.conf.deployment-{{ deployment }}.j2
         - resolv.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
   when: ansible_os_family == "Debian"
@@ -285,7 +279,7 @@
         - NetworkManager.conf.deployment-{{ deployment }}.j2
         - NetworkManager.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/NetworkManager/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/NetworkManager/'
         - NetworkManager/
   become: yes
   when: ansible_os_family == "Debian"
@@ -323,7 +317,7 @@
         - interfaces.deployment-{{ deployment }}.j2
         - interfaces.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/network/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/network/'
         - network/
   become: yes
   ignore_errors: true
@@ -391,7 +385,7 @@
         - fstab.deployment-{{ deployment }}.j2
         - fstab.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/fstab/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fstab/'
         - fstab/
       skip: true
   become: yes
@@ -413,7 +407,7 @@
         - hosts.deployment-{{ deployment }}.j2
         - hosts.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/hosts/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
@@ -426,13 +420,13 @@
   become: yes
   when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
   ignore_errors: yes
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
   become: yes
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
@@ -441,7 +435,7 @@
   become: yes
   ignore_errors: yes
   when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
@@ -449,7 +443,7 @@
     autoremove: yes
   become: yes
   when: packages_upgrade and ansible_os_family == "Debian"
-  tags: [ base, packages, patches ]
+  tags: [ base, packages, updates ]
 
 - name: Ensure pip installed for system python
   apt:
@@ -495,7 +489,7 @@
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
@@ -519,7 +513,7 @@
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   become: yes
   notify:
@@ -543,7 +537,7 @@
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
@@ -567,7 +561,7 @@
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   become: yes
   notify:
@@ -622,7 +616,7 @@
   tags: [ base, packages, scripts, tests ]
 
 - name: Ensure Ubuntu locale set (Ubuntu)
-  shell: "locale-gen {{ locale }}"
+  shell: "locale-gen {{ dims_locale }}"
   notify:
   - update Ubuntu locales
   become: yes
@@ -631,8 +625,8 @@
 
 - name: Ensure Debian locale set (Debian)
   lineinfile: dest=/etc/locale.gen
-              regexp='^# {{ locale }} UTF-8'
-              line='{{ locale }} UTF-8'
+              regexp='^# {{ dims_locale }} UTF-8'
+              line='{{ dims_locale }} UTF-8'
               backrefs=yes
               state=present
   notify:
@@ -676,7 +670,7 @@
         - gai.conf.deployment-{{ deployment }}.j2
         - gai.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/gai/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/gai/'
         - gai/
   become: yes
   when: ansible_os_family == "Debian"
@@ -709,7 +703,7 @@
         - sshd_config.deployment-{{ deployment }}.j2
         - sshd_config.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sshd/'
         - sshd/
   become: yes
   when: ansible_os_family == "Debian"
@@ -732,7 +726,7 @@
         - rc.local.deployment-{{ deployment }}.j2
         - rc.local.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/rc.local/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rc.local/'
         - rc.local/
   become: yes
   when: ansible_os_family == "Debian"

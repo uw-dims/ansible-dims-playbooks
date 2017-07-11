@@ -9,7 +9,7 @@ dims_users: [ 'dittrich' ]
 
 tcp_ports:
   - '{{ nginx_default_port }}'
-  - '{{ jenkins_http_port }}'
+  - '{{ jenkins_port }}'
   - '{{ nginx_health_check_port }}'
 udp_ports: [ ]
 

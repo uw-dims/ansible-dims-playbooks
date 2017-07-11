@@ -4,15 +4,17 @@
 # included with dnsmasq. (Found in templates/dnsmasq.conf.j2 in this
 # Ansible playbook repository.) Only the options required are specified here.
 
+{% if groups['manager'] is defined %}
 # The following rule causes dnsmasq to query a local consul DNS
 # service on specified port (if/when it is running) to
 # resolve addresses in specified domain.
 #
 # See http://www.consul.io/intro/getting-started/agent.html
 #
-server=/{{ consulDnsDomain }}/10.142.29.116#{{ consulDnsPort }}
-server=/{{ consulDnsDomain }}/10.142.29.117#{{ consulDnsPort }}
-server=/{{ consulDnsDomain }}/10.142.29.120#{{ consulDnsPort }}
-server=/86.86.10.in-addr.arpa/10.142.29.116#{{ consulDnsPort }}
-server=/86.86.10.in-addr.arpa/10.142.29.117#{{ consulDnsPort }}
-server=/86.86.10.in-addr.arpa/10.142.29.120#{{ consulDnsPort }}
+{% for host in groups['manager'] %}
+server=/{{ consul_dns_domain }}/{{ hostvars[host].net.iface[zone_iface['consul']].ip }}#{{ consul_dns_port }}
+{% if dns_zone['consul'].dns_in_addr_arpa is defined %}
+server=/{{ dns_zone['consul'].dns_in_addr_arpa }}.in-addr.apra/{{ hostvars[host].net.iface[zone_iface['consul']].ip }}#{{ consul_dns_port }}
+{% endif %}
+{% endfor %}
+{% endif %}

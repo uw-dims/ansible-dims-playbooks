@@ -1,12 +1,25 @@
 ---
 
 # File: roles/dns/tasks/main.yml
+#
+# To create DNS zone information for serving
+# from a VM host for internal DNS by Vagrants, do the
+# following:
+#
+#  $ ansible-playbook -i $PBR/inventory \
+#  > -e "{'host': 'localhost', 'role': 'dns', 'zones': ['local'], \
+#  > 'deployment': 'local', 'vmhost_ip': '192.168.26.1'}" \
+#  > --tags dnsfiles -c local \
+#  > $PBR/playbooks/base_playbook.yml
+#
+# See also $PBR/playbooks/hosts/vmhost.devops.local.yml and related
+# host_vars file for doing this more easily via a playbook.
 
 # We are using Ansible 2 only features.
 - include: "{{ tasks_path }}/ansible2check.yml"
 
 - include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ dns, packages, config ]
+  tags: [ dns, dnsfiles, packages, config ]
 
 # Install dnsmasq consistently from source.
 - include: "{{ tasks_path }}/dnsmasq.yml"
@@ -20,7 +33,7 @@
     group: "{{ root_group }}"
     mode: "{{ mode_0755 }}"
   become: yes
-  tags: [ dns, packages, config ]
+  tags: [ dns, dnsfiles, packages, config ]
 
 - name: Update dnsmasq defaults on Debian
   template:
@@ -37,7 +50,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
   become: yes
   when: ansible_os_family == "Debian"
@@ -59,7 +72,7 @@
         - dnsmasq.conf.category-{{ category }}.j2
         - dnsmasq.conf.deployment-{{ deployment }}.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
       skip: true
   become: yes
@@ -83,7 +96,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/default/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
   become: yes
   when: ansible_os_family == "Debian"
@@ -106,7 +119,7 @@
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/init.d/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/init.d/'
         - init.d/
   become: yes
   when: ansible_os_family == "Debian"
@@ -114,52 +127,61 @@
     - restart dnsmasq
   tags: [ dns, config ]
 
-- name: Create directory for additional user-supplied configurations
-  file:
-    state: directory
-    path: /etc/dnsmasq.d
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  become: yes
-  tags: [ dns, config ]
+- name: Get zone configurations
+  stat:
+    path: '{{ item.0 }}/{{ item.1 }}.j2'
+  register: configs_list
+  with_nested:
+    - [ '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
+    - '{{ zones }}'
+  delegate_to: 127.0.0.1
+  ignore_errors: yes
+  tags: [ dns, dnsfiles, config ]
+
+- debug: "var=configs_list"
+  tags: [ dns, dnsfiles, config ]
 
 - name: Add additional user-supplied configurations
   template:
-    src: '{{ item.0 }}/{{ item.1 }}.j2'
-    dest: /etc/dnsmasq.d/{{ item.1 }}
+    src: '{{ item.stat.path }}'
+    dest: /etc/dnsmasq.d/{{ item.stat.path|basename|regex_replace("\.j2$","") }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  with_nested:
-    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.d', 'templates/dnsmasq.d' ]
-    - '{{ zones }}'
+  when: item.stat.exists
+  with_items:
+    - '{{ configs_list.results }}'
   become: yes
-  ignore_errors: yes
-  when: ansible_os_family == "Debian"
   notify:
     - restart dnsmasq
-  tags: [ dns, config ]
+  tags: [ dns, dnsfiles, config ]
 
 # It isn't necessary to have a 1:1 configuration file to mapping file, so don't
 # require the hosts.* version. But load one if it is present.
+- name: Get zone host mappings
+  stat:
+    path: '{{ item.0 }}/hosts.{{ item.1 }}.j2'
+  register: maps_list
+  with_nested:
+    - [ '{{ dims_private }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
+    - '{{ zones }}'
+  delegate_to: 127.0.0.1
+  ignore_errors: yes
+  tags: [ dns, dnsfiles, config ]
 
-- name: Update dnsmasq hosts file for DIMS
+- name: Update host mappings
   template:
-    src: '{{ item.0 }}/hosts.{{ item.1 }}.j2'
-    dest: /etc/hosts.{{ item.1 }}
+    src: '{{ item.stat.path }}'
+    dest: /etc/{{ item.stat.path|basename|regex_replace("\.j2$","") }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  with_nested:
-    - [ '{{ dims_custom }}/roles/{{ role_name }}/templates/mappings', 'templates/mappings' ]
-    - "{{ zones }}"
-  become: yes
-  ignore_errors: yes
-  when: ansible_os_family == "Debian"
+  when: item.stat.exists
+  with_items:
+    - '{{ maps_list.results }}'
   notify:
     - restart dnsmasq
-  tags: [ dns, config ]
+  tags: [ dns, dnsfiles, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dns, packages, config ]

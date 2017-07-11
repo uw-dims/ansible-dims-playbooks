@@ -21,9 +21,9 @@ private:
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
     ssl_secret_files:
       /etc/nginx/ssl/trident.crt:
-        owner: root
-        group: root
-        mode: u=r,go=
+        owner: 'root'
+        group: 'root'
+        mode: 'u=r,go='
         content: |
           -----BEGIN CERTIFICATE-----
           MIIEQzCCAyugAwIBAgIJAIEVOlnPWfPvMA0GCSqGSIb3DQEBCwUAMIG3MQswCQYD
@@ -51,9 +51,9 @@ private:
           V4Cz51UhNGLEobTodXjZ8iSfo0YPqkO3FQckINyJaiVuBh0ytlB6
           -----END CERTIFICATE-----
       /etc/nginx/ssl/trident.key:
-        owner: "root"
-        group: "root"
-        mode: "u=r,go="
+        owner: 'root'
+        group: 'root'
+        mode: 'u=r,go='
         content: |
           -----BEGIN PRIVATE KEY-----
           MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDLbhHduZopxuWF
@@ -84,13 +84,13 @@ private:
           +0kmZGKKBjv/MyGOZQz1oVa/XA==
           -----END PRIVATE KEY-----
   hosts:
+    'vmhost.devops.local':
     'red.devops.local':
+    'orange.devops.local':
     'blue14.devops.local':
     'blue16.devops.local':
     'yellow.devops.local':
-    'orange.devops.local':
     'purple.devops.local':
-    'green.devops.local':
     'hub.devops.local':
     'node01.devops.local':
     'node02.devops.local':

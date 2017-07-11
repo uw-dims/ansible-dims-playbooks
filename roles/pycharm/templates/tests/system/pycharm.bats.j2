@@ -24,6 +24,6 @@ load helpers
     [ -L {{ dims_bin }}/pycharm ]
 }
 
-@test "[S][EV] Pycharm Community installed version number is {{ pycharm.version }}" {
-    assert "{{ pycharm.version }}" bash -c "file $(which pycharm) | sed 's|\(.*/pycharm-community-\)\([^/]*\)\(/.*$\)|\2|'"
+@test "[S][EV] Pycharm Community installed version number is {{ pycharm_version }}" {
+    assert "{{ pycharm_version }}" bash -c "file $(which pycharm) | sed 's|\(.*/pycharm-community-\)\([^/]*\)\(/.*$\)|\2|'"
 }

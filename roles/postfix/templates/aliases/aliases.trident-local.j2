@@ -16,4 +16,4 @@ security: root
 root: {{ ansible_user_id }}@ops.{{ deployment }}
 
 # See https://trident.li/doc/#toc_32
-trident-handler: "|{{ trident.mail_handler }}"
+trident-handler: "|{{ trident_site_mail_handler }}"

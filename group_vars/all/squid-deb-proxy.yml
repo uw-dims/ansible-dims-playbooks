@@ -1,0 +1,7 @@
+---
+
+squidLogFile: '/var/log/squid.log'
+squidContainerName: 'squid-proxy'
+squidBasename: 'squid'
+
+# vim: ft=ansible :

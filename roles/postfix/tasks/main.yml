@@ -51,7 +51,7 @@
         - main.cf.deployment-{{ deployment }}.j2
         - main.cf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/main.cf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/main.cf/'
         - main.cf/
   notify:
     - restart postfix
@@ -72,7 +72,7 @@
         - master.cf.{{ postfix_group }}.j2
         - master.cf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/master.cf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/master.cf/'
         - master.cf/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
@@ -95,7 +95,7 @@
         - aliases.deployment-{{ deployment }}.j2
         - aliases.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/aliases/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
         - aliases/
   notify:
     - reload postfix
@@ -118,7 +118,7 @@
         - virtual.deployment-{{ deployment }}.j2
         - virtual.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/virtual/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/virtual/'
         - virtual/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
@@ -141,7 +141,7 @@
         - transport.{{ postfix_group }}.j2
         - transport.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/transport/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
         - transport/
   notify:
     - reload postfix
@@ -163,7 +163,7 @@
         - generic.{{ postfix_group }}.j2
         - generic.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/generic/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
         - generic/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
@@ -187,7 +187,7 @@
         - access.deployment-{{ deployment }}.j2
         - access.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/access/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
         - access/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
@@ -211,7 +211,7 @@
         - helo_access.deployment-{{ deployment }}.j2
         - helo_access.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/helo_access/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
         - helo_access/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
@@ -243,7 +243,7 @@
   tags: [ postfix, config ]
 
 - name: enable postfix to start
-  service: name=postfix state=running enabled=yes
+  service: name=postfix state=started enabled=yes
   tags: [ postfix, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"

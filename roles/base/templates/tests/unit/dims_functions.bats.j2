@@ -9,7 +9,6 @@ load helpers
 function setup() {
     source $DIMS/bin/dims_functions.sh
     touch --reference=/bin/ls /tmp/bats.ls-marker
-    VMPRIVATE=$(get_vagrant_run_dir test)/private
     cat <<EOD > /tmp/bats.varsdefs
 A=1
 C=3
@@ -72,10 +71,6 @@ function teardown() {
 
 @test "[U][EV] is_fqdn 12345 returns failure" {
     ! is_fqdn 12345
-}
-
-@test "[U][EV] get_dims_private_dir returns '{{ private }}'" {
-    assert "{{ private }}" get_dims_private_dir
 }
 
 @test "[U][EV] parse_fqdn host.category.deployment returns 'host category deployment'" {
@@ -235,16 +230,16 @@ function teardown() {
     assert "A.dir B.dir" get_directories_in_directory /tmp/bats.tmp
 }
 
-@test "[U][EV] get_directories_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+@test "[U][EV] get_directories_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_function', 'echo $UNAVAILABLE') }}\"" {
     ! get_directories_in_directory /a/path/that/does/not/exist
-    [[ $(get_directories_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+    [[ $(get_directories_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_function', 'echo $UNAVAILABLE') }}" ]]
 }
 
 @test "[U][EV] get_files_in_directory /tmp/bats.tmp returns \"A.txt B.txt\"" {
     assert "A.txt B.txt" get_files_in_directory /tmp/bats.tmp
 }
 
-@test "[U][EV] get_files_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}\"" {
+@test "[U][EV] get_files_in_directory /a/path/that/does/not/exist fails returning \"{{ lookup('dims_function', 'echo $UNAVAILABLE') }}\"" {
     ! get_files_in_directory /a/path/that/does/not/exist
-    [[ $(get_files_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_functions', 'echo $UNAVAILABLE') }}" ]]
+    [[ $(get_files_in_directory /a/path/that/does/not/exist) == "{{ lookup('dims_function', 'echo $UNAVAILABLE') }}" ]]
 }

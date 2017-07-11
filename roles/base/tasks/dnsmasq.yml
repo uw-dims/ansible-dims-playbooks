@@ -33,7 +33,7 @@
         - dnsmasq.conf.deployment-{{ deployment }}.j2
         - dnsmasq.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
   become: yes
   when: ansible_os_family == "Debian"
@@ -65,7 +65,7 @@
         - nsswitch.conf.deployment-{{ deployment }}.j2
         - nsswitch.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nsswitch.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/nsswitch.conf/'
         - nsswitch.conf/
   become: yes
   when: ansible_os_family == "Debian"
@@ -96,7 +96,7 @@
         - head.deployment-{{ deployment }}.j2
         - head.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
   when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
@@ -118,7 +118,7 @@
         - base.deployment-{{ deployment }}.j2
         - base.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/resolv.conf/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
   when: ansible_os_family == "Debian" and resolvconf_installed.rc == 0
