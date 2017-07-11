@@ -11,7 +11,7 @@ DIMS Ansible playbooks
 Contact:
 --------
 
-Dave Dittrich dittrich@uw.washington.edu
+Dave Dittrich dittrich@u.washington.edu
 
 .. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 
