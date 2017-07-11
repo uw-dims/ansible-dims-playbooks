@@ -89,7 +89,7 @@ trident_site_trust_groups:
     initial_users:
       - ident: 'dims'
         descr: 'DIMS Mail (no-reply)'
-        email: 'noreply@{{ trident_site_email_name }}'
+        email: 'noreply@{{ trident_site_email_domain }}'
       - ident: 'dittrich'
         descr: 'Dave Dittrich'
         email: 'dittrich@{{ category }}.{{ deployment }}'
