@@ -2,6 +2,15 @@
 
 # File: tasks/install-certbot-certs.yml
 
+# This task ensures that a letsencrypt certificate is in
+# /etc/letsencrypt/ and that certbot-auto is ready to
+# renew it. Because there is throttling of certificate generation
+# that limits the number of certificates for a unique domain name
+# to a small handful per week, a backup file is generated in
+# the DIMS "private" directory for the deployment and a fresh
+# Vagrant will be set up with this backup certificate rather
+# than always generating a new one. Be aware of this limitation.
+
 - name: Define certbot_sitename
   set_fact:
     certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
@@ -12,33 +21,72 @@
     certbot_adminemail: '{{ trident_site_adminemail }}'
   when: certbot_adminemail is not defined
 
-- name: Temporarily disable nginx to use port 80/tcp
+- name: Define backup cert directory
+  set_fact:
+    certbot_cert_backup_dir: '{{ dims_private }}/files/certs/{{ inventory_hostname }}'
+  when: certbot_cert_backup_dir is not defined
+
+# Because of the throttling of certificate generation, development testing
+# and demonstrations should be performed using the staging environment.
+# See: https://letsencrypt.org/docs/staging-environment/
+# Set 'certbot_staging' to a true value to enable.
+
+- name: Define certbot staging option
+  set_fact:
+    _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
+
+- name: stat {{ certbot_cert_backup_dir }}/letsencrypt.tgz
+  stat: path='{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
+  delegate_to: 127.0.0.1
+  register: _le_backup_file
+
+- name: Temporarily stop nginx to use port 80/tcp
   service:
     name: nginx
     state: stopped
   notify: restart nginx
+  ignore_errors: yes
 
 - block:
     - name: stat {{ dims_bin }}/certbot-auto
       stat: path='{{ dims_bin }}/certbot-auto'
       register: _certbot
+
     - name: Ensure certbot-auto is installed
       include: '{{ tasks_path }}/install-certbot-auto.yml'
       when: _certbot.stat.exists == False
+
+    - debug: msg="{{ dims_bin }}/certbot-auto is installed"
+      when: _certbot.stat.exists == True
+
   rescue:
-    - fail: msg="certbot-auto is not available"
+    - fail: msg="{{ dims_bin }}/certbot-auto is not installed"
 
 - block:
     - name: Check for existence of /etc/letsencrypt directory
       stat: path='/etc/letsencrypt'
-      register: _letsencrypt
+      register: _le_dir
+
+    - name: Restore certs from backup?
+      unarchive:
+        src: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
+        dest: /etc
+        extra_opts: '--exclude=var'
+      when: _le_dir.stat.exists == False and
+            _le_backup_file.stat.exists == True
+
     - name: Create temporary directory for generating cert
-      file: path=/tmp/letsencrypt state=directory mode=0700
-      when: _letsencrypt.stat.exists == False
+      file:
+        path: /tmp/letsencrypt
+        state: directory
+        mode: 0700
+      when: _le_dir.stat.exists == False and
+            _le_backup_file.stat.exists == False
+
     - name: Run certbot standalone in Docker container
       shell: >
         docker run -i
-        --rm 
+        --rm
         -p 443:443
         -p 80:80
         --name certbot
@@ -48,20 +96,68 @@
         certbot/certbot
         certonly
         --noninteractive
-        --standalone
+        --standalone {{ _certbot_staging }}
+        --keep-until-expiring
         --preferred-challenges tls-sni
         --domain {{ certbot_sitename }}
         --agree-tos
         --email {{ certbot_adminemail }}
-        creates=/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
-      when: _letsencrypt.stat.exists == False
-    - name: Remove image
-      shell: docker rmi certbot/certbot
-      when: _letsencrypt.stat.exists == False
+        creates=/tmp/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
+      when: _le_dir.stat.exists == False and
+            _le_backup_file.stat.exists == False
+
+#   - name: Remove image
+#     shell: docker rmi certbot/certbot
+#     when: _letsencrypt.stat.exists == False
+
     - name: Install letsencrypt cert directory in /etc
-      shell: mv /tmp/letsencrypt/ /etc && tree -up /etc/letsencrypt
-      when: _letsencrypt.stat.exists == False
+      shell: >
+        cp -pr /tmp/letsencrypt/etc/letsencrypt/ /etc &&
+        tree -up /etc/letsencrypt
+      when: _le_dir.stat.exists == False and
+            _le_backup_file.stat.exists == False
+
   rescue:
-    - fail: msg="certbot-auto could not create certificate"
+    - fail: msg="Could not create/restore certificate"
+
+  always:
+    - name: Check for existence of /tmp/letsencrypt directory
+      stat: path='/tmp/letsencrypt'
+      register: _le_tmpdir
+
+    - name: Create backup of letsencrypt certificates
+      archive:
+        path: '/tmp/letsencrypt/etc/letsencrypt'
+        dest: '/tmp/letsencrypt.tgz'
+        remove: true
+      when: _le_tmpdir.stat.exists == True and
+            _le_backup_file.stat.exists == False
+
+    - name: Ensure local cert directory exists
+      file:
+        dest: '{{ certbot_cert_backup_dir }}'
+        state: directory
+        owner: '{{ ansible_user }}'
+        group: '{{ ansible_user }}'
+        mode: 0700
+      delegate_to: 127.0.0.1
+      when: _le_tmpdir.stat.exists == True and
+            _le_backup_file.stat.exists == False
+
+    - name: Fetch backup copy of letsencrypt directory
+      fetch:
+        src: '/tmp/letsencrypt.tgz'
+        dest: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
+        flat: true
+      when: _le_tmpdir.stat.exists == True and
+            _le_backup_file.stat.exists == False
+
+    - name: Remove temporary archive
+      file:
+        path: 'tmp/letsencrypt.tgz'
+        state: absent
+      when: _le_tmpdir.stat.exists == True and
+            _le_backup_file.stat.exists == False
+      ignore_errors: yes
 
 # vim: ft=ansible :
