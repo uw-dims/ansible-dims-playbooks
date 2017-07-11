@@ -166,18 +166,9 @@
 # start logging to central site as soon as possible for diagnositc
 # purposes. Using 'notify' delays execution of handlers to the end.
 
-- name: restart rsyslog (init/upstart service)
-  action: service name=rsyslog state=restarted
+- name: restart rsyslog
+  service: name=rsyslog state=restarted
   become: yes
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
-  tags: [ base, config, rsyslogd ]
-
-- name: restart rsyslog (systemd service)
-  shell: systemctl restart rsyslog.service
-  become: yes
-  when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
-        ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
