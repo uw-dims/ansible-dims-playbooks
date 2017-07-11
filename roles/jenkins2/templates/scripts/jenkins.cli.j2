@@ -33,7 +33,7 @@
 # this script.
 
 java -jar {{ jenkins_jar_location }} \
-     -s http://localhost:{{ jenkins_http_port }}{{ jenkins_url_prefix | default('') }} \
+     -s http://localhost:{{ jenkins_port }}{{ jenkins_url_prefix | default('') }} \
      $@ \
      --username admin \
      --password-file {{ jenkins_home }}/secrets/AdminPassword

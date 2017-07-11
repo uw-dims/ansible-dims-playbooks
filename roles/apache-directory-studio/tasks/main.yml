@@ -8,16 +8,16 @@
 
 - name: Make ADS (64-bit) archive present
   get_url:
-    url: "{{ apache_directory_studio.dist_url }}/{{ apache_directory_studio.archive }}"
+    url: "{{ apache_directory_studio_dist_url }}/{{ apache_directory_studio_archive }}"
     dest: "{{ dims_deploy }}/{{ role_name }}"
-    sha256sum: "{{ apache_directory_studio.sha256_sum }}"
+    sha256sum: "{{ apache_directory_studio_sha256_sum }}"
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ apache-directory-studio, packages, ldap ]
 
 - name: Unpack ADS archive file
   unarchive:
-    src: "{{ dims_deploy }}/{{ role_name }}/{{ apache_directory_studio.archive }}"
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ apache_directory_studio_archive }}"
     dest: /opt
     copy: no
   tags: [ apache-directory-studio, packages, ldap ]

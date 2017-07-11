@@ -5,10 +5,8 @@
 # You can define other directives and place the files
 # holding those definitions in the /etc/nginx/conf.d dir.
 
-# The HTTP server that exposed Trident - development only
-
 server {
   listen *:{{ nginx_health_check_port }};
-  server_name {{ ansible_hostname }}.{{ ansible_dns.domain }};
+  server_name {{ ansible_hostname }}.{{ nginx_default_domain }};
   root /var/www/health_check;
 }

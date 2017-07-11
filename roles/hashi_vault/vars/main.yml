@@ -1,0 +1,10 @@
+---
+
+hashi_vault_version: '0.7.2'
+hashi_vault_archive: 'vault_{{ hashi_vault_version }}_linux_amd64.zip'
+hashi_vault_dist_url: 'https://releases.hashicorp.com/vault/{{ hashi_vault_version }}/vault_{{ hashi_vault_version }}_linux_amd64.zip'
+hashi_vault_sha256_sum: '22575dbb8b375ece395b58650b846761dffbf5a9dc5003669cafbb8731617c39'
+
+hashi_vault_bind_interface: ''
+
+# vim: ft=ansible :

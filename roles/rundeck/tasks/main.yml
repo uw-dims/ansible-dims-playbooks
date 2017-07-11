@@ -17,8 +17,8 @@
 
 - name: Import repository signing key
   apt_key:
-    id: '{{ rundeck.gpg_key_id }}'
-    url: '{{ rundeck.gpg_key_url }}'
+    id: '{{ rundeck_gpg_key_id }}'
+    url: '{{ rundeck_gpg_key_url }}'
     state: present
   become: yes
   args:
@@ -28,15 +28,15 @@
 
 - name: Get rundeck deb file 
   get_url:
-    url={{ rundeck.dist_url }}/{{ rundeck.artifact }}
+    url={{ rundeck_dist_url }}/{{ rundeck_artifact }}
     dest={{ dims_deploy }}/{{ role_name }}
-    sha256sum={{ rundeck.sha256_sum}}
+    sha256sum={{ rundeck_sha256_sum}}
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ rundeck, packages ]
 
 - name: Install
-  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ rundeck.artifact }}"
+  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ rundeck_artifact }}"
   become: yes
   when: ansible_os_family == "Debian"
   notify: restart rundeckd
@@ -57,7 +57,7 @@
         - realm.properties.deployment-{{ deployment }}.j2
         - realm.properties.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/realm.properties/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/realm.properties/'
         - realm.properties/
   become: yes
   when: ansible_os_family == "Debian"
@@ -65,7 +65,7 @@
   tags: [ rundeck, config ]
 
 - name: Ensure rundeckd is running and enabled
-  service: name=rundeckd state=running enabled=yes
+  service: name=rundeckd state=started enabled=yes
   become: yes
   tags: [ rundeck, packages ]
 

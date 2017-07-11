@@ -2,12 +2,24 @@
 
 # File: host_vars/vmhost.devops.local.yml
 
+# This is a psuedo-host for the purposes of DNS mappings
+
+eth1:
+  ip: "192.168.56.1"
+
+zone_iface:
+  'vmnet': 'vboxnet1'
+  'local': 'vboxnet3'
+net:
+  iface:
+    'vboxnet1':
+      ip: '10.0.2.1'
+    'vboxnet3':
+      ip: '{{ eth1.ip }}'
+
 name: "vmhost"
 ansible_host: 127.0.0.1
 ansible_connection: local
 https_proxy: 'https://127.0.0.1:8000'
-
-eth1:
-  ip: "192.168.56.1"
 
 # vim: ft=ansible :

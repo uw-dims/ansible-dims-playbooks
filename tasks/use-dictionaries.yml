@@ -6,16 +6,16 @@
 
 - debug: var=ansible_facts['trident']['admins']
 
-- name: Iterate over trident.admins
+- name: Iterate over trident_site_admins
   local_action: command echo {{ item }}
-  with_items: "{{ trident.admins }}"
+  with_items: "{{ trident_site_admins }}"
 
 - name: Setup Trident admin
-  local_action: "command echo First, installing {{ trident.adminname }}"
+  local_action: "command echo First, installing {{ trident_site_adminname }}"
 
 - name: Setup other admins
   local_action: "command echo Then, installing {{ item.descr }}"
-  with_items: "{{ trident.admins }}"
+  with_items: "{{ trident_site_admins }}"
   when: item.ident != "trident"
 
 # vim: ft=ansible :

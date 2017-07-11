@@ -1,0 +1,75 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+	source $DIMS/bin/dims_functions.sh
+}
+
+@test "[S][EV] Postgres is installed in /usr/lib/postgresql/{{ postgresql_version }}/bin" {
+	results=$(ls -d /usr/lib/postgresql/{{ postgresql_version }}/bin | wc -l)
+	echo $results >&2
+	[ $results -ne 0 ]
+}
+
+@test "[S][EV] Postgres installed version number is {{ postgresql_version }}" {
+	assert "{{ postgresql_version }}" bash -c "/usr/lib/postgresql/{{ postgresql_version }}/bin/postgres --version | awk '{print \$3;}' | sed 's/.[0-9]*$//'"
+}
+
+@test "[S][EV] Directory /etc/postgresql exists" {
+    [ -d /etc/postgresql ]
+}
+
+@test "[S][EV] Assert ownerships root:root for /etc/postgresql" {
+	assert "root:root" stat --printf "%U:%G" /etc/postgresql
+}
+
+@test "[S][EV] Assert permisions 755 for /etc/postgresql" {
+	assert 755 stat --printf "%a" /etc/postgresql
+}
+
+@test "[S][EV] File /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf exists" {
+    [ -f /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf ]
+}
+
+@test "[S][EV] Assert ownerships postgres:postgres for /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf" {
+	assert "postgres:postgres" stat --printf "%U:%G" /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+}
+
+@test "[S][EV] Assert permisions 644 for /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf" {
+	assert 644 stat --printf "%a" /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+}
+
+@test "[S][EV] File /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf exists" {
+    [ -f /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf ]
+}
+
+@test "[S][EV] Assert ownerships postgres:postgres for /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf" {
+	assert "postgres:postgres" stat --printf "%U:%G" /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+}
+
+@test "[S][EV] Assert permisions 644 for /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf" {
+	assert 644 stat --printf "%a" /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+}
+
+@test "[S][EV] File /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf exists" {
+    [ -f /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf ]
+}
+
+@test "[S][EV] Assert ownerships postgres:postgres for /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf" {
+	assert "postgres:postgres" stat --printf "%U:%G" /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf
+}
+
+@test "[S][EV] Assert permisions 644 for /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf" {
+	assert 644 stat --printf "%a" /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf
+}
+
+# TODO(dittrich): This is not right. Needs fix.
+#@test "[S][EV] Postgres is running" {
+#    run bash -c "ps aux | grep -q 'consul agent'"
+#	[ $status -eq 0 ]
+#}

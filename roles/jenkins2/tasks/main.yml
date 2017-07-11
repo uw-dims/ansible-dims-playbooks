@@ -65,7 +65,7 @@
        - jenkins.deployment-{{ deployment }}.j2
        - jenkins.j2
       paths:
-       - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
        - nginx/
   become: yes
   notify: restart nginx
@@ -121,6 +121,16 @@
     mode: '{{ mode_0775 }}'
   become: yes
   notify: restart nginx
+  tags: [ jenkins2, config ]
+
+- name: Bootstrap artifacts from ~ansible/sources
+  shell: >
+    cp /home/ansible/sources/* {{ dims }}/source &&
+    chown {{ dims_user }}:www-data {{ dims }}/source/* &&
+    chmod 644 {{ dims }}/source/*
+  become: yes
+  when: inventory_hostname in groups['ci-server']
+  ignore_errors: yes
   tags: [ jenkins2, config ]
 
 - name: Ensure jenkins user is in www-data group

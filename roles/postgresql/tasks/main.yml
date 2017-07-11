@@ -1,0 +1,135 @@
+---
+
+# File: roles/postgresql/tasks/main.yml
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ postgresql, config, packages ]
+
+  # /etc/apt/sources.list.d/pgdg.list
+- name: Make deb sources for postgresql present
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg {{ postgresql_pool }}"
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ postgresql, packages ]
+
+- name: Import repository signing key
+  apt_key:
+    id: '{{ postgresql_apt_key_id }}'
+    url: '{{ postgresql_apt_key_url }}'
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ postgresql, packages ]
+
+- name: Force apt cache update in case config changed
+  apt: update_cache=yes
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ postgresql, packages ]
+
+- name: Make PostgreSQL present
+  apt: state=present name={{ item }} force=yes
+  with_items:
+    - postgresql-{{ postgresql_version }}
+    - postgresql-client-{{ postgresql_version }}
+    - pgadmin3
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ postgresql, packages ]
+
+- name: Hold updates of postgresql package
+  dpkg_selections:
+    name: '{{ item }}'
+    selection: hold
+  become: yes
+  with_items:
+    - postgresql-{{ postgresql_version }}
+    - postgresql-client-{{ postgresql_version }}
+  when: ansible_os_family == "Debian"
+  tags: [ postgresql, packages ]
+
+- name: Configure postgresql.conf
+  template:
+    src: '{{ item }}'
+    dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postgresql_conf }}'
+        - postgresql.conf.{{ inventory_hostname }}.j2
+        - postgresql.conf.category-{{ category }}.j2
+        - postgresql.conf.deployment-{{ deployment }}.j2
+        - postgresql.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
+        - postgresql/
+  when: ansible_os_family == "Debian"
+  become: yes
+  notify: restart postgresql
+  tags: [ postgresql, config ]
+
+- name: Configure pg_hba.conf
+  template:
+    src: '{{ item }}'
+    dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ pghba_conf }}'
+        - pg_hba.conf.{{ inventory_hostname }}.j2
+        - pg_hba.conf.category-{{ category }}.j2
+        - pg_hba.conf.deployment-{{ deployment }}.j2
+        - pg_hba.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
+        - postgresql/
+  when: ansible_os_family == "Debian"
+  become: yes
+  notify: restart postgresql
+  tags: [ postgresql, config ]
+
+- name: Configure pg_ident.conf
+  template:
+    src: '{{ item }}'
+    dest: /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf
+    owner: postgres
+    group: postgres
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ pgident_conf }}'
+        - pg_ident.conf.{{ inventory_hostname }}.j2
+        - pg_ident.conf.category-{{ category }}.j2
+        - pg_ident.conf.deployment-{{ deployment }}.j2
+        - pg_ident.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/postgresql/'
+        - postgresql/
+  when: ansible_os_family == "Debian"
+  become: yes
+  notify: restart postgresql
+  tags: [ postgresql, config ]
+
+- name: Ensure postgresql is running and enabled
+  service:
+    name: postgresql
+    state: running
+    enabled: yes
+  become: yes
+  tags: [ postgresql, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  tags: [ postgresql, tests ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ postgresql, config, packages ]
+
+# vim: ft=ansible :

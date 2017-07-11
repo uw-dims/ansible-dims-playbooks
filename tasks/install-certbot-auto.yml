@@ -60,3 +60,5 @@
     path: "{{ dims_deploy }}/certbot"
   become: yes
   become_user: "{{ dims_user }}"
+
+# vim: ft=ansible :

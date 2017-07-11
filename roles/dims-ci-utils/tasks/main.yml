@@ -39,6 +39,8 @@
 - include: deploy_artifact_tasks.yml
   tags: [ dims-ci-utils, packages ]
 
+# TODO(dittrich): Update to use file module instead of shell/chmod
+
 # Set permissions so user and group (dims:dims) can read and write so that
 # DIMS dev users can read and write
 - name: Set file permissions of dims-ci-utils artifacts

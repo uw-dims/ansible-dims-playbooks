@@ -18,38 +18,38 @@
 # TODO(dittrich): The certificate check fails (SNI?), but the SHA256 hash exists to validate download.
 #- name: Get pycharm community edition tgz file
 #  get_url:
-#    url: "{{ pycharm.dist_url }}"
-#    sha256sum: "{{ pycharm.sha256_sum }}"
-#    dest: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }}"
+#    url: "{{ pycharm_dist_url }}"
+#    sha256sum: "{{ pycharm_sha256_sum }}"
+#    dest: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm_archive }}"
 #    validate_certs: false
 #  become: yes
 #  tags: [ pycharm, packages ]
 
 - name: Get pycharm community edition tgz file
-  shell: "wget -q --directory-prefix {{ dims_deploy }}/{{ role_name }} {{ pycharm.dist_url }}"
+  shell: "wget -q --directory-prefix {{ dims_deploy }}/{{ role_name }} {{ pycharm_dist_url }}"
   args:
     warn: false
   tags: [ pycharm, packages ]
 
 - name: Calculate SHA256 hash of downloaded file
-  stat: "path={{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }} checksum_algorithm=sha256"
+  stat: "path={{ dims_deploy }}/{{ role_name }}/{{ pycharm_archive }} checksum_algorithm=sha256"
   register: result
   tags: [ pycharm, packages ]
 
 - name: Verify SHA256 hash of downloaded file
   fail: msg="SHA256 hash does not match"
-  when: result.stat.checksum != "{{ pycharm.sha256_sum }}"
+  when: result.stat.checksum != "{{ pycharm_sha256_sum }}"
   tags: [ pycharm, packages ]
 
 - name: Unpack pycharm archive file
   unarchive:
-    src: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm.archive }}"
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ pycharm_archive }}"
     dest: /opt
     copy: no
   tags: [ pycharm, packages ]
 
 - name: Make link to pycharm run script
-  shell: "ln -sf /opt/pycharm-community-{{ pycharm.version }}/bin/pycharm.sh {{ dims_bin }}/pycharm"
+  shell: "ln -sf /opt/pycharm-community-{{ pycharm_version }}/bin/pycharm.sh {{ dims_bin }}/pycharm"
   become: yes
   tags: [ pycharm, packages ]
 

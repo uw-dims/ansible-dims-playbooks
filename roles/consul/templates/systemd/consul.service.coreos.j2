@@ -28,7 +28,7 @@ ExecStart=/usr/bin/docker run \
              -server \
              -bind={{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }} \
              -client=0.0.0.0 \
-             -datacenter={{ consulDataCenter }} \
+             -datacenter={{ consul_data_center }} \
              -bootstrap-expect=3 \
              -ui
 

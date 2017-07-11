@@ -1,20 +1,27 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
-# Deployment "local" hosts
+# Zone "local
 
 # To see all options supported by dnsmasq, look at the default config file
 # included with dnsmasq. (Found in templates/dnsmasq.conf.j2 in this
 # Ansible playbook repository.) Only the options required are specified here.
 
 # Specify the domain to use for a given range.
-domain=ops.local,192.168.56.0/24
-domain=devops.local,192.168.56.0/24
+domain=ops.local,{{ dns_zone['local'].dns_netblock }}
+domain=devops.local,{{ dns_zone['local'].dns_netblock }}
 
 # Serve this domain and address range from this host.
-server=/ops.local/{{ dnsNameserver }}
-server=/devops.local/{{ dnsNameserver }}
-
-server=/56.168.192.in-addr.arpa/{{ dnsNameserver }}
+{% if dns_zone['local'].nameserver is defined %}
+{% for host in dns_zone['local'].nameserver %}
+{% if hostvars[host].net is defined %}
+server=/ops.local/{{ hostvars[host].net.iface[hostvars[host].zone_iface['local']].ip }}
+server=/devops.local/{{ hostvars[host].net.iface[hostvars[host].zone_iface['local']].ip }}
+{% if dns_zone['local'].dns_in_addr_arpa is defined %}
+server=/{{ dns_zone['local'].dns_in_addr_arpa }}.in-addr.arpa/{{ hostvars[host].net.iface[hostvars[host].zone_iface['local']].ip }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
 
 # Host definitions (contents may be derived from another
 # source, such as a database.)
@@ -28,13 +35,15 @@ addn-hosts=/etc/hosts.local
 
 cname=ns.ops.local,vmhost.devops.local
 cname=ns.devops.local,vmhost.devops.local
+cname=smtp.ops.local,vmhost.devops.local
+cname=smtp.devops.local,vmhost.devops.local
+
 cname=jenkins.devops.local,orange.devops.local
 cname=source.devops.local,orange.devops.local
 cname=hub.ops.local,hub.devops.local
 cname=rabbitmq.ops.local,red.devops.local
-cname=smtp.ops.local,vmhost.devops.local
-cname=smtp.devops.local,vmhost.devops.local
 cname=trident.ops.local,yellow.devops.local
+cname=trident.devops.local,yellow.devops.local
 
 mx-host=ops.local,    vmhost.devops.local,10
 mx-host=devops.local, vmhost.devops.local,10

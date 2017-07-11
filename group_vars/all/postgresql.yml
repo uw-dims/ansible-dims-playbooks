@@ -1,0 +1,8 @@
+---
+
+postgresql_version: '9.4'
+postgresql_pool: 'main'
+postgresql_apt_key_id: '7FCC7D46ACCC4CF8'
+postgresql_apt_key_url: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+
+# vim: ft=ansible :

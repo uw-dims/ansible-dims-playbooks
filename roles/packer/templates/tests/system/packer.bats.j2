@@ -1,0 +1,19 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+@test "[S][EV] Packer is not an installed apt package." {
+    ! is_installed_package packer
+}
+
+@test "[S][EV] \"packer\" is {{ dims_bin }}/packer" {
+    assert "packer is {{ dims_bin }}/packer" type packer
+}
+
+@test "[S][EV] Packer installed version number is {{ packer_version }}" {
+    assert "{{ packer_version }}" bash -c "packer version | head -n 1 | sed 's/Packer v//'"
+}

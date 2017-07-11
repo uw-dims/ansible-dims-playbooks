@@ -2,6 +2,8 @@
 
 # File: roles/squid-proxy/tasks/main.yml
 
+# TODO(dittrich): Beware, this role was never completed. Remove?
+
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ squid-proxy, config ]
 

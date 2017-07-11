@@ -185,7 +185,7 @@ coreos:
       Description=Docker Socket for the API
 
       [Socket]
-      ListenStream=127.0.0.1:{{ dims_docker_port }}
+      ListenStream=127.0.0.1:{{ docker_listen_port }}
       Service=docker.service
       BindIPv6Only=both
 

@@ -20,5 +20,5 @@
   tags: [ postfix, config ]
 
 - name: Ensure postfix is running and enabled
-  service: name=postfix state=running enabled=yes
+  service: name=postfix state=started enabled=yes
   tags: [ postfix, config, service ]

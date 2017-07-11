@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # Runs latest consul image as a consul agent container
+CONSUL_JOIN=${CONSUL_JOIN:-$(dig consul.{{ category }}.{{ deployment }} +short | head -n1))
+CONSUL_BIND=${CONSUL_BIND:-{{ consul_bind_address }})
 docker run -d \
-    --name=consul --net=host \
-    consul agent -bind={{ consulBindAddress }} -retry-join={{ consulRetryJoin }}
+    --name=consul \
+    --net=host \
+    consul agent \
+    -bind=$CONSUL_BIND \
+    -retry-join=$CONSUL_JOIN
 
 exit $?

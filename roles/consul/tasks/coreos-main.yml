@@ -17,7 +17,7 @@
         - consul.service.deployment-{{ deployment }}.j2
         - consul.service.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
       skip: true
   when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
@@ -39,7 +39,7 @@
         - consul-join.service.deployment-{{ deployment }}.j2
         - consul-join.service.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
       skip: true
   when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"

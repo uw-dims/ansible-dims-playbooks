@@ -9,7 +9,6 @@ load helpers
 function setup() {
     source $DIMS/bin/dims_functions.sh
     touch --reference=/bin/ls /tmp/bats.ls-marker
-    VMPRIVATE=$(get_vagrant_run_dir test)/private
     cat <<EOD > /tmp/bats.varsdefs
 A=1
 C=3
@@ -72,10 +71,6 @@ function teardown() {
 
 @test "[U][EV] is_fqdn 12345 returns failure" {
     ! is_fqdn 12345
-}
-
-@test "[U][EV] get_dims_private_dir returns '{{ private }}'" {
-    assert "{{ private }}" get_dims_private_dir
 }
 
 @test "[U][EV] parse_fqdn host.category.deployment returns 'host category deployment'" {
