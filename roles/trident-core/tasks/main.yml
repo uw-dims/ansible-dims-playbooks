@@ -395,7 +395,7 @@
        - header_image.jpg.deployment-{{ deployment }}
        - header_image.jpg
       paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/header_image.jpg/'
+       - '{{ dims_private }}/roles/{{ role_name }}/files/header_image.jpg/'
        - files/header_image.jpg/
       skip: true
   become: yes
