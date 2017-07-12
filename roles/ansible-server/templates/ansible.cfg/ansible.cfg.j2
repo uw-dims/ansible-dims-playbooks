@@ -25,8 +25,8 @@
 # relative to a user's home directory, there is no way to reliably
 # default it here.
 
-inventory      = ${PBR}/inventory/local
-library        = ${PBR}/library:/usr/share/ansible
+inventory      = ${DIMS_PRIVATE}/inventory
+library        = ${DIMS_PRIVATE}/library:${PBR}/library:/usr/share/ansible
 #remote_tmp     = $HOME/.ansible/tmp
 pattern        = *
 forks          = 125
