@@ -102,6 +102,15 @@
   when: dims_ansible_imported_roles is defined
   tags: [ ansible-server ]
 
+- name: Ensure ansible-dims-playbooks present
+  git:
+    repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
+    dest: '{{ dims_src }}/ansible-dims-playbooks'
+    force: yes
+  become: yes
+  become_user: '{{ dims_user }}'
+  tags: [ ansible-server ]
+
 - include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ ansible-server ]
 
