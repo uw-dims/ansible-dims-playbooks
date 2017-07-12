@@ -1,0 +1,47 @@
+---
+
+# File: inventory/dns_zones/nodes.yml
+
+# These variables and groups define the DNS zones that
+# are to be served by dnsmasq for split-horizong DNS
+# across network.
+
+dns_zones:
+  vars:
+    dnsNameserver: '192.168.56.11'
+    dnsSearch: '{{ deployment }}'
+    dnsNetworks: [ '192.168.56.0', ]
+    dns_zone:
+      'local':
+        dns_netblock: '192.168.56.0/24'
+        dns_in_addr_arpa: '56.168.192'
+        nameserver:
+          - 'red.devops.local'
+          - 'vmhost.devops.local'
+        mxserver: 'vmhost.devops.local'
+      'consul':
+        dns_netblock: '192.168.56.0/24'
+        dns_in_addr_arpa:
+        nameserver: '{{ groups.manager }}'
+        mxserver:
+  children:
+    local:
+      hosts:
+        'vmhost.devops.local':
+        'red.devops.local':
+        'orange.devops.local':
+        'blue14.devops.local':
+        'blue16.devops.local':
+        'yellow.devops.local':
+        'purple.devops.local':
+        'hub.devops.local':
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+    consul:
+      hosts:
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+
+# vim: ft=ansible :

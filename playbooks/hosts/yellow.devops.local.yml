@@ -7,6 +7,9 @@
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
+    # Using letsencrypt requires hacking some other variables (for now).
+    use_letsencrypt: yes
+    sslCertDir: '/etc/letsencrypt/live/{{ tridentFQDN }}'
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
@@ -23,11 +26,14 @@
     - { role: postfix, postfix_group: 'trident-local', smtp_relayhost: true }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: docker }
-    - { role: consul,  startup_method: "supervisor" }
-    - { role: postgres }
+    - { role: consul }
+    - { role: postgresql }
+    - { role: ansible-role-certbot }
     - { role: nginx }
     - { role: trident-core }
     - { role: trident-configure }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

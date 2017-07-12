@@ -1,0 +1,149 @@
+---
+
+# TRIDENT (and POSTGRES/NGINX/POSTFIX)
+tridentFQDN: 'trident.devops.local'
+# TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
+#tridentIP: '192.168.29.12'
+tridentHTTPPort: 8333
+tridentSysAdminUser: 'trident'
+tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
+
+tridentDBName: 'trident'
+tridentDBUser: 'trident'
+tridentDBPass: '{{ vault_tridentDBPass }}'
+tridentDBPort: 5432
+
+tridentNginxHTTPPort: 80
+tridentNginxHTTPSPort: 443
+# TODO(dittrich): Disabling for now - use playbook instead
+#sslCertDir: '/etc/nginx/ssl'
+#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+
+# Several trident packages (server, cli, all) share the same
+# version number. Related packages are in the same directory, too.
+trident_version: '1.4.5'
+trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
+
+# Trident components are all loaded at once as a bundle
+trident_dist_bundle:
+  - { 'url': '{{ trident_server_disturl }}', 'sha256sum': '{{ trident_server_sha256sum }}' }
+  - { 'url': '{{ trident_cli_disturl }}', 'sha256sum': '{{ trident_cli_sha256sum }}' }
+  - { 'url': '{{ trident_all_disturl }}', 'sha256sum': '{{ trident_all_sha256sum }}' }
+  - { 'url': '{{ pitchfork_disturl }}', 'sha256sum': '{{ pitchfork_sha256sum }}' }
+  - { 'url': '{{ trident_wikiexport_disturl }}', 'sha256sum': '{{ trident_wikiexport_sha256sum }}' }
+
+trident_cli_version: '{{ trident_version }}'
+trident_cli_archive: 'trident-cli_{{ trident_cli_version }}_amd64.deb'
+trident_cli_disturl: '{{ trident_download_dir }}/{{ trident_cli_archive }}'
+trident_cli_sha256sum: '15f11c986493a67e85aa9cffe6719a15a8c6a65b739a2b0adf62ce61e53f4203'
+trident_cli_opts: ''
+
+trident_server_version: '{{ trident_version }}'
+trident_server_archive: 'trident-server_{{ trident_server_version }}_amd64.deb'
+trident_server_disturl: '{{ trident_download_dir }}/{{ trident_server_archive }}'
+trident_server_sha256sum: 'a8af27833ada651c9d15dc29d04451250a335ae89a0d2b66bf97a787dced9956'
+trident_server_opts: '--syslog'
+
+trident_all_version: '{{ trident_version }}'
+trident_all_archive: 'trident_{{ trident_all_version }}_all.deb'
+trident_all_disturl: '{{ trident_download_dir }}/{{ trident_all_archive }}'
+trident_all_sha256sum: '67f57337861098c4e9c9407592c46b04bbc2d64d85f69e8c0b9c18e8d5352ea6' #trident_1.4.5_all.deb
+
+trident_wikiexport_version: '{{ trident_version }}'
+trident_wikiexport_archive: 'trident-wikiexport_{{ trident_wikiexport_version }}_amd64.deb'
+trident_wikiexport_disturl: '{{ trident_download_dir }}/{{ trident_wikiexport_archive }}'
+trident_wikiexport_sha256sum: '4d2f9d62989594dc5e839546da596094c16c34d129b86e4e323556f1ca1d8805'
+
+# Pitchfork tracks its own version
+pitchfork_version: '1.9.4'
+pitchfork_archive: 'pitchfork-data_{{ pitchfork_version }}_all.deb'
+pitchfork_disturl: '{{ trident_download_dir }}/{{ pitchfork_archive }}'
+pitchfork_sha256sum: '5b06ae4a20a16a7a5e59981255ba83818f67224b68f6aaec014acf51ca9d1a44'
+
+# Trident perl tracks its own version
+# TODO(dittrich): trident-perl is private artifact - using our cached copy
+trident_perl_version: '0.1.0'
+trident_perl_archive: 'trident-perl_{{ trident_perl_version }}_amd64.deb'
+trident_perl_disturl: '{{ artifacts_url }}/{{ trident_perl_archive }}'
+trident_perl_sha256sum: '2f120dc75f75f8b2c8e5cdf55a29984e24ee749a75687a10068ed8f353098ffb'
+
+trident_site_name: 'LOCAL Trident Portal'
+trident_site_welcome_text: 'LOCAL Trident'
+trident_site_url_public: 'https://{{ tridentFQDN }}'
+trident_site_email_domain: '{{ tridentFQDN }}'
+trident_site_people_domain: '{{ trident_site_email_domain }}'
+trident_site_logo_image: '/gfx/logo.png'
+trident_site_header_image: '/gfx/header_image.jpg'
+trident_site_unknown_person: '/gfx/unknown_person.jpg'
+trident_site_var: '/var/lib/trident'
+trident_site_mail_handler: '/var/lib/trident/library/mh-wrapper'
+trident_site_adminname: 'LOCAL Trident Administrator'
+trident_site_adminemail: 'admin@{{ tridentFQDN }}'
+trident_site_admins:
+  - dittrich
+
+# TODO(dittrich): Prototyping multi-TG settings
+# The primary trust group is the 0th element by convention.
+trident_site_trust_groups:
+  - name: 'main'
+    initial_users:
+      - ident: 'dims'
+        descr: 'DIMS Mail (no-reply)'
+        email: 'noreply@{{ trident_site_email_domain }}'
+      - ident: 'dittrich'
+        descr: 'Dave Dittrich'
+        email: 'dittrich@{{ category }}.{{ deployment }}'
+    additional_lists:
+      - ident: 'demo'
+        descr: 'LOCAL Trident Demonstration'
+      - ident: 'warroom'
+        descr: 'LOCAL Trust Group War Room'
+      - ident: 'exercise'
+        descr: 'LOCAL Trust Group Exercise Comms'
+      - ident: 'events'
+        descr: 'LOCAL Trust Group Social Events'
+    settings:
+      descr: 'Main TG'
+      pgp_required: 'no'
+      has_wiki: 'yes'
+      has_file: 'yes'
+      has_calendar: 'yes'
+      please_vouch: 'yes'
+      vouch_adminonly: 'no'
+      min_invouch: 0
+      min_outvouch: 0
+      target_invouch: 0
+      max_inactivity: '4320:00:00'
+      can_time_out: 'no'
+      max_vouchdays: 0
+      idle_guard: '168:00:00'
+      nom_enabled: 'yes'
+      #TODO(dittrich):  trident-configure role can't handle multiple TGs yet.
+# - name: 'admins'
+#   initial_users:
+#     - ident: 'dims'
+#       descr: 'DIMS Mail (no-reply)'
+#       email: 'noreply@{{ category }}.{{ deployment }}'
+#   additional_lists:
+#       - ident: 'reports'
+#         descr: 'LOCAL System Reports'
+#       - ident: 'devops'
+#         descr: 'LOCAL DevOps Emails'
+#   settings:
+#     descr: 'System Administration TG'
+#     pgp_required: 'no'
+#     has_wiki: 'yes'
+#     has_file: 'yes'
+#     has_calendar: 'yes'
+#     please_vouch: 'yes'
+#     vouch_adminonly: 'no'
+#     min_invouch: 0
+#     min_outvouch: 0
+#     target_invouch: 0
+#     max_inactivity: '4320:00:00'
+#     can_time_out: 'no'
+#     max_vouchdays: 0
+#     idle_guard: '168:00:00'
+#     nom_enabled: 'yes'
+
+# vim: ft=ansible :

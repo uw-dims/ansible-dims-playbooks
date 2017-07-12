@@ -275,11 +275,19 @@ fi
 #HELP get_dims_private_dir()
 #HELP     Return the name of the root of the directory where
 #HELP     all DIMS secrets (SSH keys, passwords, etc) are
-#HELP     stored.
-# TODO(dittrich): Hard coded path (we should template this)
+#HELP     stored (a directory with the name "private-$DEPLOYMENT")
+#HELP     If none is found, returns the public playbooks root.
 
 function get_dims_private_dir() {
-    echo "/opt/dims/private"
+    if [[ ! -z "$DIMS_PRIVATE" ]]; then
+        echo "$DIMS_PRIVATE"
+    elif [[ -d $GIT/private-${DEPLOYMENT} ]]; then
+        echo "$GIT/private-${DEPLOYMENT}"
+    elif [[ ! -z "{{ dims_private|default('') }}" ]]; then
+        echo "{{ dims_private|default('') }}"
+    else
+        echo "${PBR}"
+    fi
 }
 
 #HELP
@@ -1385,7 +1393,7 @@ function get_ssh_private_key_file() {
         echo ${_kfile}
         return 0
     else
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 }
@@ -1401,7 +1409,7 @@ function get_user_ssh_key() {
     local _root=${1:-$DIMS_PRIVATE}
 
     if [[ -z ${_user} || -z ${_deployment} || -z ${_root} ]]; then
-        echo $UNAVAILABLE
+        echo ''
         return 1
     fi
 
@@ -2252,13 +2260,17 @@ function file_to_logdir() {
 #HELP
 #HELP get_inventory()
 #HELP     Return the path to the inventory directory for the specified
-#HELP     deployment. $1 is required to be a path to a directory,
-#HELP     and $1 is used to select a deployment. If $1 is not defined,
-#HELP     the deployment is derived from the host's domain name.
+#HELP     deployment. This function checks to see if a directory with
+#HELP     the base name "private-" concatenated with the deployment
+#HELP     (or $1) with an "inventory/" subdirectory within it is
+#HELP     present. If so, it is returned. Otherwise, the inventory
+#HELP     directory is sought within the directory pointed to by
+#HELP     $2. Failing that, the inventory directory within the
+#HELP     playbooks root ($PBR) is returned.
 
 get_inventory() {
-    local _pbr="$1"
-    local _deployment="$2"
+    local _deployment="$1"
+    local _pbr="$2"
     if [[ ! -z "${_deployment}" ]]; then
         if is_fqdn "${_deployment}"; then
             _deployment="$(get_deployment_from_fqdn "${_deployment}")"
@@ -2266,7 +2278,13 @@ get_inventory() {
     else
       _deployment="$(get_deployment)"
     fi
-    echo "${_pbr}/inventory/${_deployment}"
+    if [[ -d "${GIT}/private-${_deployment}/inventory" ]]; then
+        echo "${GIT}/private-${_deployment}/inventory"
+    elif [[ -d "${_pbr}/inventory" ]]; then
+        echo "${_pbr}/inventory"
+    else
+        echo "$PBR/inventory"
+    fi
     return 0
 }
 

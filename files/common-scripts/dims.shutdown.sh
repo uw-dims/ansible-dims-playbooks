@@ -33,7 +33,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.5.0
+DIMS_VERSION=2.6.4
 
 INVENTORY=${INVENTORY:-$PBR/inventory}
 GROUP=${GROUP:-production}

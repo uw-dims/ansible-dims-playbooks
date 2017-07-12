@@ -12,8 +12,8 @@
 
 load helpers
 
-@test "[S][EV] System primary trust group name is {{ trident.primary_tg.ident }}" {
-    assert "{{ trident.primary_tg.ident }}" tcli {{ tcli[trident.version]['tg_SUB'] }} list | grep "^{{ trident.primary_tg.ident }}" | awk '{ print $1; }'
+@test "[S][EV] System primary trust group name is {{ trident_site_trust_groups.0.name }}" {
+    assert "{{ trident_site_trust_groups.0.name }}" tcli group list | grep "^{{ trident_site_trust_groups.0.name }}" | awk '{ print $1; }'
 }
 
 #EOF

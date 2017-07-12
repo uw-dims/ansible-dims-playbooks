@@ -1,9 +1,9 @@
 #
 # The name of the group that owns this installation.
-brand='{{ trident.welcome_text }}'
+brand='{{ trident_site_welcome_text }}'
 #
 # A title which will appear on the portal's pages.
-title='{{ trident.welcome_text }}'
+title='{{ trident_site_welcome_text }}'
 #
 # Copyright by...
 coname='Trident'
@@ -12,20 +12,20 @@ coname='Trident'
 portalname='{{ tridentFQDN }}'
 #
 # The auth URL.
-authurl='{{ trident.url_public }}'
+authurl='{{ trident_site_url_public }}'
 #
 # The email domain to be used.
-domain='{{ trident.email_domain }}'
+domain='{{ trident_site_email_domain }}'
 #
 # URL to the wiki for a trustgroup. %s is replaced by the TrustGroup name.
-wiki='{{ trident.url_public }}/%s/bin/view'
+wiki='{{ trident_site_url_public }}/%s/bin/view'
 #
 # Regular expressions to be used in locating the support website or wiki.
 supportre='https://ops.!domain!/rt'
 wikire='https://wiki.!domain!/([a-z]+)/'
 
 # E-mail for support requests
-supportemail='{{ trident.adminemail }}'
+supportemail='{{ trident_site_adminemail }}'
 #
 # The location of the postgres DB, either a local instance or a hostname.
 pghost='/var/run/postgresql'
@@ -36,12 +36,12 @@ pguser='{{ tridentDBUser }}'
 pgname='{{ tridentDBName }}'
 #
 # Paths to the running code once installed.
-portal='{{ trident.var }}'
-library='{{ trident.var }}/library'
-webroot='{{ trident.var }}/webroot'
-sitedir='{{ trident.var }}/webroot/site'
-mechdir='{{ trident.var }}/webroot/mech'
-webvar='{{ trident.var }}/webvar'
+portal='{{ trident_site_var }}'
+library='{{ trident_site_var }}/library'
+webroot='{{ trident_site_var }}/webroot'
+sitedir='{{ trident_site_var }}/webroot/site'
+mechdir='{{ trident_site_var }}/webroot/mech'
+webvar='{{ trident_site_var }}/webvar'
 #
 # User id (integer) and group id (integer) to be used for file ownership
 # and apache process configuration.

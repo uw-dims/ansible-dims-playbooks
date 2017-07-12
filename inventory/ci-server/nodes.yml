@@ -18,7 +18,7 @@ ci-server:
     jenkins_connection_retries: 60
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
-    jenkins_http_port: 8080
+    jenkins_port: 8080
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_plugins:
       - git
@@ -76,12 +76,6 @@ ci-server:
         value: "--prefix={{ jenkins_url_prefix }}"
       - option: "{{ jenkins_java_options_env_var }}"
         value: "{{ jenkins_java_options }}"
-
-
-# Left over from previous attempt using ansible-jenkins2 role
-#   jenkins_url_external: 'http://jenkins.devops.local/jenkins'
-#   jenkins_admin_users:
-#     - 'hudson.security.HudsonPrivateSecurityRealm:admin'
   hosts:
     'orange.devops.local':
 

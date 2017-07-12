@@ -1,0 +1,70 @@
+---
+
+# File: roles/vault/tasks/main.yml
+
+# Install Vault on Linux 
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ vault, packages ]
+
+- name: Get vault zip 
+  get_url:
+    url: "{{ hashi_vault_dist_url }}"
+    sha256sum: "{{ hashi_vault_sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}/{{ hashi_vault_archive }}"
+    validate_certs: true
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ vault, packages ]
+
+- name: Unpack vault archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ hashi_vault_archive }}"
+    dest: "{{ dims_bin }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: 0755
+    remote_src: True
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ vault, packages ]
+
+- name: Configure vault
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_etc }}/{{ item | basename | regex_replace("\.j2$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ hashi_vault_conf }}'
+        - vaultconfig.hcl.{{ inventory_hostname }}.j2
+        - vaultconfig.hcl.category-{{ category }}.j2
+        - vaultconfig.hcl.deployment-{{ deployment }}.j2
+        - vaultconfig.hcl.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/vaultconfig/'
+        - vaultconfig/
+  become: yes
+  tags: [ vault, config ]
+
+- name: Initialize vault
+  shell: "{{ dims_bin }}/vault init"
+  register: keys
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+  tags: [ vault, config ]
+
+- debug: msg="{{ keys }}"
+  tags: [ vault, config ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ vault, tests ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ vault, packages ]
+
+# vim: ft=ansible :

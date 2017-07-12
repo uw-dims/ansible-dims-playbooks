@@ -24,7 +24,7 @@ kill timeout 300 # wait 300s between SIGTERM and SIGKILL.
 # eval $COMMAND
 
 
-start on (started docker and net-device-added INTERFACE={{ consulBindInterface }})
+start on (started docker and net-device-added INTERFACE={{ consul_bind_interface }})
 stop on runlevel [!12345]
 
 # Respawn, but don't limit (to handle longer network outages)
@@ -75,10 +75,10 @@ script
   export GOMAXPROCS=`nproc`
 
   # Get the public IP
-  PUBLIC_IP=`/sbin/ifconfig {{ consulBindInterface }} | grep "inet addr" | awk '{ print substr($2,6) }' `
+  PUBLIC_IP=`/sbin/ifconfig {{ consul_bind_interface }} | grep "inet addr" | awk '{ print substr($2,6) }' `
   BIND=""
   if [ -z "$PUBLIC_IP" ]; then
-    logger -t "consul[$$]" -p {{ syslog_facility }}.info "no IP address found for interface {{ consulBindInterface }}"
+    logger -t "consul[$$]" -p {{ syslog_facility }}.info "no IP address found for interface {{ consul_bind_interface }}"
     exit 1
   else
     BIND="-bind=${PUBLIC_IP} "
@@ -87,7 +87,7 @@ script
   logger -t "consul[$$]" -p {{ syslog_facility }}.info "exec {{ dims_bin }}/consul agent --config-dir=/etc/consul.d/client ${BIND} ${CONSUL_FLAGS}"
 
   exec {{ dims_bin }}/consul agent \
-    -config-dir=/etc/consul.d/{{ consulMode }} \
+    -config-dir=/etc/consul.d/{{ consul_mode }} \
     ${BIND} \
     ${CONSUL_FLAGS} 2>&1 | logger -t "consul[$$]" -p {{ syslog_facility }}.info
 

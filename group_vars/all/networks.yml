@@ -1,0 +1,35 @@
+---
+
+# TODO(dittrich): This is a start of a prototype... not sure if it will be used.
+
+# Use "ipcalc" to work out details if necessary:
+#
+# $ ipcalc 192.168.13.0/27
+# Address:   192.168.13.0         11000000.10101000.00001101.000 00000
+# Netmask:   255.255.255.224 = 27 11111111.11111111.11111111.111 00000
+# Wildcard:  0.0.0.31             00000000.00000000.00000000.000 11111
+# =>
+# Network:   192.168.13.0/27      11000000.10101000.00001101.000 00000
+# HostMin:   192.168.13.1         11000000.10101000.00001101.000 00001
+# HostMax:   192.168.13.30        11000000.10101000.00001101.000 11110
+# Broadcast: 192.168.13.31        11000000.10101000.00001101.000 11111
+# Hosts/Net: 30                    Class C, Private Internet
+
+networks:
+  'local':
+    network: '192.168.56.0'
+    netmask: '255.255.255.0'
+    broadcast: '192.168.56.255'
+    cidr_bits: '24'
+    gateway:
+    nameservers:
+  'vmnet':
+    network: '10.0.2.0'
+    netmask: '255.255.255.0'
+    broadcast: '10.0.2.255'
+    cidr_bits: '24'
+    gateway: '10.0.2.2'
+    nameservers:
+      - '10.0.2.2'
+
+# vim: ft=ansible :

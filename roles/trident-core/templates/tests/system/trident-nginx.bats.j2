@@ -10,17 +10,19 @@ function setup() {
 	source $DIMS/bin/dims_functions.sh
 }
 
-@test "[S][EV] File /etc/nginx/conf.d/trident.conf is present" {
-	[ -f /etc/nginx/conf.d/trident.conf ]
-}
+# TODO(dittrich): Overwriting nginx sites-available/default for now
+# (see trident-core/tasks/main.yml)
+#@test "[S][EV] File /etc/nginx/sites-available/trident is present" {
+#	[ -f /etc/nginx/sites-available/trident ]
+#}
 
-@test "[S][EV] Assert ownerships root:root for /etc/nginx/conf.d/trident.conf" {
-	assert "root:root" stat --printf "%U:%G" /etc/nginx/conf.d/trident.conf
-}
+#@test "[S][EV] Assert ownerships root:root for /etc/nginx/sites-available/trident" {
+#	assert "root:root" stat --printf "%U:%G" /etc/nginx/sites-available/trident
+#}
 
-@test "[S][EV] Assert permisions 644 for /etc/nginx/conf.d/trident.conf" {
-	assert 644 stat --printf "%a" /etc/nginx/conf.d/trident.conf
-}
+#@test "[S][EV] Assert permisions 644 for /etc/nginx/sites-available/trident" {
+#	assert 644 stat --printf "%a" /etc/nginx/sites-available/trident
+#}
 
 @test "[S][EV] File /etc/trident/nginx/trident-upstream.inc is present" {
 	[ -f /etc/trident/nginx/trident-upstream.inc ]
@@ -46,15 +48,17 @@ function setup() {
 	assert 644 stat --printf "%a" /etc/trident/nginx/trident-server.inc
 }
 
-@test "[S][EV] Directory /etc/nginx/ssl is present" {
-	[ -d /etc/nginx/ssl ]
-}
+# TODO(dittrich): Disabling: Not compatible with letsencrypt
+#@test "[S][EV] Directory /etc/nginx/ssl is present" {
+#	[ -d /etc/nginx/ssl ]
+#}
 
-@test "[S][EV] Assert ownerships root:root for /etc/nginx/ssl" {
-	assert "root:root" stat --printf "%U:%G" /etc/nginx/ssl
-}
+# TODO(dittrich): Disabling: Not compatible with letsencrypt
+#@test "[S][EV] Assert ownerships root:root for /etc/nginx/ssl" {
+#	assert "root:root" stat --printf "%U:%G" /etc/nginx/ssl
+#}
 
-@test "[S][EV] Assert permisions 755 for /etc/nginx/ssl" {
-	assert 755 stat --printf "%a" /etc/nginx/ssl
-}
-
+# TODO(dittrich): Disabling: Not compatible with letsencrypt
+#@test "[S][EV] Assert permisions 755 for /etc/nginx/ssl" {
+#	assert 755 stat --printf "%a" /etc/nginx/ssl
+#}

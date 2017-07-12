@@ -29,10 +29,7 @@ ssh_pass: "{{ vault_ssh_pass }}"
 installDesktop: ""
 headless: false
 
-# Trident vars
-# TODO(dittrich): This should be a CNAME record named "trident.devops.develop"
-tridentFQDN: "yellow.devops.local"
 # TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
-tridentIP: "192.168.56.13"
+tridentIP: "{{ eth1.ip }}"
 
 # vim: ft=ansible :

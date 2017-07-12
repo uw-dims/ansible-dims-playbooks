@@ -9,9 +9,9 @@
 
 - name: Get packer zip 
   get_url:
-    url: "{{ packer.dist_url }}"
-    sha256sum: "{{ packer.sha256_sum }}"
-    dest: "{{ dims_deploy }}/{{ role_name }}/{{ packer.archive }}"
+    url: "{{ packer_dist_url }}"
+    sha256sum: "{{ packer_sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}/{{ packer_archive }}"
     validate_certs: true
   become: yes
   when: ansible_system == "Linux"
@@ -19,7 +19,7 @@
 
 - name: Unpack packer archive file
   unarchive:
-    src: "{{ dims_deploy }}/{{ role_name }}/{{ packer.archive }}"
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ packer_archive }}"
     dest: "{{ dims_bin }}"
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"

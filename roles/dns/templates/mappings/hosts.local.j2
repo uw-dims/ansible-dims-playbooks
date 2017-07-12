@@ -1,22 +1,28 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
 # The following map *must* match the IP address assignments for any
-# hosts (e.g., Vagrant VMs) in the .local deployment domain. There must
+# hosts (e.g., Vagrant VMs) in the .{{ deployment }} deployment domain. There must
 # *not* be any duplicate IP address assignments. If two names must
 # map to the same IP address, use an appropriate CNAME alias.
 
-{% if groups['private'] is defined %}
-# The following hosts come from Ansible inventory groups['private']
-{% for host in groups['private'] %}
-{{ hostvars[host]['eth1']['ip'] }}	{{ host }}
-{% endfor %}
+{% set zone = deployment %}
+
+{% if groups[zone] is not defined %}
+# WARN: groups['{{ zone }}'] is not defined
+{% else %}
+# The following hosts come from Ansible inventory groups['{{ zone }}']
+{%  for host in groups[zone]|list %}
+{%   if hostvars[host].net is not defined %}
+# WARN: hostvars['{{ host }}'].net is not defined
+{%   elif hostvars[host].net.iface is not defined %}
+# WARN: hostvars['{{ host }}'].net.iface is not defined
+{%   elif hostvars[host].zone_iface[zone] is not defined %}
+# WARN: hostvars['{{ host }}'].zone_iface['{{ zone }}'] is not defined
+{%   elif hostvars[host].net.iface[hostvars[host].zone_iface[zone]].ip is not defined %}
+# WARN: hostvars['{{ host }}'].net.iface[hostvars['{{ host }}'].zone_iface['{{ zone }}']].ip is not defined
+{%   else %}
+{{ hostvars[host].net.iface[hostvars[host].zone_iface[zone]].ip }}	{{ host }}
+{%   endif %}
+{%  endfor %}
 {% endif %}
 
-{% if groups['manager'] is defined %}
-# The following hosts come from Ansible inventory groups['manager']
-# (which is assumed to be running consul.)
-{% for host in groups['manager'] %}
-{{ hostvars[host]['eth1']['ip'] }}	consul.devops.{{ deployment }}
-{{ hostvars[host]['eth1']['ip'] }}	consul.ops.{{ deployment }}
-{% endfor %}
-{% endif %}

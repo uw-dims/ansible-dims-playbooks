@@ -80,7 +80,7 @@
       - rules.v4.deployment-{{ deployment }}.j2
       - rules.v4.j2
       paths:
-      - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+      - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
       - iptables/
   notify:
     - restart iptables
@@ -101,7 +101,7 @@
       - rules.v6.deployment-{{ deployment }}.j2
       - rules.v6.j2
       paths:
-      - '{{ dims_custom }}/roles/{{ role_name }}/templates/iptables/'
+      - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
       - iptables/
   notify:
     - restart ip6tables
@@ -144,7 +144,7 @@
         - sshd_config.deployment-{{ deployment }}.j2
         - sshd_config.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sshd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sshd/'
         - sshd/
   become: yes
   notify:

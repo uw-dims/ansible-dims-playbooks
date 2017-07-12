@@ -1,0 +1,25 @@
+---
+
+vagrant_version: 1.8.6
+vagrant_deb_64bit_sum: 'e6d83b6b43ad16475cb5cfcabe7dc798002147c1d048a7b6178032084c7070da'
+vagrant_artifact: 'vagrant_{{ vagrant_version }}_x86_64.deb'
+vagrant_dist_url: 'https://releases.hashicorp.com/vagrant/{{ vagrant_version }}'
+
+# TODO(dittrich): Remove once we switch to using dictionary below.
+threeD: 'off'
+CPUs: 2
+memory: 2048
+vm_dir: '/vm'
+vmUser: 'ansible'
+vmKey: 'dims_ansible_rsa'
+
+vm:
+  threeD: 'off'
+  CPUs: 2
+  memory: 2048
+  root: '/vm'
+  vmUser: 'ansible'
+  vmKey: 'dims_ansible_rsa'
+
+
+# vim: ft=ansible :

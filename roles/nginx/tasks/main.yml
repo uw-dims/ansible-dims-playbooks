@@ -5,6 +5,12 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
+# Letsencrypt support
+- name: Ensure letsencrypt certs present if used
+  include: '{{ tasks_path }}/install-certbot-certs.yml'
+  when: use_letsencrypt is defined and use_letsencrypt
+  tags: [ nginx, packages ]
+
 # Following instructions from http://nginx.org/en/linux_packages.html
 - name: Import repository signing key
   apt_key:
@@ -74,14 +80,14 @@
         - nginx.conf.deployment-{{ deployment }}.j2
         - nginx.conf.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/nginx/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
         - nginx/
   become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Ensure nginx is running and enabled
-  service: name=nginx state=running enabled=yes
+- name: Ensure nginx is enabled
+  service: name=nginx enabled=yes
   become: yes
   tags: [ nginx, packages ]
 
@@ -101,7 +107,7 @@
         - default.deployment-{{ deployment }}.j2
         - default.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sites-available/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
         - sites-available/
   become: yes
   notify: restart nginx
@@ -123,7 +129,7 @@
         - health_check.deployment-{{ deployment }}.j2
         - health_check.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/sites-available/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
         - sites-available/
   become: yes
   notify: restart nginx
@@ -137,6 +143,7 @@
   with_items:
     - default
     - health_check
+  become: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
@@ -168,16 +175,11 @@
         - index.html.deployment-{{ deployment }}.j2
         - index.html.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/html/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/html/'
         - html/
   become: yes
   notify: restart nginx
   tags: [ nginx, config ]
-
-# Letsencrypt support
-- include: '{{ tasks_path }}/install-certbot-auto.yml'
-  when: use_letsencrypt is defined and use_letsencrypt
-  tags: [ nginx, packages ]
 
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
 - name: Generate Strong Diffie-Hellman Group

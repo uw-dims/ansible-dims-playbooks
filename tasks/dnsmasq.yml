@@ -14,6 +14,14 @@
   become: yes
   when: ansible_os_family == "Debian"
 
+- name: Make backports present for APT on Debian jessie
+  apt_repository:
+    repo="deb http://http.debian.net/debian jessie-backports main non-free contrib"
+    state=present
+    update_cache=yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  tags: [ base, packages ]
+
 - name: Make full dnsmasq present (Debian, Trusty)
   apt: name=dnsmasq=2.68-1ubuntu0.1 state=present force=yes
   become: yes
@@ -30,16 +38,16 @@
 
 - name: Download dnsmasq source
   get_url:
-    url: "{{ dnsmasq.dist_url }}"
-    sha256sum: "{{ dnsmasq.sha256_sum }}"
-    dest: "{{ dims_deploy }}/{{ dnsmasq.archive }}"
+    url: "{{ dnsmasq_dist_url }}"
+    sha256sum: "{{ dnsmasq_sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ dnsmasq_archive }}"
     validate_certs: false
   become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 
 - name: Unpack dnsmasq archive file
   unarchive:
-    src:  "{{ dims_deploy }}/{{ dnsmasq.archive }}"
+    src:  "{{ dims_deploy }}/{{ dnsmasq_archive }}"
     dest: "{{ dims_deploy }}/"
     copy: no
   become: yes
@@ -47,7 +55,7 @@
 
 - name: Compile and install dnsmasq
   shell: >
-    cd {{ dims_deploy }}/dnsmasq-{{ dnsmasq.version }} &&
+    cd {{ dims_deploy }}/dnsmasq-{{ dnsmasq_version }} &&
     make COPTS="-DHAVE_DBUS" PREFIX=/usr install
   become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
@@ -55,8 +63,8 @@
 - name: Clean up dnsmasq build artifacts
   file: "state=absent path={{ item }}"
   with_items:
-    - "{{ dims_deploy }}/dnsmasq-{{ dnsmasq.version }}"
-    - "{{ dims_deploy }}/{{ dnsmasq.archive }}"
+    - "{{ dims_deploy }}/dnsmasq-{{ dnsmasq_version }}"
+    - "{{ dims_deploy }}/{{ dnsmasq_archive }}"
   become: yes
   when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
 

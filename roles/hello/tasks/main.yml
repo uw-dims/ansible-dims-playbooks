@@ -13,7 +13,7 @@
     - files:
         - hello.txt.j2
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/hello.txt/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/hello.txt/'
         - hello.txt/
 
 - name: Say Hello

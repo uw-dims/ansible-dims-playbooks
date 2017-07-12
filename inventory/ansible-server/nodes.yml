@@ -1,0 +1,15 @@
+---
+
+ansible_server:
+  vars:
+    ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
+    ansible_dims_playbooks_version: 'master'
+    ansible_accounts:
+      - jenkins
+      - ansible
+  hosts:
+    'vmhost.devops.local':
+      artifacts_url: 'file://vm/cache/sources/'
+    'orange.devops.local':
+
+# vim: ft=ansible :

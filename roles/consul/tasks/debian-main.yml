@@ -81,7 +81,7 @@
 
 - name: Create consul startup JSON cluster config
   template:
-    src=config/{{ consul_basename }}_{{ consul_agent_type }}_json.j2
+    src=config/consul_{{ consul_agent_type }}_json.j2
     dest=/etc/consul.d/{{ consul_agent_type }}/consul.json
     owner={{ dims_user }}
     group={{ dims_user }}
@@ -94,7 +94,7 @@
 - name: Create persistence directory for use by Consul
   file:
     state=directory
-    path={{ consulDataDir }}
+    path={{ consul_data_dir }}
     owner={{ dims_user }}
     group={{ dims_group }}
     mode={{ mode_0770 }}
@@ -106,7 +106,7 @@
 - name: Create inital consul.log file
   file:
     state=touch
-    path={{ consulLogFile }}
+    path={{ consul_log_file }}
     owner={{ dims_user }}
     group={{ dims_user }}
     mode={{ mode_0640 }}
@@ -116,8 +116,8 @@
 
 - name: Make consul.run startup script present
   template:
-    src={{ consul_basename }}.run.j2
-    dest={{ dims_bin }}/{{ consul_basename }}.run
+    src=consul.run.j2
+    dest={{ dims_bin }}/consul.run
     owner={{ dims_user }}
     group={{ dims_group }}
     mode={{ mode_0755 }}
@@ -129,8 +129,8 @@
 
 - name: Make consul upstart configuration present (upstart)
   template:
-    src=upstart/{{ consul_basename }}.conf.j2
-    dest=/etc/init/{{ consul_basename }}.conf
+    src=upstart/consul.conf.j2
+    dest=/etc/init/consul.conf
     owner={{ root_user }}
     group={{ root_group }}
     mode={{ mode_0644 }}
@@ -141,7 +141,7 @@
   tags: [ consul, config ]
 
 - name: Validate consul config file syntax (upstart)
-  shell: "init-checkconf /etc/init/{{ consul_basename }}.conf"
+  shell: "init-checkconf /etc/init/consul.conf"
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
@@ -149,8 +149,8 @@
 
 - name: Create consul defaults (upstart)
   template:
-    src=upstart/{{ consul_basename }}_default.j2
-    dest=/etc/default/{{ consul_basename }}
+    src=upstart/consul_default.j2
+    dest=/etc/default/consul
     owner={{ root_user }}
     group={{ root_group }}
     mode={{ mode_0644 }}
@@ -161,8 +161,8 @@
 
 - name: Make consul /etc/init.d startup script present (upstart)
   template:
-    src=upstart/{{ consul_basename }}.j2
-    dest=/etc/init.d/{{ consul_basename }}
+    src=upstart/consul.j2
+    dest=/etc/init.d/consul
     owner={{ root_user }}
     group={{ root_group }}
     mode={{ mode_0755 }}
@@ -189,19 +189,19 @@
 - name: Make consul.service unit present (systemd)
   template:
     src: '{{ item }}'
-    dest: /etc/systemd/system/{{ consul_basename }}.service
+    dest: /etc/systemd/system/consul.service
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
         - '{{ base_hosts }}'
-        - '{{ consul_basename }}.service.{{ inventory_hostname }}.j2'
-        - '{{ consul_basename }}.service.category-{{ category }}.j2'
-        - '{{ consul_basename }}.service.deployment-{{ deployment }}.j2'
-        - '{{ consul_basename }}.service.j2'
+        - 'consul.service.{{ inventory_hostname }}.j2'
+        - 'consul.service.category-{{ category }}.j2'
+        - 'consul.service.deployment-{{ deployment }}.j2'
+        - 'consul.service.j2'
       paths:
-        - '{{ dims_custom }}/roles/{{ role_name }}/templates/systemd/'
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int > 14 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
