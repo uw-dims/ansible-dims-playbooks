@@ -361,7 +361,7 @@
 - name: Ensure 'logo_image' is present (tsetup)
   copy:
     src: '{{ item }}'
-    dest: /usr/share/trident/webroot/gfx/logo.svg
+    dest: /usr/share/trident/webroot/gfx/{{ trident_site_logo_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
@@ -373,7 +373,7 @@
        - logo.svg.deployment-{{ deployment }}
        - logo.svg
       paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/logo.svg/'
+       - '{{ dims_private }}/roles/{{ role_name }}/files/logo.svg/'
        - files/logo.svg/
       skip: true
   become: yes
@@ -419,7 +419,7 @@
        - unknown_person.jpg.deployment-{{ deployment }}
        - unknown_person.jpg
       paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/files/unknown_person.jpg/'
+       - '{{ dims_private }}/roles/{{ role_name }}/files/unknown_person.jpg/'
        - files/unknown_person.jpg/
       skip: true
   become: yes
