@@ -358,23 +358,23 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-- name: Ensure 'logo_image' is present (tsetup)
+- name: Ensure 'logo.png' is present
   copy:
     src: '{{ item }}'
-    dest: /usr/share/trident/webroot/gfx/{{ trident_site_logo_image }}
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_logo_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
   with_first_found:
     - files:
        - '{{ trident_logo }}'
-       - logo.svg.{{ inventory_hostname }}
-       - logo.svg.category-{{ category }}
-       - logo.svg.deployment-{{ deployment }}
-       - logo.svg
+       - logo.png.{{ inventory_hostname }}
+       - logo.png.category-{{ category }}
+       - logo.png.deployment-{{ deployment }}
+       - logo.png
       paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/files/logo.svg/'
-       - files/logo.svg/
+       - '{{ dims_private }}/roles/{{ role_name }}/files/logo.png/'
+       - files/logo.png/
       skip: true
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
