@@ -18,5 +18,7 @@ certbot_version: master
 certbot_keep_updated: yes
 certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
 certbot_adminemail: '{{ trident_site_adminemail }}'
+# Over-ride this in inventory or host_vars when testing
+certbot_staging: no
 
 # vim: ft=ansible :
