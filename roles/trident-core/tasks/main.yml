@@ -341,7 +341,7 @@
     state: directory
     mode: '{{ mode_0755 }}'
   become: yes
-  when: use_letsencrypt is not defined or not use_letsencrypt
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
   tags: [ trident-core, config ]
 
 - name: Copy SSL secret files
@@ -353,7 +353,7 @@
     mode: '{{ item.value.mode }}'
   with_dict: '{{ ssl_secret_files }}'
   no_log: '{{ nolog }}'
-  when: use_letsencrypt is not defined or not use_letsencrypt
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
   notify: restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]

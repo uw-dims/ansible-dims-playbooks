@@ -11,6 +11,9 @@
 # Vagrant will be set up with this backup certificate rather
 # than always generating a new one. Be aware of this limitation.
 
+- fail: "use_letsencrypt is not enabled"
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
+
 - name: Define certbot_sitename
   set_fact:
     certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
@@ -25,6 +28,13 @@
   set_fact:
     certbot_cert_backup_dir: '{{ dims_private }}/files/certs/{{ inventory_hostname }}'
   when: certbot_cert_backup_dir is not defined
+
+- name: Define save_backups
+  set_fact:
+    save_backups: "{{ playbooks_root != dims_private }}"
+  when: save_backups is not defined
+
+- debug: "var=save_backups"
 
 # Because of the throttling of certificate generation, development testing
 # and demonstrations should be performed using the staging environment.
@@ -45,6 +55,8 @@
     name: nginx
     state: stopped
   notify: restart nginx
+  when: use_letsencrypt|bool and
+        _le_backup_file.stat.exists == True
   ignore_errors: yes
 
 - block:
@@ -54,10 +66,12 @@
 
     - name: Ensure certbot-auto is installed
       include: '{{ tasks_path }}/install-certbot-auto.yml'
-      when: _certbot.stat.exists == False
+      when: use_letsencrypt|bool and
+            _certbot.stat.exists == False
 
     - debug: msg="{{ dims_bin }}/certbot-auto is installed"
-      when: _certbot.stat.exists == True
+      when: use_letsencrypt|bool and
+            _certbot.stat.exists == True
 
   rescue:
     - fail: msg="{{ dims_bin }}/certbot-auto is not installed"
@@ -72,7 +86,8 @@
         src: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
         dest: /etc
         extra_opts: '--exclude=var'
-      when: _le_dir.stat.exists == False and
+      when: use_letsencrypt|bool and
+            _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == True
 
     - name: Create temporary directory for generating cert
@@ -80,7 +95,8 @@
         path: /tmp/letsencrypt
         state: directory
         mode: 0700
-      when: _le_dir.stat.exists == False and
+      when: use_letsencrypt|bool and
+            _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == False
 
     - name: Run certbot standalone in Docker container
@@ -103,7 +119,8 @@
         --agree-tos
         --email {{ certbot_adminemail }}
         creates=/tmp/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
-      when: _le_dir.stat.exists == False and
+      when: use_letsencrypt|bool and
+            _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == False
 
 #   - name: Remove image
@@ -114,7 +131,8 @@
       shell: >
         cp -pr /tmp/letsencrypt/etc/letsencrypt/ /etc &&
         tree -up /etc/letsencrypt
-      when: _le_dir.stat.exists == False and
+      when: use_letsencrypt|bool and
+            _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == False
 
   rescue:
@@ -130,7 +148,9 @@
         path: '/tmp/letsencrypt/etc/letsencrypt'
         dest: '/tmp/letsencrypt.tgz'
         remove: true
-      when: _le_tmpdir.stat.exists == True and
+      when: save_backups and
+            use_letsencrypt|bool and
+            _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
 
     - name: Ensure local cert directory exists
@@ -141,7 +161,9 @@
         group: '{{ ansible_user }}'
         mode: 0700
       delegate_to: 127.0.0.1
-      when: _le_tmpdir.stat.exists == True and
+      when: save_backups and
+            use_letsencrypt|bool and
+            _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
 
     - name: Fetch backup copy of letsencrypt directory
@@ -149,14 +171,17 @@
         src: '/tmp/letsencrypt.tgz'
         dest: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
         flat: true
-      when: _le_tmpdir.stat.exists == True and
+      when: save_backups and
+            use_letsencrypt|bool and
+            _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
 
     - name: Remove temporary archive
       file:
         path: 'tmp/letsencrypt.tgz'
         state: absent
-      when: _le_tmpdir.stat.exists == True and
+      when: use_letsencrypt|bool and
+            _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
       ignore_errors: yes
 
