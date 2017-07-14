@@ -23,9 +23,4 @@ box_osversion: "8.5.0"
 iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
 installDesktop: ""
 
-# Trident vars
-tridentFQDN: "purple.devops.local"
-tridentIP: "{{ eth1.ip }}"
-tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
-
 # vim: ft=ansible :
