@@ -6,8 +6,10 @@
 # These complement the Fedora model set above. Be aware of
 # the existence of both sets when choosing to use (or add)
 # a variable to reference a location.
+# TODO(dittrich): Replace this with one dictionary
 
 dims: /opt/dims
+dims_backups:    "{{ dims }}/backups"
 dims_bin:        "{{ dims }}/bin"
 dims_data:       "{{ dims }}/data"
 dims_deploy:     "{{ dims }}/deploy"
@@ -33,6 +35,7 @@ dims_srv:     "{{ dims }}/srv"
 # being tested for in $GIT/dims-ci-utils/dims/test.dims-ci-utils.envcheck.
 
 dims_dirs:
+  - "{{ dims_backups }}"
   - "{{ dims_bin }}"
   - "{{ dims_data }}"
   - "{{ dims_deploy }}"
