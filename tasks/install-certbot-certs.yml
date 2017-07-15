@@ -24,17 +24,18 @@
     certbot_adminemail: '{{ trident_site_adminemail }}'
   when: certbot_adminemail is not defined
 
+  # TODO(dittrich): Could use dims.function to get backup dir
 - name: Define backup cert directory
   set_fact:
-    certbot_cert_backup_dir: '{{ dims_private }}/files/certs/{{ inventory_hostname }}'
+    certbot_cert_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
   when: certbot_cert_backup_dir is not defined
 
-- name: Define save_backups
+- name: Define certbot_save_backups
   set_fact:
-    save_backups: "{{ playbooks_root != dims_private }}"
-  when: save_backups is not defined
+    certbot_save_backups: true
+  when: certbot_save_backups is not defined
 
-- debug: "var=save_backups"
+- debug: "var=certbot_save_backups"
 
 # Because of the throttling of certificate generation, development testing
 # and demonstrations should be performed using the staging environment.
@@ -91,13 +92,16 @@
             _le_backup_file.stat.exists == True
 
     - name: Create temporary directory for generating cert
-      file:
-        path: /tmp/letsencrypt
-        state: directory
-        mode: 0700
+      shell: >
+        mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+      register: mktemp_output
       when: use_letsencrypt|bool and
             _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == False
+
+    - name: Define _tmpdir variable
+      set_fact:
+        _tmpdir: '{{ mktemp_output.stdout }}'
 
     - name: Run certbot standalone in Docker container
       shell: >
@@ -106,9 +110,9 @@
         -p 443:443
         -p 80:80
         --name certbot
-        -v "/tmp/letsencrypt/etc/letsencrypt:/etc/letsencrypt"
-        -v "/tmp/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt"
-        -v "/tmp/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt"
+        -v "{{ _tmpdir }}/letsencrypt/etc/letsencrypt:/etc/letsencrypt"
+        -v "{{ _tmpdir }}/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt"
+        -v "{{ _tmpdir }}/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt"
         certbot/certbot
         certonly
         --noninteractive
@@ -118,7 +122,7 @@
         --domain {{ certbot_sitename }}
         --agree-tos
         --email {{ certbot_adminemail }}
-        creates=/tmp/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
+        creates={{ _tmpdir }}/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
       when: use_letsencrypt|bool and
             _le_dir.stat.exists == False and
             _le_backup_file.stat.exists == False
@@ -129,7 +133,7 @@
 
     - name: Install letsencrypt cert directory in /etc
       shell: >
-        cp -pr /tmp/letsencrypt/etc/letsencrypt/ /etc &&
+        cp -pr {{ _tmpdir }}/letsencrypt/etc/letsencrypt/ /etc &&
         tree -up /etc/letsencrypt
       when: use_letsencrypt|bool and
             _le_dir.stat.exists == False and
@@ -139,16 +143,16 @@
     - fail: msg="Could not create/restore certificate"
 
   always:
-    - name: Check for existence of /tmp/letsencrypt directory
-      stat: path='/tmp/letsencrypt'
+    - name: Check for existence of {{ _tmpdir }}/letsencrypt directory
+      stat: path='{{ _tmpdir }}/letsencrypt'
       register: _le_tmpdir
 
     - name: Create backup of letsencrypt certificates
       archive:
-        path: '/tmp/letsencrypt/etc/letsencrypt'
-        dest: '/tmp/letsencrypt.tgz'
+        path: '{{ _tmpdir }}/letsencrypt/etc/letsencrypt'
+        dest: '{{ _tmpdir }}/letsencrypt.tgz'
         remove: true
-      when: save_backups and
+      when: certbot_save_backups|bool and
             use_letsencrypt|bool and
             _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
@@ -161,28 +165,27 @@
         group: '{{ ansible_user }}'
         mode: 0700
       delegate_to: 127.0.0.1
-      when: save_backups and
+      when: certbot_save_backups|bool and
             use_letsencrypt|bool and
             _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
 
     - name: Fetch backup copy of letsencrypt directory
       fetch:
-        src: '/tmp/letsencrypt.tgz'
+        src: '{{ _tmpdir }}/letsencrypt.tgz'
         dest: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
         flat: true
-      when: save_backups and
+      when: certbot_save_backups and
             use_letsencrypt|bool and
             _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
 
-    - name: Remove temporary archive
+    - name: Remove temporary directory
       file:
-        path: 'tmp/letsencrypt.tgz'
+        path: '{{ _tmpdir }}'
         state: absent
       when: use_letsencrypt|bool and
             _le_tmpdir.stat.exists == True and
             _le_backup_file.stat.exists == False
-      ignore_errors: yes
 
 # vim: ft=ansible :
