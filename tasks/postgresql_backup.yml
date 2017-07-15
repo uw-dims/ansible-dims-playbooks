@@ -1,0 +1,86 @@
+---
+
+# File: tasks/postgresql_backup.yml
+
+# This task file will produce a dated backup of the
+# postgresql database for a Trident portal installed
+# using DIMS Ansible playbooks.
+#
+# See https://www.postgresql.org/docs/current/static/app-pgdump.html
+
+# TODO(dittrich): Could use dims.function to get backup dir
+- name: Define local postgresql backup directory
+  set_fact:
+    postgresql_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+  when: postgresql_backup_dir is not defined
+
+- debug: 'var=postgresql_backup_dir'
+
+# TODO(dittrich): Add support for hourly/daily backup cycle
+# Use variable to select backup type ("daily" or "hourly") and
+# then use names "H" + 'ansible_date_time.hour' and
+# "D" + 'ansible_date_time.weekday_number' to automatically roll
+# backup files.
+
+- name: Define backup_ts timestamp
+  set_fact:
+    backup_ts: "{{ lookup('dims_function', 'iso8601dateshort') }}"
+
+- name: Define postgresql_backup_file
+  set_fact:
+    postgresql_backup_file: 'postgresql_{{ backup_ts }}.pgdmp'
+  when: postgresql_backup_file is not defined
+
+- name: Ensure local postgresql backup directory exists
+  file:
+    dest: '{{ postgresql_backup_dir }}'
+    state: directory
+    owner: ansible
+    group: dims
+    mode: 0770
+  delegate_to: 127.0.0.1
+  become: yes
+
+- name: Create remote temporary directory
+  shell: >
+    mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+  register: mktemp_output
+  become: yes
+  become_user: postgres
+
+- name: Define _tmpdir variable
+  set_fact:
+    _tmpdir: '{{ mktemp_output.stdout }}'
+
+- name: Create backup of postgresql database
+  shell: >
+    pg_dump
+    --host=localhost
+    --port=5432
+    --username=postgres
+    --dbname={{ tridentDBName }}
+    --schema=public
+    --format=c
+    --blobs
+    | bzip2 > {{ _tmpdir }}/{{ postgresql_backup_file }}.bz2 &&
+    chmod 770 {{ _tmpdir }}/{{ postgresql_backup_file }}.bz2
+    creates={{ _tmpdir }}/{{ postgresql_backup_file }}.bz2
+  become: yes
+  become_user: postgres
+
+- name: Fetch postgresql backup file
+  fetch:
+    src: '{{ _tmpdir }}/{{ postgresql_backup_file }}.bz2'
+    dest: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}.bz2'
+    flat: true
+    validate_checksum: yes
+  no_log: '{{ nolog|default(true) }}'
+  become: yes
+
+- name: Remove temporary directory
+  file:
+    path: '{{ _tmpdir }}'
+    state: absent
+  become: yes
+
+# vim: ft=ansible :

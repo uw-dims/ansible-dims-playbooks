@@ -1,0 +1,125 @@
+---
+
+# File: tasks/postgresql_restore.yml
+
+# This playbook will restore a backup of the
+# postgresql database from a Trident portal installed
+# using DIMS Ansible playbooks. It relies on the
+# variables defined in the trident inventory group.
+#
+# Controlling variables:
+# postgresql_backup_file - Absolute path to backup file to restore (required)
+# postgresql_restore_data_only: - Use --data-only option. Implies not
+#                                 cleaning first. (true/false)
+# postgresql_restore_clean: - Use --clean. Drops database objects before
+#                             restoring them. (true/false)
+#
+# See https://www.postgresql.org/docs/current/static/app-pgrestore.html
+
+- name: Define local postgresql backup directory
+  set_fact:
+    postgresql_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+  when: postgresql_backup_dir is not defined
+
+- debug: 'var=postgresql_backup_dir'
+
+- name: Ensure exclude use of '--data-only' and '--clean'
+  fail: msg="Use 'postgresql_restore_data_only' or 'postgresql_restore_clean', not both"
+  when: (postgresql_restore_data_only is defined and postgresql_restore_data_only != "") and
+        (postgresql_restore_clean is defined and postgresql_restore_clean != "")
+
+- name: Define _restore_options using --data-only?
+  set_fact:
+    _restore_options: '--data-only'
+  when: postgresql_restore_data_only is defined and postgresql_restore_data_only|bool
+
+- name: Define _restore_options using --clean?
+  set_fact:
+    _restore_options: '--clean'
+  when: postgresql_restore_clean is not defined or
+        (postgresql_restore_clean is defined and postgresql_restore_clean|bool)
+
+# TODO(dittrich): Add support for defaulting to latest available backup.
+
+- name: Require 'postgresql_backup_file' be set
+  fail: msg="Please specify backup to restore with 'postgresql_backup_file'"
+  when: postgresql_backup_file is not defined
+
+- name: Require backup file name ends with '.pgdmp.bz2'
+  fail: msg="Backup file name '{{ postgresql_backup_file }}' does not end with '.pgdmp.bz2'"
+  when: not postgresql_backup_file.endswith('.pgdmp.bz2')
+
+- name: Create remote temporary directory
+  shell: >
+    mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+  register: mktemp_output
+  become: yes
+  become_user: postgres
+
+- name: Define _tmpdir variable
+  set_fact:
+    _tmpdir: '{{ mktemp_output.stdout }}'
+
+- name: Define _logfile variable
+  set_fact:
+    _logfile: '{{ _tmpdir }}/{{ postgresql_backup_file|basename|regex_replace(".pgdmp.bz2","") }}.log'
+
+- block:
+  # This task assumes the full absolute path to the backup file is
+  # given, so it uses basename to extract just the filename for later
+  # operations.
+  - name: Copy postgresql backup file
+    copy:
+      src: '{{ postgresql_backup_file }}'
+      dest: '{{ _tmpdir }}/{{ postgresql_backup_file|basename }}'
+      owner: postgres
+      group: postgres
+      mode: 0770
+    no_log: '{{ nolog|default(true) }}'
+    become: yes
+
+  - name: Restore backup of postgresql database
+    shell: >
+      bunzip2 -c {{ _tmpdir }}/{{ postgresql_backup_file|basename }} |
+      pg_restore
+      --host=localhost
+      --port=5432
+      --username=postgres
+      --dbname={{ tridentDBName }}
+      {{ _restore_options }}
+    register: restore_status
+    become: yes
+    become_user: postgres
+
+#   - name: Restore backup of postgresql database
+#     shell: >
+#       bunzip2 -c {{ _tmpdir }}/{{ postgresql_backup_file|basename }} |
+#       psql
+#       --host=localhost
+#       --port=5432
+#       --no-psqlrc
+#       --quiet
+#       --variable=ON_ERROR_STOP=1
+#       --pset=pager=off
+#       --username=postgres
+#       --dbname={{ tridentDBName }}
+#       --log-file={{ _logfile }}
+#     environment:
+#       PGOPTIONS: '--client-min-messages=warning'
+#     register: restore_status
+#     become: yes
+#     become_user: postgres
+
+  always:
+  - name: Remove temporary directory
+    file:
+      path: '{{ _tmpdir }}'
+      state: absent
+    become: yes
+    when: restore_status is not defined or restore_status.rc|int == 0
+
+  - name: Report failure and log file
+    fail: msg='Restore failed{% raw %}:{% endraw %} see log file {{ _logfile }}'
+    when: restore_status is not defined or restore_status.rc|int != 0
+
+# vim: ft=ansible :
