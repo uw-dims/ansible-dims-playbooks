@@ -11,7 +11,7 @@
 # Vagrant will be set up with this backup certificate rather
 # than always generating a new one. Be aware of this limitation.
 
-- fail: "use_letsencrypt is not enabled"
+- fail: msg="use_letsencrypt is not enabled"
   when: use_letsencrypt is not defined or not use_letsencrypt|bool
 
 - name: Define certbot_sitename
