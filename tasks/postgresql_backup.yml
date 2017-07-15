@@ -77,6 +77,15 @@
   no_log: '{{ nolog|default(true) }}'
   become: yes
 
+- name: Ensure backup owned by ansible user
+  file:
+    path: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
+    owner: ansible
+    group: ansible
+    mode: 0770
+  delegate_to: 127.0.0.1
+  become: yes
+
 - name: Remove temporary directory
   file:
     path: '{{ _tmpdir }}'
