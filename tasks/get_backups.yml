@@ -1,0 +1,52 @@
+---
+
+# File: tasks/get_backups.yml
+
+# This task obtains a list of available backups in reverse
+# chronological order for the given host and service.
+# 
+# Input variables:
+# backups_dir - Absolute path to directory holding backups
+# backups_service - Name of service for which backups are sought
+# host - Specific host whose backups are sought
+#
+# Command line usage for testing:
+#  $ ansible-playbook -vv -i inventory -e 'task=get_backups' \
+#  > -e 'backups_dir=/opt/dims/backups/purple.devops.local' \
+#  > -e 'backups_service=postgresql' \
+#  > -e host=purple.devops.local playbooks/base_task.yml
+# ...
+# ok: [purple.devops.local] => {
+#     "backups_files": [
+#         "/opt/dims/backups/purple.devops.local/postgresql_2017-07-15T13:37:15PDT.pgdmp.bz2",
+#         "/opt/dims/backups/purple.devops.local/postgresql_2017-07-14T19:03:59PDT.pgdmp.bz2"
+#     ],
+#     "changed": false
+# }
+
+- name: Define host
+  set_fact:
+    host: '{{ inventory_hostname }}'
+  when: backups_dir is not defined and host is not defined
+
+- name: Define backups_dir
+  set_fact:
+    backups_dir: '{{ backups_dir|default("{{ dims_backups }}/{{ host }}") }}'
+
+- fail: msg="'backups_service' must be defined to select service backups"
+  when: backups_service is not defined
+
+- name: Find backup files
+  find:
+    paths: '{{ backups_dir }}'
+    patterns: '^{{ backups_service }}_.*$'
+    file_type: 'file'
+    recurse: yes
+    use_regex: yes
+  become: yes
+  delegate_to: 127.0.0.1
+  register: _find_results
+
+- name: Reduce to reverse chronologically sorted list
+  set_fact:
+    backups_files: '{{ _find_results.files|map(attribute="path")|list|sort(reverse=True) }}'
