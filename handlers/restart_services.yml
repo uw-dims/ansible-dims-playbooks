@@ -132,5 +132,6 @@
 - name: conditional restart docker
   service: name=docker state=restarted
   when: hostvars[inventory_hostname].ansible_docker0 is defined
+  ignore_errors: true
 
 # vim: ft=ansible :
