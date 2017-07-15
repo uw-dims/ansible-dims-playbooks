@@ -8,7 +8,8 @@
 # variables defined in the trident inventory group.
 #
 # Controlling variables:
-# postgresql_backup_file - Absolute path to backup file to restore (required)
+# postgresql_backup_file - Absolute path to backup file to restore
+#                          (defaults to latest available backup)
 # postgresql_restore_data_only: - Use --data-only option. Implies not
 #                                 cleaning first. (true/false)
 # postgresql_restore_clean: - Use --clean. Drops database objects before
@@ -40,6 +41,18 @@
         (postgresql_restore_clean is defined and postgresql_restore_clean|bool)
 
 # TODO(dittrich): Add support for defaulting to latest available backup.
+
+- include: '{{ tasks_path }}/get_backups.yml'
+  vars:
+    backups_dir: '{{ postgresql_backup_dir }}'
+    backups_service: 'postgresql'
+  when: postgresql_backup_file is not defined
+
+- name: Default to latest backup file
+  set_fact:
+    postgresql_backup_file: '{{ backups_files.0 }}'
+  when: postgresql_backup_file is not defined and
+        backups_files.0 is defined
 
 - name: Require 'postgresql_backup_file' be set
   fail: msg="Please specify backup to restore with 'postgresql_backup_file'"
