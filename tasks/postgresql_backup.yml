@@ -28,7 +28,7 @@
 
 - name: Define postgresql_backup_file
   set_fact:
-    postgresql_backup_file: 'postgresql_{{ backup_ts }}.pgdmp'
+    postgresql_backup_file: 'postgresql_{{ backup_ts }}.pgdmp.bz2'
   when: postgresql_backup_file is not defined
 
 - name: Ensure local postgresql backup directory exists
@@ -62,16 +62,16 @@
     --schema=public
     --format=c
     --blobs
-    | bzip2 > {{ _tmpdir }}/{{ postgresql_backup_file }}.bz2 &&
-    chmod 770 {{ _tmpdir }}/{{ postgresql_backup_file }}.bz2
-    creates={{ _tmpdir }}/{{ postgresql_backup_file }}.bz2
+    | bzip2 > {{ _tmpdir }}/{{ postgresql_backup_file }} &&
+    chmod 770 {{ _tmpdir }}/{{ postgresql_backup_file }}
+    creates={{ _tmpdir }}/{{ postgresql_backup_file }}
   become: yes
   become_user: postgres
 
 - name: Fetch postgresql backup file
   fetch:
-    src: '{{ _tmpdir }}/{{ postgresql_backup_file }}.bz2'
-    dest: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}.bz2'
+    src: '{{ _tmpdir }}/{{ postgresql_backup_file }}'
+    dest: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
     flat: true
     validate_checksum: yes
   no_log: '{{ nolog|default(true) }}'
