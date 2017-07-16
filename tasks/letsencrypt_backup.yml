@@ -1,0 +1,95 @@
+---
+
+# File: tasks/letsencrypt_backup.yml
+
+# Requires:
+# certbot_backup_dir - Directory to store backup (defaults to
+#                      directory using inventory_hostname in path)
+
+- name: Define _default_backups_dir
+  set_fact:
+    certbot_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+  when: certbot_backup_dir is not defined
+
+- block:
+  - name: Create temporary directory for cert backup
+    shell: >
+      mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+    register: mktemp_output
+    become: yes
+
+  - name: Define _tmpdir variable
+    set_fact:
+      _tmpdir: '{{ mktemp_output.stdout }}'
+
+  - name: Define backup_ts timestamp
+    set_fact:
+      _backup_ts: "{{ lookup('dims_function', 'iso8601dateshort') }}"
+
+  # Note that the backup is named "letsencrypt" for the
+  # /etc/letsencrypt directory, not "certbot". Be aware of
+  # tight coupling of this name in other tasks.
+
+  - name: Define certbot_backup_file
+    set_fact:
+      certbot_backup_file: 'letsencrypt_{{ _backup_ts }}.tgz'
+
+  - name: Create backup of letsencrypt certificates
+    archive:
+      path: '/etc/letsencrypt'
+      dest: '{{ _tmpdir }}/{{ certbot_backup_file }}'
+      owner: root
+      group: root
+      mode: 0770
+      remove: false
+    become: yes
+
+  - name: Ensure local cert directory exists
+    file:
+      dest: '{{ certbot_backup_dir }}'
+      state: directory
+      owner: dims
+      group: dims
+      mode: 0770
+    delegate_to: 127.0.0.1
+    become: yes
+
+  - name: Fetch backup copy of letsencrypt directory
+    fetch:
+      src: '{{ _tmpdir }}/{{ certbot_backup_file }}'
+      dest: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
+      flat: true
+      validate_checksum: yes
+    no_log: '{{ nolog|default(true) }}'
+    become: yes
+
+  - name: Note success in backing up certs
+    set_fact:
+      _backedup: true
+
+  - name: Set backup ownership
+    file:
+      path: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
+      owner: dims
+      group: dims
+      mode: 0660
+    delegate_to: 127.0.0.1
+    become: yes
+
+  rescue:
+  - name: Note failure in backing up certs
+    set_fact:
+      _backedup: false
+
+  # endblock
+
+- name: Remove temporary directory
+  file:
+    path: '{{ _tmpdir }}'
+    state: absent
+  when: _backedup
+
+- fail: msg="Backup failed. Temporary directory {{ _tmpdir }} preserved."
+  when: not _backedup
+
+# vim: ft=ansible :

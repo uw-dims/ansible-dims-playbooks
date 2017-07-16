@@ -1,0 +1,109 @@
+---
+
+# File: tasks/letsencrypt_generate.yml
+
+# This task file uses certbot to generate certificates
+# using the certbot Docker container.
+
+# Because of the throttling of certificate generation, development testing
+# and demonstrations should be performed using the staging environment.
+# See: https://letsencrypt.org/docs/staging-environment/
+# Set 'certbot_staging' to a true value to enable.
+
+# Uses:
+# certbot_staging - Controls use of staging area to avoid throttle.
+# certbot_sitename - Domain name for certificate
+# certbot_adminemail - Email address for cert (may differ from
+#                      inventory_hostname if NAT in use).
+
+- name: Define _certbot_staging option
+  set_fact:
+    _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
+
+- block:
+  - name: stat {{ dims_bin }}/certbot-auto
+    stat: path='{{ dims_bin }}/certbot-auto'
+    register: _certbot
+
+  - name: Ensure certbot-auto is installed
+    include: '{{ tasks_path }}/install-certbot-auto.yml'
+    when: _certbot.stat.exists == False
+
+  - debug: msg="{{ dims_bin }}/certbot-auto is installed"
+    when: _certbot.stat.exists == True
+
+  rescue:
+  - fail: msg="{{ dims_bin }}/certbot-auto could not be installed"
+
+  # endblock
+
+- block:
+  # Generating a new cert using certbot
+  - name: Create temporary directory for generating cert
+    shell: >
+      mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+    register: mktemp_output
+
+  - name: Define _tmpdir variable
+    set_fact:
+      _tmpdir: '{{ mktemp_output.stdout }}'
+
+  - name: Temporarily stop nginx to use port 80/tcp
+    service:
+      name: nginx
+      state: stopped
+    notify: restart nginx
+    ignore_errors: yes
+
+  - name: Run certbot standalone in Docker container
+    shell: >
+      docker run -i
+      --rm
+      -p 443:443
+      -p 80:80
+      --name certbot
+      -v "{{ _tmpdir }}/letsencrypt/etc/letsencrypt:/etc/letsencrypt"
+      -v "{{ _tmpdir }}/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt"
+      -v "{{ _tmpdir }}/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt"
+      certbot/certbot
+      certonly
+      --noninteractive
+      --standalone {{ _certbot_staging }}
+      --keep-until-expiring
+      --preferred-challenges tls-sni
+      --domain {{ certbot_sitename }}
+      --agree-tos
+      --email {{ certbot_adminemail }}
+      creates={{ _tmpdir }}/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
+
+  - name: Install letsencrypt cert directory in /etc
+    shell: >
+      cp -pr {{ _tmpdir }}/letsencrypt/etc/letsencrypt/ /etc &&
+      tree -up /etc/letsencrypt
+
+  - name: Note success in generating certs
+    set_fact:
+      _generated: true
+
+  rescue:
+  - name: Note failure in generating certs
+    set_fact:
+      _generated: false
+
+  # endblock
+
+- name: Remove image
+  shell: docker rmi certbot/certbot
+  when: _generated
+
+- name: Remove temporary directory on success
+  file:
+    path: '{{ _tmpdir }}'
+    state: absent
+  when: _generated
+  ignore_errors: yes
+
+- fail: msg="Could not generate new certificate. See log file in {{ _tmpdir }}"
+  when: not _generated
+
+# vim: ft=ansible :
