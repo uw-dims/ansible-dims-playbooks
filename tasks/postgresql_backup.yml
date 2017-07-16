@@ -35,7 +35,7 @@
   file:
     dest: '{{ postgresql_backup_dir }}'
     state: directory
-    owner: ansible
+    owner: dims
     group: dims
     mode: 0770
   delegate_to: 127.0.0.1
@@ -77,12 +77,12 @@
   no_log: '{{ nolog|default(true) }}'
   become: yes
 
-- name: Ensure backup owned by ansible user
+- name: Set backup ownership
   file:
     path: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
-    owner: ansible
-    group: ansible
-    mode: 0770
+    owner: dims
+    group: dims
+    mode: 0660
   delegate_to: 127.0.0.1
   become: yes
 

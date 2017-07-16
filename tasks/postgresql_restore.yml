@@ -40,8 +40,6 @@
   when: postgresql_restore_clean is not defined or
         (postgresql_restore_clean is defined and postgresql_restore_clean|bool)
 
-# TODO(dittrich): Add support for defaulting to latest available backup.
-
 - include: '{{ tasks_path }}/get_backups.yml'
   vars:
     backups_dir: '{{ postgresql_backup_dir }}'
