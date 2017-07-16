@@ -100,6 +100,7 @@
   file:
     path: '{{ _tmpdir }}'
     state: absent
+  become: yes
   when: _generated
   ignore_errors: yes
 

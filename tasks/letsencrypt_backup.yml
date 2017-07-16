@@ -87,6 +87,7 @@
   file:
     path: '{{ _tmpdir }}'
     state: absent
+  become: yes
   when: _backedup
 
 - fail: msg="Backup failed. Temporary directory {{ _tmpdir }} preserved."
