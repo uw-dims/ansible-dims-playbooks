@@ -27,11 +27,12 @@
 - name: Define host
   set_fact:
     host: '{{ inventory_hostname }}'
-  when: backups_dir is not defined and host is not defined
+  when: host is not defined
 
 - name: Define backups_dir
   set_fact:
-    backups_dir: '{{ backups_dir|default("{{ dims_backups }}/{{ host }}") }}'
+    backups_dir: '{{ dims_backups }}/{{ host }}'
+  when: backups_dir is not defined
 
 - fail: msg="'backups_service' must be defined to select service backups"
   when: backups_service is not defined
