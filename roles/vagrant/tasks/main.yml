@@ -16,7 +16,7 @@
   when: ansible_os_family == "Debian"
   tags: [ vagrant, packages ]
 
-- name: Install
+- name: Ensure vagrant deb package present
   shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ vagrant_artifact }}"
   become: yes
   when: ansible_os_family == "Debian"
