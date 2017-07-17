@@ -32,9 +32,9 @@
 
 - name: Hot patch CoreOS configure_networks.rb
   shell: >
-    patch \
-      /opt/vagrant/embedded/gems/gems/vagrant-1.8.6/plugins/guests/coreos/cap/configure_networks.rb \
-      {{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks
+    patch
+    /opt/vagrant/embedded/gems/gems/vagrant-{{ vagrant_version }}/plugins/guests/coreos/cap/configure_networks.rb
+    {{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks
   become: yes
   tags: [ vagrant, packages ]
 
