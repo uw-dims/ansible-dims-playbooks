@@ -4,11 +4,11 @@
 
 consul_servers: []
 consul_os: 'linux'
-consul_version: '0.7.0'
+consul_version: '0.8.5'
 consul_artifact: 'consul_{{ consul_version }}_{{ consul_os }}_amd64.zip'
 # TODO(dittrich): We use "XXX_url" elsewhere to point to directory, not full URL path to file
 consul_dist_url: 'https://releases.hashicorp.com/consul/{{ consul_version }}'
-consul_sha256sum: 'b350591af10d7d23514ebaa0565638539900cdb3aaa048f077217c4c46653dd8'
+consul_sha256sum: '35dc317c80862c306ea5b1d9bc93709483287f992fd0797d214d1cc1848e7b62'
 consul_agent_type: 'client'
 consul_log_file: '/var/log/consul.log'
 consul_dns_port: 8600
