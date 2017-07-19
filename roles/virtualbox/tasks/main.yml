@@ -9,5 +9,5 @@
   tags: [ virtualbox, packages ]
 
 - include: virtualbox.yml
-  when: grep_result.rc == 1
+  when: grep_result is defined and grep_result.rc|int == 1
   tags: [ virtualbox, packages ]
