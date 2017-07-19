@@ -1,0 +1,26 @@
+---
+
+# File: tasks/letsencrypt_restore.yml
+
+# This playbook will restore a backup of the
+# /etc/letsencrypt directory from a server installed
+# using DIMS Ansible playbooks.
+#
+# Controlling variables:
+# letsencrypt_backup_file - Absolute path to backup file to restore
+#                          (defaults to latest available backup)
+# letsencrypt_restore_data_only: - Use --data-only option. Implies not
+#                                 cleaning first. (true/false)
+# letsencrypt_restore_clean: - Use --clean. Drops database objects before
+#                             restoring them. (true/false)
+#
+# See https://www.letsencrypt.org/docs/current/static/app-pgrestore.html
+
+- name: Restore certs from backup
+  unarchive:
+    src: '{{ _backup_dir }}/{{ _backup_file }}'
+    dest: /etc
+    extra_opts: '--exclude=var'
+
+
+# vim: ft=ansible :

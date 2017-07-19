@@ -22,7 +22,7 @@
   no_log: '{{ nolog }}'
   when: ansible_lsb.codename == "jessie"
 
-- fail: "Failed to log in via trident: {{ tcli_login.stdout }}"
+- fail: msg="Failed to log in via trident: {{ tcli_login.stdout }}"
   when: ansible_lsb.codename == "jessie"
         and tcli_login.rc != 0
 
@@ -33,7 +33,7 @@
   no_log: '{{ nolog }}'
   when: ansible_lsb.codename == "jessie"
 
-- fail: "Failed to obtain sysadmin rights: {{ tcli_swapadmin.stdout }}"
+- fail: msg="Failed to obtain sysadmin rights: {{ tcli_swapadmin.stdout }}"
   when: ansible_lsb.codename == "jessie"
         and tcli_swapadmin.rc != 0
 

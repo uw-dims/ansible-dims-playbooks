@@ -6,8 +6,7 @@
   tags: [ nginx, packages, config ]
 
 # Letsencrypt support
-- name: Ensure letsencrypt certs present if used
-  include: '{{ tasks_path }}/install-certbot-certs.yml'
+- include: '{{ tasks_path }}/install-certbot-certs.yml'
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
