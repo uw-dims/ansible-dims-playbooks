@@ -169,6 +169,7 @@
 - name: restart rsyslog
   service: name=rsyslog state=restarted
   become: yes
+  when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
