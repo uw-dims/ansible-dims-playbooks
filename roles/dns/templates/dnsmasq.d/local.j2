@@ -2,6 +2,11 @@
 
 # Zone "local
 
+{% if dns_zone['local'] is not defined %}
+
+# dns_zone['local'] is not defined.
+
+{% else %}
 # To see all options supported by dnsmasq, look at the default config file
 # included with dnsmasq. (Found in templates/dnsmasq.conf.j2 in this
 # Ansible playbook repository.) Only the options required are specified here.
@@ -47,3 +52,4 @@ cname=trident.devops.local,yellow.devops.local
 
 mx-host=ops.local,    vmhost.devops.local,10
 mx-host=devops.local, vmhost.devops.local,10
+{% endif %}
