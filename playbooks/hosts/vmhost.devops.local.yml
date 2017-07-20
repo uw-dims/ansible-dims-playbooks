@@ -27,7 +27,7 @@
   become: yes
 
   roles:
-    - { role: base }
+    - { role: debug }
     - { role: dns, zones: ['local']}
     - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
     - { role: ansible-server }
