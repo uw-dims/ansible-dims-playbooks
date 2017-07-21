@@ -1,0 +1,8 @@
+---
+
+vagrant_version: '1.9.7'
+vagrant_deb_64bit_sum: 'd5579836c24d95c990aaa0fcd5c700b6a3cfac28d69229867e7cd614b7aecbdd'
+vagrant_artifact: 'vagrant_{{ vagrant_version }}_x86_64.deb'
+vagrant_dist_url: 'https://releases.hashicorp.com/vagrant/{{ vagrant_version }}'
+
+# vim: ft=ansible :
