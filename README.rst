@@ -17,4 +17,4 @@ Dave Dittrich dittrich@u.washington.edu
 
 Copyright |copy| 2017 University of Washington. All rights reserved.
 
-.. literalinclude: LICENSE.txt
+.. literalinclude:: LICENSE.txt
