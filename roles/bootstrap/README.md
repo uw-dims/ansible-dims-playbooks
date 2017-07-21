@@ -1,38 +1,36 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+This role is used to facilitate bootstrapping a new computer, be it a server to act as a baremetal host, a developer laptop, or even a new virtual machine.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The host being bootstrapped must be accessible remotely, preferably using an account 'ansible' that will be used as the ``ansible_user`` account, via SSH. You can set a password for initial access and use ``--ask-pass`` to enter the password.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+This role is dependant on DIMS Ansible playbooks (``ansible-dims-playbooks``) global variables, operating system codename-specific variables for required packages, and a private directory that includes the site-specific inventory defining variables to use for configuring the host.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+A playbook exists in the ``ansible-dims-playbooks`` repository in the directory ``playbooks/bootstrap.yml``. Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+    $ ansible-playbook --become -i $GIT/private-develop/inventory \
+    > $PBR/playbooks/bootstrap.yml -e host=red.devops.local
 
 License
 -------
 
-BSD
+Berkely Three Clause License (see LICENSE.txt).
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+David Dittrich  dittrich@u.washington.edu
