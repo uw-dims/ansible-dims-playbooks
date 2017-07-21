@@ -1,0 +1,41 @@
+---
+
+# File: roles/bootstrap/tasks/sudo.yml
+
+- name: Verify that the sudo group exists
+  group:
+    name: sudo
+    state: present
+  tags: [ 'bootstrap' ]
+
+  # The next few tasks create a new sudoers file and validate
+  # it before installation. AN INVALID '/etc/sudoers' FILE WILL
+  # BREAK 'sudo' AND POTENTIALLY LOCK YOU OUT OF 'root'. Test
+  # changes to the template against a Vagrant to be safest.
+
+- name: Set fact with temp sudoers filename
+  set_fact:
+    _tmp_sudoers: '/etc/sudoers.dims'
+  tags: [ 'bootstrap' ]
+
+- name: Copy sudoers template to temporary file
+  template:
+    src: 'sudoers.j2'
+    dest: '{{ _tmp_sudoers }}'
+    owner: root
+    group: root
+    mode: 0440
+  tags: [ 'bootstrap' ]
+ 
+- name: Back up sudoers file
+  shell: >
+    cp --archive -f /etc/sudoers /etc/sudoers.bak
+  tags: [ 'bootstrap' ]
+ 
+- name: Verify sudoers before replacing
+  shell: >
+    visudo -q -c -f {{ _tmp_sudoers }} &&
+    mv {{ _tmp_sudoers }} /etc/sudoers
+  tags: [ 'bootstrap' ]
+
+# vim: ft=ansible :

@@ -1,0 +1,5 @@
+---
+
+# File: roles/bootstrap/defaults/main.yml
+
+_dims_timezone: 'US/Pacific'

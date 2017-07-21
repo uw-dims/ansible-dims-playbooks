@@ -1,0 +1,38 @@
+---
+
+# File: roles/bootstrap/tasks/packages.yml
+
+- name: Make sure required APT packages are present (Debian)
+  apt:
+    state: present
+    name: '{{ item }}'
+    update_cache: yes
+    force: yes
+  with_items:
+   - "{{ packages_install[ansible_lsb.id] }}"
+  ignore_errors: yes
+  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+
+- name: Make sure required APT packages are present (RedHat)
+  yum:
+    state: present
+    name: '{{ item }}'
+    update_cache: yes
+    force: yes
+  with_items:
+   - "{{ packages_install[ansible_lsb.id] }}"
+  ignore_errors: yes
+  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "RedHat"
+
+  # TODO(dittrich): Implement CoreOS preparation from $GIT/dims-packer/
+  #
+  # $ tree -P '*.sh' /home/dittrich/dims/git/dims-packer/coreos
+  # /home/dittrich/dims/git/dims-packer/coreos
+  # ├── 00-ansiblize-coreos.sh
+  # ├── get-vers.sh
+  # ├── package.sh
+  # └── prep.sh
+  #
+  # 0 directories, 4 files
+
+# vim: ft=ansible :

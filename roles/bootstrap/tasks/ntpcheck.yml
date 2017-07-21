@@ -1,0 +1,35 @@
+---
+
+# File: roles/bootstrap/tasks/ntpcheck.yml
+
+  # Debian
+
+- name: Ensure Debian chrony package is installed
+  apt:
+    name: chrony
+    state: latest
+  when: ansible_os_family == "Debian"
+
+- name: Ensure chrony is running on Debian
+  service:
+    name: chrony
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
+  # RedHat
+
+- name: Ensure RedHat chrony package is installed
+  yum:
+    name: chrony
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure chrony is running on RedHat
+  service:
+    name: chrony
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+# vim: ft=ansible :

@@ -1,0 +1,49 @@
+---
+
+# File: roles/bootstrap/tasks/main.yml
+
+# This role is intended to be run once after initial
+# operating system installation to ensure that the system
+# is ready to be controlled remotely using Ansible. That
+# includes things like timezone setting and NTP time
+# synchronization, installation of required packages,
+# configuration of OpenSSH, initial firewall settings, 'sudo'
+# access for the 'ansible' account, etc.
+
+# This role can be applied using the generic
+# 'playbooks/base_playbook.yml' file, setting the 'host'
+# and 'role' variables appropriately for the target host(s).
+# Be sure to use '--become' as well, as all of these tasks
+# require root.
+#
+# TODO(dittrich): Add example...
+
+- name: Ensure hardware-specific packages present
+  include: 'hardware.yml'
+  tags: [ 'bootstrap', 'hardware' ]
+
+- name: Ensure required packages are present
+  include: 'packages.yml'
+  tags: [ 'bootstrap', 'packages' ]
+
+- name: Ensure timezone set
+  include: 'timezone.yml'
+  tags: [ 'bootstrap', 'timezone' ]
+
+- name: Ensure NTP sync set up
+  include: 'ntpcheck.yml'
+  tags: [ 'bootstrap', 'ntpcheck' ]
+
+- name: Establish sudo access
+  include: 'sudo.yml'
+  tags: [ 'bootstrap', 'sudo' ]
+
+- name: Set up SSH access for Ansible control
+  include: 'ssh.yml'
+  tags: [ 'bootstrap', 'ssh' ]
+
+- name: Display diagnostic and validation information
+  include: 'info.yml'
+  tags: [ 'bootstrap', 'info' ]
+
+# vim: ft=ansible :

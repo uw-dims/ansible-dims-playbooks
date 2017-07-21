@@ -1,0 +1,19 @@
+---
+
+# File: roles/bootstrap/tasks/timezone.yml
+
+- name: Ensure dims_timezone is set
+  set_fact:
+    dims_timezone: '{{ _dims_timezone }}'
+  when: dims_timezone is not defined
+
+- name: Set timezone variables
+  copy:
+    content: '{{ dims_timezone }}'
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify:
+    - Update timezone
