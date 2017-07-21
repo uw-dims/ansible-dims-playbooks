@@ -124,3 +124,14 @@
 
 - name: restart trident
   service: name=trident state=restarted
+
+# Docker requires an iptables chain DOCKER to work
+# properly. It needs to be restarted if/when iptables
+# is restarted to have the chain present.
+
+- name: conditional restart docker
+  service: name=docker state=restarted
+  when: hostvars[inventory_hostname].ansible_docker0 is defined
+  ignore_errors: true
+
+# vim: ft=ansible :

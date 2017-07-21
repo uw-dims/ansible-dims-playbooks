@@ -169,6 +169,7 @@
 - name: restart rsyslog
   service: name=rsyslog state=restarted
   become: yes
+  when: ansible_os_family == "Debian"
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
@@ -493,6 +494,7 @@
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
@@ -518,6 +520,7 @@
   become: yes
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
@@ -541,6 +544,7 @@
         - iptables/
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
@@ -566,6 +570,7 @@
   become: yes
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 

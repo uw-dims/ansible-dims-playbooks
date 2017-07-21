@@ -1,0 +1,39 @@
+---
+
+# File: playbooks/base_task.yml
+
+# This is a generic base playbook that is used to run any specific
+# task on demand>
+#
+#  $ cd $GIT/ansible-dims-playbooks
+#  $ ansible-playbook -e host=host.fq.dn -e task=get_backups playbooks/base_task.yml
+#
+# Alternately, pass a JSON object to -e as follows:
+#  $ ansible-playbook -e "{'host': 'host.fq.dn', \
+#  > 'task': 'get_backups'}" playbooks/base_task.yml
+
+# YOU MUST define at minimum the vars below. They are to be over-ridden
+# using the precendence defined by Ansible for ansible and ansible-playbook
+# command line programs. See Ansible documentation if you don't know what
+# that means.
+
+- name: Ansible (2.x / v2) Base Task
+  vars:
+   - playbooks_root: "{{ lookup('env', 'PBR') }}"
+   - ansible_base: "{{ playbooks_root }}"  # TODO(dittrich): Switch to using this instead of 'playbooks_root'
+   - host: 'localhost'   # over-ride with '-e host=$host.fq.dn'
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+  hosts: "{{ host }}"
+#
+# Everything from here on out will be stripped by dims.ansible-playbooks
+# in order to use this as a base for inserting roles (--role) or
+# tasks (--task). This playbook can still function stand-alone and
+# be run directly using ansible-playbook as described above.
+#
+# @@dims.ansible-playbook@@
+
+  tasks:
+    - include: "{{ tasks_path }}/{{ task }}.yml"
+
+# vim: ft=ansible :

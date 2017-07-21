@@ -1,0 +1,6 @@
+---
+
+# File: roles/bootstrap/handlers/main.yml
+
+- name: Update timezone
+  command: "dpkg-reconfigure --frontend noninteractive tzdata"

@@ -56,17 +56,22 @@ fi
 if [[ $VENVTYPE == "SYSTEM" && ! -d $HOME/dims/envs/$VENV ]]; then
     cat <<EOD
 [!]
-[!] You do not have a Python virtual environment "$VENV" installed in the
-[!] $HOME/dims/envs directory. To install one, run the "{{ venv_name }}.update" command.
+[!] You do not have a Python virtual environment "$VENV"
+[!] installed in the $HOME/dims/envs directory.
+[!] To install one, run the command:
+[!]  $ {{ venv_name }}.update -v
 [!]
 EOD
 elif [[ "$WORKON_HOME/$VENV/bin/python" == "$DIMS/envs/{{ venv_name }}/bin/python" ||
        $WORKON_HOME/$VENV/bin/python -ot $DIMS/envs/{{ venv_name }}/bin/python ]]; then
     cat <<EOD
 [!]
-[!] It appears that your user virtual environment $WORKON_HOME/{{ venv_name }} is older than
-[!] the system virtual environment (or has not been created yet). To update your
-[!] user Python virtual environment, run the "{{ venv_name }}.update" command.
+[!] It appears that your user virtual environment
+[!]   $WORKON_HOME/{{ venv_name }}
+[!] is older than the system virtual environment (or it
+[!] has not been created yet). To update your user Python
+[!] virtual environment, run the following command:
+[!]   $ {{ venv_name }}.update -v
 [!]
 EOD
 fi

@@ -1,0 +1,80 @@
+---
+
+# File: roles/bootstrap/tasks/info.yml
+
+# This task displays information necessary for diagnosing
+# and validating remote access.
+
+- name: Show interface details (Debian)
+  shell: >
+    ifconfig -a |
+    egrep -v "RX |TX |collisions|interrupt"
+  register: _ifconfig
+  when: ansible_os_family == "Debian"
+
+- debug: 'var=_ifconfig.stdout_lines'
+  when: ansible_os_family == "Debian"
+
+- name: Show interface details (MacOSX)
+  shell: >
+    ifconfig -a |
+    egrep "^[a-z]|ether |inet |inet6 |status:|member:"
+  register: _ifconfig
+  when: ansible_os_family == "MacOSX"
+
+- debug: 'var=_ifconfig.stdout_lines'
+  when: ansible_os_family == "MacOSX"
+
+- name: Determine SSH host MD5 key fingerprints
+  shell: |
+    for KEY in /etc/ssh/ssh_host_*_key.pub
+    do
+      ssh-keygen -l -f $KEY
+    done
+  when: ansible_distribution == "Ubuntu"
+        and ansible_distribution_major_version|int < 16
+  register: _md5
+
+- debug: 'var=_md5.stdout_lines'
+  when: ansible_distribution == "Ubuntu"
+        and ansible_distribution_major_version|int < 16
+
+# Suggestion from:
+# https://superuser.com/questions/929566/sha256-ssh-fingerprint-given-by-the-client-but-only-md5-fingerprint-known-for-se
+
+- name: Determine SSH host SHA256 key fingerprints
+  shell: |
+    for KEY in /etc/ssh/ssh_host_*_key.pub
+    do
+      _kfp=$(awk '{print $2}' $KEY |
+        base64 -d |
+        sha256sum -b |
+        awk '{print $1}' |
+        xxd -r -p |
+        base64)
+        awk -v kfp="$_kfp" '{$2 = kfp; print}' $KEY
+    done
+  when: ansible_distribution == "Ubuntu"
+        and ansible_distribution_major_version|int < 16
+  register: _sha256
+
+- debug: 'var=_sha256.stdout_lines'
+  when: ansible_distribution == "Ubuntu" and
+        ansible_distribution_major_version|int < 16
+
+- name: Determine SSH host SHA256 key fingerprints
+  shell: |
+    echo "SSH host key SHA256 fingerprints"
+    for KEY in /etc/ssh/ssh_host_*_key.pub
+    do
+      ssh-keygen -l -E sha-256 -f $KEY
+    done
+  when: ansible_distribution == "Ubuntu"
+        and ansible_distribution_major_version|int > 14
+  register: _sha256
+
+- debug: 'var=_sha256.stdout_lines'
+  when: ansible_distribution == "Ubuntu"
+        and ansible_distribution_major_version|int > 14
+
+# vim: ft=ansible :

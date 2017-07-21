@@ -18,30 +18,47 @@
 #
 # Alternately, pass a JSON object to -e as follows:
 #  $ ansible-playbook -e "{'host': 'host.fq.dn', 'role': 'hello', \
-#  > 'debug': true, 'playbooks_root': '"$PBR"'}" playbooks/base_playbook.yml
-
+#  > 'playbooks_root': '"$PBR"'}" playbooks/base_playbook.yml
+#
+# To invoke debugging, add "--tags debug" and "-v" ("-vv", "-vvv", ...)
+#
 # YOU MUST define at minimum the vars below. They are to be over-ridden
 # using the precendence defined by Ansible for ansible and ansible-playbook
 # command line programs. See Ansible documentation if you don't know what
 # that means.
 
-- name: Ansible (2.x / v2) Base Playbook
+- name: Ansible 2.x Base Playbook
   vars:
-   - playbooks_root: "{{ lookup('env', 'PBR') or '../v2' }}" # Only works if you are in v2/ already
-   - ansible_base: "{{ playbooks_root }}"  # TODO(dittrich): Switch to using this instead of 'playbooks_root'
-   - deployment: 'develop' # over-ride with '-e deployment=$deployment'
-   - category: 'devops'  # over-ride with '-e category=$category'
-   - host: 'localhost'   # over-ride with '-e host=$host.fq.dn'
+   - playbooks_root: "{{ lookup('env', 'PBR') }}"
+   - _debug: False
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
-  hosts: "{{ host }}"
-#
+  hosts: "{{ host|default('localhost') }}" # override with '-e host=$host.fq.dn'
+  gather_facts: True
+
 # Everything from here on out will be stripped by dims.ansible-playbooks
 # in order to use this as a base for inserting roles (--role) or
 # tasks (--task). This playbook can still function stand-alone and
 # be run directly using ansible-playbook as described above.
 #
 # @@dims.ansible-playbook@@
+  pre_tasks:
+    - name: Debugging
+      include: "{{ tasks_path }}/debug-dump-vars.yml"
+      when: _debug is defined and _debug|bool
+      tags: [ debug ]
+
+    - name: Include codename-specific variables
+      include_vars:
+        file: '{{ item }}'
+      with_first_found:
+        - files:
+          - "{{ ansible_lsb.codename }}.yml"
+          paths:
+          - '{{ dims_private }}/vars'
+          - ../vars
+
   roles:
-    - debug
-    - "{{ role }}"
+  - "{{ role }}"
+
+# vim: ft=ansible :

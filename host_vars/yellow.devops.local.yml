@@ -7,15 +7,15 @@ PORT: "22"
 
 dims_users: [ 'dittrich', 'mboggess', ]
 
-tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
-udp_ports: [ 53, 4789, 7946 ]
-
 eth1:
   ip: "192.168.56.13"
   auto_config: "true"
 eth2:
   ip: "10.168.56.13"
   auto_config: "false"
+
+tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
+udp_ports: [ 53, 4789, 7946 ]
 
 box_baseos: "debian"
 box_osversion: "8.5.0"
@@ -28,8 +28,5 @@ iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"
 ssh_pass: "{{ vault_ssh_pass }}"
 installDesktop: ""
 headless: false
-
-# TODO(dittrich): Should use a DNS lookup to get the IP, not two variables (one name, one IP)
-tridentIP: "{{ eth1.ip }}"
 
 # vim: ft=ansible :

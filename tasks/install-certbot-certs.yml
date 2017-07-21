@@ -11,6 +11,9 @@
 # Vagrant will be set up with this backup certificate rather
 # than always generating a new one. Be aware of this limitation.
 
+- fail: msg="use_letsencrypt is not enabled"
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
+
 - name: Define certbot_sitename
   set_fact:
     certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
@@ -21,143 +24,197 @@
     certbot_adminemail: '{{ trident_site_adminemail }}'
   when: certbot_adminemail is not defined
 
-- name: Define backup cert directory
+- name: Default certbot_save_backups false
   set_fact:
-    certbot_cert_backup_dir: '{{ dims_private }}/files/certs/{{ inventory_hostname }}'
-  when: certbot_cert_backup_dir is not defined
+    certbot_save_backups: false
+  when: certbot_save_backups is not defined
 
-# Because of the throttling of certificate generation, development testing
-# and demonstrations should be performed using the staging environment.
-# See: https://letsencrypt.org/docs/staging-environment/
-# Set 'certbot_staging' to a true value to enable.
-
-- name: Define certbot staging option
-  set_fact:
-    _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
-
-- name: stat {{ certbot_cert_backup_dir }}/letsencrypt.tgz
-  stat: path='{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
-  delegate_to: 127.0.0.1
-  register: _le_backup_file
-
-- name: Temporarily stop nginx to use port 80/tcp
-  service:
-    name: nginx
-    state: stopped
-  notify: restart nginx
-  ignore_errors: yes
-
+  # When certbot_backup_restorefrom is defined and set to
+  # a file path, see if the file exists.
 - block:
-    - name: stat {{ dims_bin }}/certbot-auto
-      stat: path='{{ dims_bin }}/certbot-auto'
-      register: _certbot
+  - name: stat {{ certbot_backup_restorefrom }}
+    stat: path='{{ certbot_backup_restorefrom }}'
+    delegate_to: 127.0.0.1
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom != "latest"
+    register: _backup_stat
 
-    - name: Ensure certbot-auto is installed
-      include: '{{ tasks_path }}/install-certbot-auto.yml'
-      when: _certbot.stat.exists == False
+  - name: Set certbot_backup_dir
+    set_fact:
+      _backup_dir: '{{ _backup_stat.stat.path|dirname }}'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom != "latest" and
 
-    - debug: msg="{{ dims_bin }}/certbot-auto is installed"
-      when: _certbot.stat.exists == True
+  - name: Set certbot_backup_file
+    set_fact:
+      _backup_file: '{{ _backup_stat.stat.path|basename }}'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom != "latest" and
+
+  - name: Note success in locating backup
+    set_fact:
+      _restorefrom_exists: true
 
   rescue:
-    - fail: msg="{{ dims_bin }}/certbot-auto is not installed"
+  - name: Note failure in locating backup
+    set_fact:
+      _restorefrom_exists: false
+
+  # endblock
+
+  # When certbot_backup_restorefrom is defined and set to
+  # "latest", find the latest available backup in
+  # certbot_backup_dir. Note that the backup is named
+  # "letsencrypt" for the /etc/letsencrypt directory, not
+  # "certbot".
 
 - block:
-    - name: Check for existence of /etc/letsencrypt directory
-      stat: path='/etc/letsencrypt'
-      register: _le_dir
+  - name: Define _default_backups_dir
+    set_fact:
+      _default_backups_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom == "latest"
 
-    - name: Restore certs from backup?
-      unarchive:
-        src: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
-        dest: /etc
-        extra_opts: '--exclude=var'
-      when: _le_dir.stat.exists == False and
-            _le_backup_file.stat.exists == True
+  - include: '{{ tasks_path }}/get_backups.yml'
+    vars:
+      backups_dir: '{{ certbot_backup_dir|default(_default_backups_dir) }}'
+      backups_service: 'letsencrypt'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom == "latest"
 
-    - name: Create temporary directory for generating cert
-      file:
-        path: /tmp/letsencrypt
-        state: directory
-        mode: 0700
-      when: _le_dir.stat.exists == False and
-            _le_backup_file.stat.exists == False
+  - name: Set _backup_dir from latest backup file
+    set_fact:
+      _backup_dir: '{{ backups_files.0|dirname }}'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom == "latest"
 
-    - name: Run certbot standalone in Docker container
-      shell: >
-        docker run -i
-        --rm
-        -p 443:443
-        -p 80:80
-        --name certbot
-        -v "/tmp/letsencrypt/etc/letsencrypt:/etc/letsencrypt"
-        -v "/tmp/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt"
-        -v "/tmp/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt"
-        certbot/certbot
-        certonly
-        --noninteractive
-        --standalone {{ _certbot_staging }}
-        --keep-until-expiring
-        --preferred-challenges tls-sni
-        --domain {{ certbot_sitename }}
-        --agree-tos
-        --email {{ certbot_adminemail }}
-        creates=/tmp/letsencrypt/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem
-      when: _le_dir.stat.exists == False and
-            _le_backup_file.stat.exists == False
+  - name: Set _backup_file from latest backup file
+    set_fact:
+      _backup_file: '{{ backups_files.0|basename }}'
+    when: certbot_backup_restorefrom is defined and
+          certbot_backup_restorefrom == "latest"
 
-#   - name: Remove image
-#     shell: docker rmi certbot/certbot
-#     when: _letsencrypt.stat.exists == False
-
-    - name: Install letsencrypt cert directory in /etc
-      shell: >
-        cp -pr /tmp/letsencrypt/etc/letsencrypt/ /etc &&
-        tree -up /etc/letsencrypt
-      when: _le_dir.stat.exists == False and
-            _le_backup_file.stat.exists == False
+  - name: Note success in locating backup
+    set_fact:
+      _restorefrom_exists: true
 
   rescue:
-    - fail: msg="Could not create/restore certificate"
+  - name: Note failure in locating backup
+    set_fact:
+      _restorefrom_exists: false
 
-  always:
-    - name: Check for existence of /tmp/letsencrypt directory
-      stat: path='/tmp/letsencrypt'
-      register: _le_tmpdir
+  # endblock
 
-    - name: Create backup of letsencrypt certificates
-      archive:
-        path: '/tmp/letsencrypt/etc/letsencrypt'
-        dest: '/tmp/letsencrypt.tgz'
-        remove: true
-      when: _le_tmpdir.stat.exists == True and
-            _le_backup_file.stat.exists == False
+- fail: msg="Failed to set _backup_dir and _backup_file"
+  when: certbot_backup_restorefrom is defined and
+        not (_backup_dir is defined and _backup_file is defined)
 
-    - name: Ensure local cert directory exists
-      file:
-        dest: '{{ certbot_cert_backup_dir }}'
-        state: directory
-        owner: '{{ ansible_user }}'
-        group: '{{ ansible_user }}'
-        mode: 0700
-      delegate_to: 127.0.0.1
-      when: _le_tmpdir.stat.exists == True and
-            _le_backup_file.stat.exists == False
+  # If _backup_dir and _backup_file are set at this point,
+  # we are ready to restore from backup.
 
-    - name: Fetch backup copy of letsencrypt directory
-      fetch:
-        src: '/tmp/letsencrypt.tgz'
-        dest: '{{ certbot_cert_backup_dir }}/letsencrypt.tgz'
-        flat: true
-      when: _le_tmpdir.stat.exists == True and
-            _le_backup_file.stat.exists == False
+- block:
+  - name: Restore certs from backup
+    unarchive:
+      src: '{{ _backup_dir }}/{{ _backup_file }}'
+      dest: /etc
+      extra_opts: '--exclude=var'
+    when: certbot_backup_restorefrom is defined and
+          (_backup_dir is defined and _backup_file is defined)
 
-    - name: Remove temporary archive
-      file:
-        path: 'tmp/letsencrypt.tgz'
-        state: absent
-      when: _le_tmpdir.stat.exists == True and
-            _le_backup_file.stat.exists == False
-      ignore_errors: yes
+  - name: Note success in restoring
+    set_fact:
+      _restored: true
+
+  rescue:
+  - name: Note failure in restoring
+    set_fact:
+      _restored: false
+
+  # endblock
+
+  # At this point, _restored reflects whether we successfully
+  # restored from backup or not.  If not, and there are no
+  # certs present, attempt to generate new certs and save
+  # results in _generated.
+
+- block:
+  - include: '{{ tasks_path }}/letsencrypt_generate.yml'
+    when: use_letsencrypt and not _restored
+
+  - name: Note success in generating
+    set_fact:
+      _generated: true
+
+  rescue:
+  - name: Note failure in generating
+    set_fact:
+      _generated: false
+
+  # endblock
+
+- name: Check for existence of letsencrypt cert
+  stat:
+    path: '/etc/letsencrypt/live/{{ tridentFQDN }}/cert.pem'
+  register: _cert_stat
+
+- name: Define _have_cert
+  set_fact:
+    _have_cert: _cert_stat.stat is defined and
+                _cert_stat.stat.exists|bool
+
+- include: '{{ tasks_path }}/letsencrypt_generate.yml'
+  when: use_letsencrypt and not _have_cert
+
+  # 'certbot-auto renew' will always return 0 if it does
+  # not fail, regardless of whether a new certificate resulted
+  # or not. Adding a --post-hook is required to get it to
+  # return some value. A simpler solution here is to create
+  # a marker file in /etc/letsencrypt and looking to see if any
+  # files were changed as a result of the renew operation.
+  # See https://certbot.eff.org/docs/using.html
+
+- block:
+  - name: Update cert
+    shell: >
+      touch /etc/letsencrypt/.certbot-auto-renew &&
+      /opt/certbot/certbot-auto
+      renew
+      --quiet
+      --no-self-upgrade
+    register: _update_results
+    when: use_letsencrypt and _have_cert
+
+  - fail: msg="Failed to run certbot-auto"
+    when: _update_results is not defined or _update_results.rc|int != 0
+
+  - name: Check for new files
+    shell: >
+      find
+      /etc/letsencrypt/*
+      -newer /etc/letsencrypt/.certbot-auto-renew | wc -l
+    register: _find_results
+
+  - name: Note cert changed
+    set_fact:
+      _cert_changed: true
+    when: _find_results.stdout|int > 0
+
+  - name: Note cert not changed
+    set_fact:
+      _cert_changed: false
+    when: _find_results.stdout|int == 0
+
+  rescue:
+  - name: Note cert not changed
+    set_fact:
+      _cert_changed: false
+
+  # Finally, backup cert if so desired (and if something
+  # changed in renewal)
+
+- include: '{{ tasks_path }}/letsencrypt_backup.yml'
+  when: use_letsencrypt and
+        certbot_save_backups|bool and
+        _cert_changed
 
 # vim: ft=ansible :

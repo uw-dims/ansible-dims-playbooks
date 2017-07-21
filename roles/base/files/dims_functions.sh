@@ -276,15 +276,17 @@ fi
 #HELP     Return the name of the root of the directory where
 #HELP     all DIMS secrets (SSH keys, passwords, etc) are
 #HELP     stored (a directory with the name "private-$DEPLOYMENT")
-#HELP     If none is found, returns the public playbooks root.
+#HELP     If $1 is set, it is assumed to be the specific
+#HELP     deployment whose private directory you want to find.
+#HELP     If no specific secrets directory is found, return
+#HELP     the public playbooks root.
 
 function get_dims_private_dir() {
-    if [[ ! -z "$DIMS_PRIVATE" ]]; then
+    local _deployment=${1:-${DEPLOYMENT}}
+    if [[ -d $GIT/private-${_deployment} ]]; then
+        echo "$GIT/private-${_deployment}"
+    elif [[ -z ${1} && ! -z "$DIMS_PRIVATE" ]]; then
         echo "$DIMS_PRIVATE"
-    elif [[ -d $GIT/private-${DEPLOYMENT} ]]; then
-        echo "$GIT/private-${DEPLOYMENT}"
-    elif [[ ! -z "{{ dims_private|default('') }}" ]]; then
-        echo "{{ dims_private|default('') }}"
     else
         echo "${PBR}"
     fi

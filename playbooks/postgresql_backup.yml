@@ -1,0 +1,21 @@
+---
+
+# This playbook supports stand-alone use of the
+# postgresql_backup.yml task file to backup the
+# database of a Trident portal installed using
+# DIMS Ansible playbooks and inventory. The tasks
+# have been separated to allow their use from
+# within roles.
+#
+# See the tasks/postgresql_backup.yml file for usage.
+
+- name: Backup trident postgresql database
+  hosts: '{{ host | default("trident") }}'
+  gather_facts: true
+  user: root
+  vars_files:
+    - "{{ playbooks_root }}/vars/global.yml"
+  tasks:
+    - include: '{{ tasks_path }}/postgresql_backup.yml'
+
+# vim: ft=ansible :

@@ -1,0 +1,50 @@
+---
+
+# File: playbooks/bootstrap.yml
+
+# This playbook is designed to facilitate bootstrapping a new
+# computer, be it a server to act as a baremetal host, a developer
+# laptop, or even a new virtual machine. This playbook is modelled
+# on playbooks/base_playbook.yml.
+#
+# Example usage:
+#
+# $ ansible-playbook --become \
+# > -i $GIT/private-develop/inventory \
+# > $PBR/playbooks/bootstrap.yml -e host=red.devops.local
+
+- name: Bootstrapping '{{ host|default('bootstrap') }}'
+  vars:
+   - playbooks_root: "{{ lookup('env', 'PBR') }}"
+   - _debug: False
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+  hosts: "{{ host|default('bootstrap') }}" # override with '-e host=$host.fq.dn'
+  gather_facts: True
+
+# Everything from here on out will be stripped by dims.ansible-playbooks
+# in order to use this as a base for inserting roles (--role) or
+# tasks (--task). This playbook can still function stand-alone and
+# be run directly using ansible-playbook as described above.
+#
+# @@dims.ansible-playbook@@
+  pre_tasks:
+    - name: Debugging
+      include: "{{ tasks_path }}/debug-dump-vars.yml"
+      when: _debug is defined and _debug|bool
+      tags: [ debug ]
+
+    - name: Include codename-specific variables
+      include_vars:
+        file: '{{ item }}'
+      with_first_found:
+        - files:
+          - "{{ ansible_lsb.codename }}.yml"
+          paths:
+          - '{{ dims_private }}/vars'
+          - ../vars
+
+  roles:
+  - { role: bootstrap }
+
+# vim: ft=ansible :
