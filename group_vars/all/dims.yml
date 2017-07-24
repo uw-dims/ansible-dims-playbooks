@@ -5,10 +5,6 @@
 # This file is intended to serve as the principle site
 # configuration file.
 
-verbose: true
-
-deployment: 'local'
-
 dims_kibana_port: 8480
 dims_ssh_port: 8422
 dims_ssl_port: 8443
