@@ -706,18 +706,18 @@ private key files.
         ├── Makefile
         ├── README.rst
         └── VERSION
-    
+
         5 directories, 20 files
-    
+
     ..
-    
+
 Next, begin by creating the Ansible ``inventory/`` directory
 that will describe your deployment. Copy the ``group_vars``,
 ``host_vars``, and ``inventory`` directory trees to the new
 custom directory.
-    
+
 .. code-block:: none
-    
+
     $ cp -vrp $PBR/{group_vars,host_vars,inventory} -t private-devtest
     ‘/home/dittrich/dims/git/ansible-dims-playbooks/group_vars’ -> ‘private-devtest/group_vars’
     ‘/home/dittrich/dims/git/ansible-dims-playbooks/group_vars/all’ -> ‘private-devtest/group_vars/all’
@@ -888,14 +888,50 @@ to do anything other than simply substitute ``local`` with
 
 .. caution::
 
-  The kind of bulk editing that will be shown next is powerful, which means it
-  is also risky.  Accidental damage from typos on the command line can be very
-  difficult to recover from.  If you are not comfortable and confident that you
-  know what you are doing, practice first by making a copy of the directory
-  tree to the ``/tmp`` directory and trying the edits there. Using
-  ``diff -r`` against both the original directory and the temporary directory
-  will show you the effects and allow you to validate they reflect what you
-  desire before applying to the actual files.
+    The kind of bulk editing that will be shown next is powerful, which means
+    it is also risky.  Accidental damage from typos on the command line can be
+    very difficult to recover from. For example, if you were to blindly change
+    the word ``local`` to ``devtest`` in the following files, you would break
+    many things:
+
+    .. code-block:: none
+
+        . . .
+        ../roles/postgresql/templates/postgresql/postgresql.conf.j2:listen_addresses = 'localhost'              # what IP address(es) to listen on;
+        ../roles/postgresql/templates/postgresql/postgresql.conf.j2:log_timezone = 'localtime'
+        ../roles/postgresql/templates/postgresql/postgresql.conf.j2:timezone = 'localtime'
+        . . .
+        ../roles/postgresql/templates/postgresql/pg_hba.conf.j2:local   all             all                                     trust
+        ../roles/postgresql/templates/postgresql/pg_hba.conf.j2:local   replication     postgres                                trust
+          . . .
+        ../roles/nginx/templates/nginx/nginx.conf.j2:   access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+        ../roles/nginx/templates/nginx/nginx.conf.j2:   error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+        . . .
+        ../roles/base/files/hub.bash_completion.sh:    local line h k v host=${1:-github.com} config=${HUB_CONFIG:-~/.config/hub}
+        ../roles/base/files/hub.bash_completion.sh:    local f format=$1
+        ../roles/base/files/hub.bash_completion.sh:    local i remote repo branch dir=$(__gitdir)
+        ../roles/base/files/hub.bash_completion.sh:    local i remote=${1:-origin} dir=$(__gitdir)
+        . . .
+        ../roles/base/files/git-prompt.sh:      local upstream=git legacy="" verbose="" name=""
+        ../roles/base/files/git-prompt.sh:      local output="$(git config -z --get-regexp '^(svn-remote\..*\.url|bash\.showupstream)$' 2>/dev/null | tr '\0\n' '\n ')"
+        ../roles/base/files/git-prompt.sh:              local -a svn_upstream
+        ../roles/base/files/git-prompt.sh:                      local n_stop="${#svn_remote[@]}"
+        ../roles/base/files/git-prompt.sh:              local commits
+        . . .
+        ../roles/base/files/dims_functions.sh:    local retval=$1 && shift
+        ../roles/base/files/dims_functions.sh:    local script=$1
+        ../roles/base/files/dims_functions.sh:    local n=${#on_exit_items[*]}
+        ../roles/base/files/dims_functions.sh:    local _deployment=${1:-${DEPLOYMENT}}
+        . . .
+
+    ..
+
+    If you are not comfortable and confident that you know what you are doing,
+    practice first by making a copy of the directory tree to the ``/tmp``
+    directory and trying the edits there. Using ``diff -r`` against both the
+    original directory and the temporary directory will show you the effects
+    and allow you to validate they reflect what you desire before applying to
+    the actual files.
 
 ..
 
@@ -913,7 +949,8 @@ the files inline using ``perl``.
 
 Next, rename all of the ``host_vars`` files to have names that match
 the deployment name ``devtest`` and the changes made to the inventory
-files.
+files, and carefully change the internal contents like the last
+step so they match as well.
 
 .. code-block:: none
 
@@ -929,6 +966,22 @@ files.
     node03.devops.devtest.yml  purple.devops.devtest.yml vmhost.devops.devtest.yml
     blue16.devops.devtest.yml  hub.devops.devtest.yml    node02.devops.devtest.yml
     orange.devops.devtest.yml  red.devops.devtest.yml    yellow.devops.devtest.yml
+    $ grep local *
+    blue14.devops.sectf.yml:# File: host_vars/blue14.devops.local.yml
+    blue16.devops.sectf.yml:# File: host_vars/blue16.devops.local.yml
+    green.devops.sectf.yml:# File: host_vars/green.devops.local.yml
+    hub.devops.sectf.yml:# File: host_vars/hub.devops.local.yml
+    node01.devops.sectf.yml:# File: host_vars/node01.devops.local.yml
+    node02.devops.sectf.yml:# File: host_vars/node02.devops.local.yml
+    node03.devops.sectf.yml:# File: host_vars/node03.devops.local.yml
+    orange.devops.sectf.yml:# file: host_vars/orange.devops.local
+    orange.devops.sectf.yml:jenkins_url_external: 'http://orange.devops.local:8080'
+    purple.devops.sectf.yml:# File: host_vars/purple.devops.local.yml
+    red.devops.sectf.yml:# File: host_vars/red.devops.local.yml
+    vmhost.devops.sectf.yml:  'local': 'vboxnet3'
+    yellow.devops.sectf.yml:# File: host_vars/yellow.devops.local.yml
+    $ grep -l local *.yml > /tmp/files
+    $ for F in $(cat /tmp/files); do perl -pi -e 's/local/sectf/' $F; done
     $ cd -
     /home/dittrich/dims/git
 
