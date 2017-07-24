@@ -26,14 +26,22 @@ risk of total disruption of the project in the event of an outage.
 
    If you are not familiar with Ansible, take some time to look at
    the Ansible `Get Started`_ page, and/or watch the following
-   video series:
+   video series. While they are a little dated now (2015, pre-
+   Ansible 2.x), they cover many useful concepts.
 
        + `19 Minutes With Ansible (Part 1/4)`_, Justin Weissig, sysadmincasts.com, January 13, 2015
        + `Learning Ansible with Vagrant (Part 2/4)`_, Justin Weissig, sysadmincasts.com, March 19, 2015
        + `Configuration Management with Ansible (Part 3/4)`_, Justin Weissig, sysadmincasts.com, March 26, 2015
        + `Zero-downtime Deployment with Ansible (Part 4/4)`_, Justin Weissig, sysadmincasts.com, April 2, 2015
 
-   Many more references can be found at <https://staff.washington.edu/dittrich/home/unix.html#ansible>
+   Also highly recommended is to immediately get and read all of Jeff
+   Geerling's book, `Ansible for DevOps`_. This book is more up-to-date in
+   terms of covering Ansible 2.x features and coding style. It will save you
+   countless hours of floundering around and Jeff's Ansible coding style is top
+   quality.
+
+   Many more references can be found in Section :ref:`bestpractices` (originally
+   collected at <https://staff.washington.edu/dittrich/home/unix.html#ansible>).
 
 ..
 
@@ -247,6 +255,16 @@ rest of this document.
 
 Variables
 ---------
+
+.. note::
+
+    As of the release of this repository, the DIMS project has adopted Ansible 2.x
+    and switched to using the little-documented (but much more powerful) YAML style
+    inventory. This will be described in more detail elsewhere.
+
+..
+
+.. TODO(dittrich): Put in a link to where YAML inventory is described.
 
 Ansible playbooks are general rules and steps for performing actions.
 These actions can be selected using logic ("If this is Redhat, do ``A``, but if
@@ -791,7 +809,6 @@ in the the `Ansible Documentation`_, but sometimes these don't go far
 enough in guiding a new Ansible user.
 
 .. _Best Practices: http://docs.ansible.com/ansible/playbooks_best_practices.html
-.. _Ansible: http://www.ansible.com/
 .. _Ansible Documentation: http://docs.ansible.com/ansible/
 
 Two other sources of highly useful information are the following
@@ -807,4 +824,170 @@ books and related code examples:
 .. _geerlingguy/ansible-for-devops: https://github.com/geerlingguy/ansible-for-devops
 .. _The DevOps 2.0 Toolkit: https://leanpub.com/the-devops-2-toolkit
 .. _vfarcic/vfarcic.github.io: https://github.com/vfarcic/vfarcic.github.io
+
+Other useful references collected over the years of using Ansible
+include:
+
++ `Ansible`_ (web site)
+    + `Playbooks Best Practices`_
+    + GitHub `ansible/ansible-examples`_ ("A few starter examples of ansible playbooks, to show features and how they work together. See http://galaxy.ansible.com for example roles from the Ansible community for deploying many popular applications.")
+    + `docker - manage docker containers`_
+
++ Alternate "Best Practices" (possibly conflicting, but helpful to consider none the less)
+    + `Laying out roles, inventories and playbooks`_, by Michel Blanc, July 2, 2015
+    + `Best practices to build great Ansible playbooks`_, by Maxime Thoonsen, October 12, 2015
+    + `Ansible (Real Life) Good Practices`_, by Raphael Campardou,  March 19, 2014 (has pre-commit Git hook for ``ansbile-vault``)
+    + `Lessons from using Ansible exclusively for 2 years`_, by Corban Raun, March 24, 2015
+    + `6 practices for super smooth Ansible experience`_, by Maxim Chernyak, June 18, 2014
+    + GitHub `enginyoyen/ansible-best-practises`_ ("A project structure that outlines some best practices of how to use ansible")
+    + `More Tips and Tricks`_, slideshare by bcoca, October 11, 2016
+      https://www.slideshare.net/bcoca/more-tips-n-tricks
+
++ `Episode #43 - 19 Minutes With Ansible (Part 1/4)`_, Justin Weissig, sysadmincasts.com, January 13, 2015
++ `Episode #45 - Learning Ansible with Vagrant (Part 2/4)`_, Justin Weissig, sysadmincasts.com, March 19, 2015
+    + GitHub `jweissig/episode-45`_ ("Episode #45 - Learning Ansible with Vagrant")
+
++ `Episode #46 - Configuration Management with Ansible (Part 3/4)`_, Justin Weissig, sysadmincasts.com, March 26, 2015
++ `Episode #47 - Zero-downtime Deployment with Ansible (Part 4/4)`_, Justin Weissig, sysadmincasts.com, April 2, 2015
+    + GitHub `jweissig/episode-47`_ ("Episode #47 - Zero-downtime Deployments with Ansible (Part 4/4)")
+
++ `Graduating Past Playbooks: How to Use Ansible When Your Infrastructure Grows Up`_, by Rob McQueen
+    + GitHub `nylas/ansible-flask-example`_ ("Example using ansible-test and wrapper roles to implement a simple flask webapp")
+
++ The Fedora Project `ansible playbook/files/etc repository for fedora infrastructure`_
++ `How Twitter Uses Ansible`_, YouTube video by Ansible, May 21, 2014
++ GitHub `ePages-de/mac-dev-setup`_ ("Automated provisioning of your Apple Mac (Java) development machine using Ansible")
+
++ Advanced Ansible concepts, **gotchas**, things to keep in mind...
+    + `Security hardening for openstack-ansible`_, Openstack web site
+        + `Automated Security Hardening with OpenStack-Ansible`_, by Major Hayden, Openstack Austin Summit, May 1, 2016
+        + GitHub `openstack/openstack-ansible-security`_ ("Security Role for OpenStack-Ansible http://openstack.org")
+
+    + Templating
+        + `Jinja2 for better Ansible playbooks and templates`_, by Daniel Schneller, August 25, 2014
+        + `Ansible: "default" and "bool" filters`_, by dddpaul-github, November 30, 2015
+        + `Ansible loop through group vars in template`_, Stackoverflow post, November 18, 2014
+        + `Ansible loop over variables`_, Stackoverflow post, October 28, 2014
+
+    + Dynamic Inventory
+        + `Dynamic Inventory`_, Ansible documentation
+        + `Adapting inventory for Ansible`_, by Jan-Piet Mens
+        + `Creating custom dynamic inventories for Ansible`_, by Jeff Geerling, June 11, 2015
+        + `Writing a Custom Ansible Dynamic Inventory Script`_, by Adam Johnson, December 4, 2016
+        + `Using DNS as an Ansible dynamic inventory`_, by Remie Bolte, January 1, 2016
+
+    + Facts vs. Variables
+        + `Fact Caching`_ and `gathering`_, Ansible documentation
+        + `Fastest way to gather facts to fact cache`_, Stackoverflow post, September 1, 2015
+        + `Ansible Custom Facts`_, serverascode.com
+
+    + Ansible Plugins
+        + `Ansible module development in Python - 101`_, by Yves Fauser, Ansible Munich Meetup - going into 2016, February 23, 2016
+        + `Ansible: Modules and Action Plugins`_, by Nicholas Grisey Demengel, January 20, 2015
+        + `An action plugin for Ansible to handle SSH host keys and DNS SSHFP records`_, by Jan-Piet Mens, November 3, 2012
+        + `v2 callback plugin migration (thread)`_, Google Groups
+
+    + Front-ends for Ansible
+        + `Ansible Tower`_
+        + `DevOps Automation – Ansible+Semaphore is Indispensable!`_, by Thaddeus, code-complete.com
+            + GitHub `ansible-semaphore/semaphore`_ ("Open Source Alternative to Ansible Tower https://ansible-semaphore.github.io/semaphore")
+        + `Building an Automated Config Management Server using Ansible+Flask+Redis`_, by deepakmdas (beingsysadmin), April 21, 2015
+        + `rundeck`_ ("Go fast. Be secure.")
+        + `stackstorm`_ ("Event-Driven Automation")
+            + GitHub `StackStorm/st2`_ ("StackStorm (aka "IFTTT for Ops") is event-driven automation commonly used for auto-remediation, security responses, facilitated troubleshooting, complex deployments, and more. Includes rules engine, workflow,1800+ integrations (see /st2contrib), native ChatOps and so forth."
+            + `New In StackStorm: Ansible Integration`_, by Eugen C., June 5, 2015
+
+    + Handling multi-stage or multi-deployment environments
+        + `Multistage environments with Ansible`_, by Ross Tuck, May 15, 2014
+        + `Multi-stage provisioning`_, by Victor Volle, Ansible Munich Meetup - going into 2016, February 23, 2016
+
+    + `Ansible Tips and Tricks`_ on ReadTheDocs
+    + `How to Use Ansible Roles to Abstract your Infrastructure Environment`_, by Justin Ellingwood, February 11, 2014
+    + `Jinja2 for better Ansible playbooks and templates`_, by Daniel Schneller, August 25, 2014
+    + `Ansible - some random useful things`_, by David Goodwin, August 4, 2014
+    + `Tagging`_, ThinkAnsible, June 4, 2014
+    + `Scalable and Understandable Provisioning with Ansible and Vagrant`_, by Julien Ponge, October 15, 2013
+    + `Alejandro Guirao Rodríguez - Extending and embedding Ansible with Python`_, YouTube video from EuroPython 2015
+    + `etcd + ansible = crazy delicious`_, by UnicornClouds
+    + `How I Fully Automated OS X Provisioning With Ansible`_, by Daniel Jaouen
+    + `Ansible tips`_, by Deni Bertović, October 13, 2014
+    + `Debugging Ansible Tasks`_, by Greg Hurrell, August 7, 2015
+    + GitHub `dellis23/ansible-toolkit`_ ("Ansible toolkit hopes to solve [some Ansible playbook] problems by providing some simple visibility tools.")
+    + GitHub `ks888/ansible-playbook-debugger`_ ("A Debugger for Ansible Playbook")
+    + `Hacking ansible`_, slideshare, October 15, 2014 ("a quick presentation on ansible internals and a focus on the ease of expansion through the plugin")
+    + `ansible-exec: ansible-playbook wrapper for executing playbooks`_, by Hagai Kariti, August 26, 2014
+    + `Using virtualenv Python in local Ansible`_, by Matt Behrens, April 5, 2014
+    + `Ansible: A Simple Rollback Strategy for Roles and Playbooks`_, by Valentino Gagliardi, June 25, 2014
+    + `Proposal for fixing playbooks with dynamic include problems`_, Ansible Development Google Group post
+
+.. _Ansible: http://www.ansible.com/get-started
+.. _Playbooks Best Practices: http://docs.ansible.com/ansible/playbooks_best_practices.html#use-dynamic-inventory-with-clouds
+.. _docker - manage docker containers: http://docs.ansible.com/ansible/docker_module.html
+.. _ansible/ansible-examples: https://github.com/ansible/ansible-examples
+.. _Best practices to build great Ansible playbooks: https://www.theodo.fr/blog/2015/10/best-practices-to-build-great-ansible-playbooks/
+.. _Laying out roles, inventories and playbooks: https://leucos.github.io/ansible-files-layout
+.. _Ansible (Real Life) Good Practices: https://www.reinteractive.net/posts/167-ansible-real-life-good-practices
+.. _Lessons from using Ansible exclusively for 2 years: https://blog.serverdensity.com/what-ive-learnt-from-using-ansible-exclusively-for-2-years/
+.. _6 practices for super smooth Ansible experience: http://hakunin.com/six-ansible-practices
+.. _enginyoyen/ansible-best-practises: https://github.com/enginyoyen/ansible-best-practises/
+.. _More Tips and Tricks: https://www.slideshare.net/bcoca/more-tips-n-tricks
+.. _Episode #43 - 19 Minutes With Ansible (Part 1/4): https://sysadmincasts.com/episodes/43-19-minutes-with-ansible-part-1-4
+.. _Episode #45 - Learning Ansible with Vagrant (Part 2/4): https://sysadmincasts.com/episodes/45-learning-ansible-with-vagrant-part-2-4
+.. _jweissig/episode-45: https://github.com/jweissig/episode-45
+.. _Episode #46 - Configuration Management with Ansible (Part 3/4): https://sysadmincasts.com/episodes/46-configuration-management-with-ansible-part-3-4
+.. _Episode #47 - Zero-downtime Deployment with Ansible (Part 4/4): https://sysadmincasts.com/episodes/47-zero-downtime-deployments-with-ansible-part-4-4
+.. _jweissig/episode-47: https://github.com/jweissig/episode-47
+.. _Graduating Past Playbooks\: How to Use Ansible When Your Infrastructure Grows Up: https://nylas.com/blog/graduating-past-playbooks
+.. _nylas/ansible-flask-example: https://github.com/nylas/ansible-flask-example
+.. _ansible playbook/files/etc repository for fedora infrastructure: https://infrastructure.fedoraproject.org/cgit/ansible.git
+.. _How Twitter Uses Ansible: https://youtu.be/fwGrKXzocg4
+.. _ePages-de/mac-dev-setup: https://github.com/ePages-de/mac-dev-setup
+.. _Security hardening for openstack-ansible: http://docs.openstack.org/developer/openstack-ansible-security/
+.. _Automated Security Hardening with OpenStack-Ansible: https://www.openstack.org/videos/video/automated-security-hardening-with-openstack-ansible
+.. _openstack/openstack-ansible-security: https://github.com/openstack/openstack-ansible-security
+.. _Jinja2 for better Ansible playbooks and templates: https://blog.codecentric.de/en/2014/08/jinja2-better-ansible-playbooks-templates/
+.. _Ansible\: "default" and "bool" filters: https://dddpaul.github.io/blog/2015/11/30/ansible-default-and-bool-filters/
+.. _Ansible loop through group vars in template: http://stackoverflow.com/questions/26989492/ansible-loop-through-group-vars-in-template
+.. _Ansible loop over variables: http://stackoverflow.com/questions/26606121/ansible-loop-over-variables
+.. _Dynamic Inventory: http://docs.ansible.com/intro_dynamic_inventory.html
+.. _Adapting inventory for Ansible : http://jpmens.net/2013/06/18/adapting-inventory-for-ansible/
+.. _Creating custom dynamic inventories for Ansible: http://www.jeffgeerling.com/blog/creating-custom-dynamic-inventories-ansible
+.. _Writing a Custom Ansible Dynamic Inventory Script: https://adamj.eu/tech/2016/12/04/writing-a-custom-ansible-dynamic-inventory-script/
+.. _Using DNS as an Ansible dynamic inventory: https://medium.com/@remie/using-dns-as-an-ansible-dynamic-inventory-e65a2ed6bc9#.9r4jlndnc
+.. _Fact Caching: http://docs.ansible.com/ansible/playbooks_variables.html#fact-caching
+.. _gathering: http://docs.ansible.com/ansible/intro_configuration.html#gathering
+.. _Fastest way to gather facts to fact cache: http://stackoverflow.com/questions/32703874/fastest-way-to-gather-facts-to-fact-cache
+.. _Ansible Custom Facts: http://serverascode.com/2015/01/27/ansible-custom-facts.html
+.. _Ansible module development in Python - 101: https://youtu.be/35UVffLINkc?t=31m16s
+.. _Ansible\: Modules and Action Plugins: http://ndemengel.github.io/2015/01/20/ansible-modules-and-action-plugins/
+.. _An action plugin for Ansible to handle SSH host keys and DNS SSHFP records: http://jpmens.net/2012/11/03/an-action-plugin-for-ansible-to-handle-ssh-host-keys/
+.. _v2 callback plugin migration (thread): https://groups.google.com/d/msg/ansible-devel/DQiGednLgU0/JIvQ2Z-zFQAJ
+.. _Ansible Tower: https://www.ansible.com/tower
+.. _DevOps Automation – Ansible+Semaphore is Indispensable!: https://code-complete.com/code/?p=40
+.. _ansible-semaphore/semaphore: https://github.com/ansible-semaphore/semaphore
+.. _Building an Automated Config Management Server using Ansible+Flask+Redis: https://beingasysadmin.wordpress.com/2015/04/21/building-an-automated-config-management-server-using-ansibleflaskredis/
+.. _rundeck: http://rundeck.org
+.. _stackstorm: https://stackstorm.com/
+.. _StackStorm/st2: https://github.com/StackStorm/st2
+.. _New In StackStorm\: Ansible Integration: https://stackstorm.com/2015/06/05/new-in-stackstorm-ansible-integration/
+.. _Multistage environments with Ansible: http://rosstuck.com/multistage-environments-with-ansible/
+.. _Multi-stage provisioning: https://youtu.be/35UVffLINkc
+.. _Ansible Tips and Tricks: https://ansible-tips-and-tricks.readthedocs.io/en/latest/
+.. _How to Use Ansible Roles to Abstract your Infrastructure Environment: https://www.digitalocean.com/community/tutorials/how-to-use-ansible-roles-to-abstract-your-infrastructure-environment
+.. _Jinja2 for better Ansible playbooks and templates: https://blog.codecentric.de/en/2014/08/jinja2-better-ansible-playbooks-templates/
+.. _Ansible - some random useful things: https://codepoets.co.uk/2014/ansible-random-things/
+.. _Tagging: http://thinkansible.com/ansible-tagging/
+.. _Scalable and Understandable Provisioning with Ansible and Vagrant: https://julien.ponge.org/blog/scalable-and-understandable-provisioning-with-ansible-and-vagrant/
+.. _Alejandro Guirao Rodríguez - Extending and embedding Ansible with Python: https://youtu.be/qLoBHbVb0Fw
+.. _etcd + ansible = crazy delicious: http://www.unicornclouds.com/blog_posts/etcd_ansible_integration
+.. _How I Fully Automated OS X Provisioning With Ansible: http://il.luminat.us/blog/2014/04/19/how-i-fully-automated-os-x-with-ansible/
+.. _Ansible tips: http://goodcode.io/articles/ansible-tips/
+.. _Debugging Ansible Tasks: https://wincent.com/wiki/Debugging_Ansible_tasks
+.. _dellis23/ansible-toolkit: https://libraries.io/pypi/ansible-toolkit
+.. _ks888/ansible-playbook-debugger: https://github.com/ks888/ansible-playbook-debugger
+.. _Hacking ansible: http://www.slideshare.net/bcoca/hacking-ansible
+.. _ansible-exec\: ansible-playbook wrapper for executing playbooks: https://www.bigpanda.io/blog/ansible-exec-ansible-playbook-wrapper-for-executing-playbooks
+.. _Using virtualenv Python in local Ansible: https://www.zigg.com/2014/using-virtualenv-python-local-ansible.html
+.. _Ansible\: A Simple Rollback Strategy for Roles and Playbooks: http://www.servermanaged.it/ansible/ansible-simple-rollback-strategy/
+.. _Proposal for fixing playbooks with dynamic include problems: https://groups.google.com/forum/#!msg/ansible-devel/9aJaoVeRdOg/B4TvRTLgCAAJ
 
