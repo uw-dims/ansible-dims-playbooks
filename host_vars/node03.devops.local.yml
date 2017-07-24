@@ -2,11 +2,6 @@
 
 # File: host_vars/node03.devops.local.yml
 
-name: "node03"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', ]
-
 eth1:
   ip: "192.168.56.23"
   auto_config: "true"

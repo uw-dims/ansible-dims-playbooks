@@ -2,11 +2,6 @@
 
 # file: host_vars/orange.devops.local
 
-name: "orange"
-PORT: "22"
-
-dims_users: [ 'dittrich' ]
-
 tcp_ports:
   - '{{ nginx_default_port }}'
   - '{{ jenkins_port }}'

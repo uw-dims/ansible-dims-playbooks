@@ -2,11 +2,6 @@
 
 # File: host_vars/purple.devops.local.yml
 
-name: "purple"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', ]
-
 tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
 udp_ports: [ 53, 4789, 7946 ]
 

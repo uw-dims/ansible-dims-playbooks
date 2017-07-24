@@ -2,11 +2,6 @@
 
 # File: host_vars/blue14.devops.local.yml
 
-name: "blue14"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', 'revere', 'msouthwe', ]
-
 tcp_ports: [ 53, 9999 ]
 udp_ports: [ 53 ]
 

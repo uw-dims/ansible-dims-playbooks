@@ -17,7 +17,6 @@ net:
     'vboxnet3':
       ip: '{{ eth1.ip }}'
 
-name: "vmhost"
 ansible_host: 127.0.0.1
 ansible_connection: local
 https_proxy: 'https://127.0.0.1:8000'

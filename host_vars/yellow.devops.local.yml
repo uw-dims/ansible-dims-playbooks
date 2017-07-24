@@ -2,11 +2,6 @@
 
 # File: host_vars/yellow.devops.local.yml
 
-name: "yellow"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', ]
-
 eth1:
   ip: "192.168.56.13"
   auto_config: "true"
