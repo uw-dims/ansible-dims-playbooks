@@ -7,6 +7,6 @@ eth1:
   auto_config: "true"
 eth2:
   ip: "10.168.56.22"
-  auto_config: "true"
+  auto_config: "false"
 
 # vim: ft=ansible :

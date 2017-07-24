@@ -15,8 +15,8 @@ consul_inet_interface: 'eth0'
 # Default is '127.0.0.1'
 consul_client_address: '127.0.0.1'
 # TODO(dittrich): This should align with dimscli (it handles fallback)
-consul_data_center: 'local'
-consul_dns_domain: 'local'
+consul_data_center: '{{ deployment }}'
+consul_dns_domain: '{{ deployment }}'
 # TODO(dittrich): This should align with dimscli (it handles fallback)
 consul_start_join: '192.168.56.21'
 # TODO(dittrich): This should align with dimscli (it handles fallback)
