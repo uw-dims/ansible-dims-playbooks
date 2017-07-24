@@ -4,10 +4,6 @@
 
 # This is a merge of 'v1' base-os and common roles' tasks and 'v2' fakebase tasks.
 
-# This playbook requires Ansible 2.x features.
-- include: "{{ tasks_path }}/ansible2check.yml"
-  tags: [ always ]
-
 # NOTE(mboggess): from common
 # Announce UUID
 - debug: "msg=System {{ inventory_hostname }}"

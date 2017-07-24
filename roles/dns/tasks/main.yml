@@ -15,9 +15,6 @@
 # See also $PBR/playbooks/hosts/vmhost.devops.local.yml and related
 # host_vars file for doing this more easily via a playbook.
 
-# We are using Ansible 2 only features.
-- include: "{{ tasks_path }}/ansible2check.yml"
-
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dns, dnsfiles, packages, config ]
 

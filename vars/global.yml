@@ -216,27 +216,6 @@ ansibleAccelerateTimeout: 30
 ansibleAccelerateConnectTimeout: "5.0"
 ansibleAccelerateDaemonTimeout: 30
 
-# This is the set of Ansible variables, in the order
-# we wish to expose them, when 'debug' is set to 'true'.
-
-debug_vars: [
-  'inventory_hostname',
-  'inventory_hostname_short',
-  'inventory_dir',
-  'inventory_file',
-  'role_path',
-  'ansible_check_mode',
-  'ansible_hostname',
-  'delegate_to',
-  'play_hosts',
-  'group_names',
-  'groups',
-  'environment',
-  'defaults',
-  'hostvars[inventory_hostname]',
-  'vars'
-]
-
 # Defaults for rsyslog logging to facilitate central logging and
 # debugging services.
 syslog_facility: 'local0'

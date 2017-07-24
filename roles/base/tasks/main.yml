@@ -2,10 +2,6 @@
 
 # File: roles/base/tasks/main.yml
 
-- name: Check for ansible 2.x
-  include: "{{ tasks_path }}/ansible2check.yml"
-  tags: [ always ]
-
 - debug: msg=System "{{ inventory_hostname }}"
   when: verbose
   tags: [ base ]
