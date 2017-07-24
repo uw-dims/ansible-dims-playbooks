@@ -16,6 +16,8 @@ for short) repository contents.
    :caption: Contents:
 
    introduction
+   bootstrapping
+   localcustomization
    license
 
 .. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
