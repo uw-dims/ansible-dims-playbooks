@@ -16,6 +16,7 @@ for short) repository contents.
    :caption: Contents:
 
    introduction
+   ansible
    bootstrapping
    localcustomization
    license
