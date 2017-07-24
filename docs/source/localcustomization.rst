@@ -777,18 +777,158 @@ custom directory.
 
 ..
 
-Next, rename all of the ``host_vars`` files to have names that match the deployment name ``devtest``.
+The names of hosts in the inventory need to be changed to match the new
+deployment name. This is necessary for mapping inventory host names to
+``host_vars`` files, as well as to generate the proper split-DNS name to IP
+address mappings (among other things). In the inventory, this process can
+be automated a little bit.
+
+Start by verifying that the word ``local`` only occurs in the inventory
+in places where it can be cleanly edited using a simple inline string
+editing (``sed`` style) regular expression.
+
+.. code-block:: none
+
+    $ grep -r local inventory
+    inventory/dns_zones/nodes.yml:      'local':
+    inventory/dns_zones/nodes.yml:          - 'red.devops.local'
+    inventory/dns_zones/nodes.yml:          - 'vmhost.devops.local'
+    inventory/dns_zones/nodes.yml:        mxserver: 'vmhost.devops.local'
+    inventory/dns_zones/nodes.yml:    local:
+    inventory/dns_zones/nodes.yml:        'vmhost.devops.local':
+    inventory/dns_zones/nodes.yml:        'red.devops.local':
+    inventory/dns_zones/nodes.yml:        'orange.devops.local':
+    inventory/dns_zones/nodes.yml:        'blue14.devops.local':
+    inventory/dns_zones/nodes.yml:        'blue16.devops.local':
+    inventory/dns_zones/nodes.yml:        'yellow.devops.local':
+    inventory/dns_zones/nodes.yml:        'purple.devops.local':
+    inventory/dns_zones/nodes.yml:        'hub.devops.local':
+    inventory/dns_zones/nodes.yml:        'node01.devops.local':
+    inventory/dns_zones/nodes.yml:        'node02.devops.local':
+    inventory/dns_zones/nodes.yml:        'node03.devops.local':
+    inventory/dns_zones/nodes.yml:        'node01.devops.local':
+    inventory/dns_zones/nodes.yml:        'node02.devops.local':
+    inventory/dns_zones/nodes.yml:        'node03.devops.local':
+    inventory/trident/nodes.yml:    'yellow.devops.local':
+    inventory/trident/nodes.yml:    'purple.devops.local':
+    inventory/vagrants/nodes.yml:      'local': 'eth1'
+    inventory/vagrants/nodes.yml:    'red.devops.local':
+    inventory/vagrants/nodes.yml:    'node01.devops.local':
+    inventory/vagrants/nodes.yml:    'node02.devops.local':
+    inventory/vagrants/nodes.yml:    'node03.devops.local':
+    inventory/vagrants/nodes.yml:    'yellow.devops.local':
+    inventory/vagrants/nodes.yml:    'purple.devops.local':
+    inventory/vagrants/nodes.yml:    'blue14.devops.local':
+    inventory/vagrants/nodes.yml:    'orange.devops.local':
+    inventory/vagrants/nodes.yml:        'red.devops.local':
+    inventory/vagrants/nodes.yml:        'node01.devops.local':
+    inventory/vagrants/nodes.yml:        'node02.devops.local':
+    inventory/vagrants/nodes.yml:        'node03.devops.local':
+    inventory/vagrants/nodes.yml:        'yellow.devops.local':
+    inventory/vagrants/nodes.yml:        'orange.devops.local':
+    inventory/vagrants/nodes.yml:        'purple.devops.local':
+    inventory/vagrants/nodes.yml:        'blue14.devops.local':
+    inventory/vagrants/nodes.yml:        'red.devops.local':
+    inventory/vagrants/nodes.yml:        'yellow.devops.local':
+    inventory/vagrants/nodes.yml:        'orange.devops.local':
+    inventory/ci-server/nodes.yml:#     jenkins_hostname: jenkins.devops.local
+    inventory/ci-server/nodes.yml:    jenkins_hostname: localhost
+    inventory/ci-server/nodes.yml:    'orange.devops.local':
+    inventory/swarm/nodes.yml:    'red.devops.local':
+    inventory/swarm/nodes.yml:    'yellow.devops.local':
+    inventory/swarm/nodes.yml:    'purple.devops.local':
+    inventory/swarm/nodes.yml:    'node01.devops.local':
+    inventory/swarm/nodes.yml:    'node02.devops.local':
+    inventory/swarm/nodes.yml:    'node03.devops.local':
+    inventory/swarm/nodes.yml:        'node01.devops.local':
+    inventory/swarm/nodes.yml:        'node02.devops.local':
+    inventory/swarm/nodes.yml:        'node03.devops.local':
+    inventory/swarm/nodes.yml:        'red.devops.local':
+    inventory/swarm/nodes.yml:        'yellow.devops.local':
+    inventory/swarm/nodes.yml:        'purple.devops.local':
+    inventory/private/nodes.yml:    'vmhost.devops.local':
+    inventory/private/nodes.yml:    'red.devops.local':
+    inventory/private/nodes.yml:    'orange.devops.local':
+    inventory/private/nodes.yml:    'blue14.devops.local':
+    inventory/private/nodes.yml:    'blue16.devops.local':
+    inventory/private/nodes.yml:    'yellow.devops.local':
+    inventory/private/nodes.yml:    'purple.devops.local':
+    inventory/private/nodes.yml:    'hub.devops.local':
+    inventory/private/nodes.yml:    'node01.devops.local':
+    inventory/private/nodes.yml:    'node02.devops.local':
+    inventory/private/nodes.yml:    'node03.devops.local':
+    inventory/all.yml:    deployment: 'local'
+    inventory/all.yml:    dims_domain: 'devops.local'
+    inventory/all.yml:    'vmhost.devops.local':
+    inventory/all.yml:    'orange.devops.local':
+    inventory/all.yml:    'red.devops.local':
+    inventory/all.yml:    'node01.devops.local':
+    inventory/all.yml:    'node02.devops.local':
+    inventory/all.yml:    'node03.devops.local':
+    inventory/all.yml:    'yellow.devops.local':
+    inventory/all.yml:    'purple.devops.local':
+    inventory/all.yml:    'blue14.devops.local':
+    inventory/nameserver/nodes.yml:    'red.devops.local':
+    inventory/nameserver/nodes.yml:    'vmhost.devops.local':
+    inventory/ansible-server/nodes.yml:    'vmhost.devops.local':
+    inventory/ansible-server/nodes.yml:    'orange.devops.local':
+    inventory/coreos/nodes.yml:    iptables_rules: rules.v4.coreos-local.j2
+    inventory/coreos/nodes.yml:    dims_environment: environment.coreos-local.j2
+    inventory/coreos/nodes.yml:    # This is not specific to "local" deployment, but is specific to coreos
+    inventory/coreos/nodes.yml:    'node01.devops.local':
+    inventory/coreos/nodes.yml:    'node02.devops.local':
+    inventory/coreos/nodes.yml:    'node03.devops.local':
+
+..
+
+Doing this on a BASH command line in Linux would highlight the
+word ``local``, making it easier to see, but there is no need
+to do anything other than simply substitute ``local`` with
+``devtest``.
+
+.. caution::
+
+  The kind of bulk editing that will be shown next is powerful, which means it
+  is also risky.  Accidental damage from typos on the command line can be very
+  difficult to recover from.  If you are not comfortable and confident that you
+  know what you are doing, practice first by making a copy of the directory
+  tree to the ``/tmp`` directory and trying the edits there. Using
+  ``diff -r`` against both the original directory and the temporary directory
+  will show you the effects and allow you to validate they reflect what you
+  desire before applying to the actual files.
+
+..
+
+Use the ``-l`` option of ``grep`` to get just
+the file names, save them to a file, and use that file in
+an inline command substitution in a ``for`` loop to edit
+the files inline using ``perl``.
+
+.. code-block:: none
+
+    $ grep -lr local inventory > /tmp/files
+    $ for F in $(cat /tmp/files); do perl -pi -e 's/local/devtest/' $F; done
+
+..
+
+Next, rename all of the ``host_vars`` files to have names that match
+the deployment name ``devtest`` and the changes made to the inventory
+files.
 
 .. code-block:: none
 
     $ cd private-devtest/host_vars/
     $ ls
-    blue14.devops.local.yml  green.devops.local.yml  node01.devops.local.yml  node03.devops.local.yml  purple.devops.local.yml  vmhost.devops.local.yml
-    blue16.devops.local.yml  hub.devops.local.yml    node02.devops.local.yml  orange.devops.local.yml  red.devops.local.yml     yellow.devops.local.yml
+    blue14.devops.local.yml  green.devops.local.yml  node01.devops.local.yml
+    node03.devops.local.yml  purple.devops.local.yml vmhost.devops.local.yml
+    blue16.devops.local.yml  hub.devops.local.yml    node02.devops.local.yml
+    orange.devops.local.yml  red.devops.local.yml    yellow.devops.local.yml
     $ for F in *.yml; do mv $F $(echo $F | sed 's/local/devtest/'); done
     $ ls
-    blue14.devops.devtest.yml  green.devops.devtest.yml  node01.devops.devtest.yml  node03.devops.devtest.yml  purple.devops.devtest.yml  vmhost.devops.devtest.yml
-    blue16.devops.devtest.yml  hub.devops.devtest.yml    node02.devops.devtest.yml  orange.devops.devtest.yml  red.devops.devtest.yml     yellow.devops.devtest.yml
+    blue14.devops.devtest.yml  green.devops.devtest.yml  node01.devops.devtest.yml
+    node03.devops.devtest.yml  purple.devops.devtest.yml vmhost.devops.devtest.yml
+    blue16.devops.devtest.yml  hub.devops.devtest.yml    node02.devops.devtest.yml
+    orange.devops.devtest.yml  red.devops.devtest.yml    yellow.devops.devtest.yml
     $ cd -
     /home/dittrich/dims/git
 
