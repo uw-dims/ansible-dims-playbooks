@@ -24,15 +24,15 @@ the two hosts we are setting up.
     SSH password:
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
     dellr510.devops.develop | SUCCESS | rc=0 >>
      22:21:50 up  3:37,  3 users,  load average: 0.78, 1.45, 1.29
     Shared connection to 140.142.29.186 closed.
-    
-    
+
+
     stirling.devops.develop | SUCCESS | rc=0 >>
      22:21:51 up  4:15,  3 users,  load average: 2.45, 1.49, 1.18
     Shared connection to 140.142.29.161 closed.
@@ -54,10 +54,10 @@ key, adding the ``.pub`` extension for the public key.
     SSH password:
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
     dellr510.devops.develop | SUCCESS => {
         "changed": true,
         "exclusive": false,
@@ -96,17 +96,17 @@ Ansible will work.
     $ ansible -i inventory/ -m raw -a uptime  bootstrap
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
      [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
     duplicate dict key (ansible_host). Using last defined value only.
-    
+
     dellr510.devops.develop | SUCCESS | rc=0 >>
      22:33:44 up  3:49,  3 users,  load average: 1.14, 0.81, 0.99
     Shared connection to 140.142.29.186 closed.
-    
-    
+
+
     stirling.devops.develop | SUCCESS | rc=0 >>
      22:33:44 up  4:27,  3 users,  load average: 1.12, 1.10, 1.03
     Shared connection to 140.142.29.161 closed.
 
-.. 
+..
