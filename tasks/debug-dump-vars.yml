@@ -2,134 +2,17 @@
 
 # File: tasks/debug-dump-vars.yml
 
-# Would like to do something like the following, as it is cleaner
-# code:
-
-#- name: Dump variables
-#  debug: verbosity=5 "var={{ item }}"
-#  with_items:
-#    - inventory_hostname
-#    - inventory_hostname_short
-#    - inventory_dir
-#    - inventory_dir
-#    - inventory_file
-#    - role_path
-#    - ansible_check_mode
-#    - ansible_hostname
-#    - delegate_to
-#    - play_hosts
-#    - group_names
-#    - groups
-#    - environment
-#    - defaults
-#    - hostvars[inventory_hostname]
-#    - vars
-#  when: debug
-#  register: devnull
-
-# Unfotunately, the resulting output looks really ugly with lots of
-# extraneous information and the entire set of results replicated
-# as part of the results output printed by the human_log.py module.
-#
-# TASK [Dump variables] **********************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:5
-# ok: [four.devops.develop] => (item=inventory_hostname) => {
-#     "inventory_hostname": "four.devops.develop",
-#     "invocation": {
-#         "module_args": {
-#             "var": "inventory_hostname"
-#         },
-#         "module_name": "debug"
-#     },
-#     "item": "inventory_hostname"
-# }
-# ok: [four.devops.develop] => (item=inventory_hostname_short) => {
-#     "inventory_hostname_short": "four",
-#     "invocation": {
-#         "module_args": {
-#             "var": "inventory_hostname_short"
-#         },
-#         "module_name": "debug"
-#     },
-#     "item": "inventory_hostname_short"
-# }
-#
-# The below code is much harder to read, but the output looks much better:
-# 
-# TASK [debug] *******************************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:59
-# ok: [four.devops.develop] => {
-#     "inventory_hostname": "four.devops.develop"
-# }
-# 
-# TASK [debug] *******************************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:62
-# ok: [four.devops.develop] => {
-#     "inventory_hostname_short": "four"
-# }
-# 
-# TASK [debug] *******************************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:65
-# ok: [four.devops.develop] => {
-#     "inventory_dir": "/home/dittrich/dims/git/ansible-playbooks/v2/inventory"
-# }
-# 
-# TASK [debug] *******************************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:68
-# ok: [four.devops.develop] => {
-#     "inventory_file": "inventory/inventory"
-# }
-# 
-# TASK [debug] *******************************************************************
-# task path: /home/dittrich/dims/git/ansible-playbooks/v2/tasks/debug-dump-vars.yml:71
-# ok: [four.devops.develop] => {
-#     "role_path": "VARIABLE IS NOT DEFINED!"
-# }
-
-- debug: verbosity=5 var=inventory_hostname
-  run_once: true
-
-- debug: verbosity=5 var=inventory_hostname_short
-  run_once: true
-
 - debug: verbosity=5 var=inventory_dir
-  run_once: true
-
-- debug: verbosity=5 var=inventory_file
-  run_once: true
-
-- debug: verbosity=5 var=role_path
-  run_once: true
-
-- debug: verbosity=5 var=ansible_check_mode
-  run_once: true
-
-- debug: verbosity=5 var=ansible_hostname
-  run_once: true
-
-- debug: verbosity=5 var=delegate_to
   run_once: true
 
 - debug: verbosity=5 var=play_hosts
   run_once: true
 
-- debug: verbosity=5 var=group_names
-  run_once: true
-
-- debug: verbosity=5 var=groups
-  run_once: true
-
 - debug: verbosity=5 var=environment
-  run_once: true
-
-- debug: verbosity=5 var=defaults
   run_once: true
 
 - debug: verbosity=5 var=hostvars[item]
   with_items: play_hosts
-  run_once: true
-
-- debug: verbosity=5 var=vars
   run_once: true
 
 # vim: ft=ansible :
