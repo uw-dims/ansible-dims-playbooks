@@ -1,0 +1,101 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# Copyright (C) 2014-2017, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
+
+LOGGER_PRIORITY="{{ syslog_facility }}.{{ syslog_severity }}"
+LOGGER_TAG="$BASE"
+
+# Tracks with bumpversion
+DIMS_VERSION=2.7.0
+
+FLAGS_HELP="usage: $BASE [options] message"
+
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'logger' true 'use rsyslog/syslog "logger"' 'S'
+DEFINE_string 'logger-priority' "${LOGGER_PRIORITY}" 'rsyslog/syslog priority (facility.severity)' 'p'
+DEFINE_string 'logger-tag' "${LOGGER_TAG}" 'rsyslog/syslog tag' 't'
+DEFINE_boolean 'logmon' true 'use "logmon" AMQP logging' 'L'
+DEFINE_boolean 'version' false 'print version number and exit' 'V'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+
+# Define functions
+
+usage() {
+    flags_help
+    cat <<EOD
+
+This script provides a generic interface to logging messages
+for DIMS components. It uses Linux 'logger' to send logs to
+rsyslog, and/or uses the 'logmon' AMQP log channel utility
+to log to the 'logs' channel.
+
+Use "--nologmon" to disable AMQP logging.
+
+Use "--nologger" to disable rsyslog/syslog logging.
+EOD
+    exit 0
+}
+
+function logwith_logger() {
+   logger --tag ${FLAGS_logger_tag} \
+          --priority ${FLAGS_logger_priority} \
+          $@ || return 1
+   return 0
+}
+
+function logwith_logmon() {
+    . $HOME/dims/envs/dimsenv/bin/activate ||
+    . /opt/dims/envs/dimsenv/bin/active ||
+    return 0
+    which logmon >/dev/null &&
+        logmon -l ${FLAGS_logmon_channel} -m "$@" ||
+        return 1
+    return 0
+}
+
+main()
+{
+    dims_main_init
+
+    [[ ${FLAGS_logmon} -eq ${FLAGS_TRUE} ]] && logwith_logmon "$@"
+    [[ ${FLAGS_logger} -eq ${FLAGS_TRUE} ]] && logwith_logger "$@"
+
+    return 0
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?
