@@ -29,11 +29,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-. $DIMS/lib/shflags
-. $DIMS/bin/dims_functions.sh
+# Default because templating for use by Ansible
+DIMS=${DIMS:-{{ dims }}}
+
+. ${DIMS}/lib/shflags
+. ${DIMS}/bin/dims_functions.sh
 
 LOGGER_PRIORITY="{{ syslog_facility }}.{{ syslog_severity }}"
 LOGGER_TAG="$BASE"
+LOGMON_EXCHANGE="logs"
 
 # Tracks with bumpversion
 DIMS_VERSION=2.7.0
@@ -46,6 +50,7 @@ DEFINE_boolean 'logger' true 'use rsyslog/syslog "logger"' 'S'
 DEFINE_string 'logger-priority' "${LOGGER_PRIORITY}" 'rsyslog/syslog priority (facility.severity)' 'p'
 DEFINE_string 'logger-tag' "${LOGGER_TAG}" 'rsyslog/syslog tag' 't'
 DEFINE_boolean 'logmon' true 'use "logmon" AMQP logging' 'L'
+DEFINE_string 'logmon-exchange' "${LOGMON_EXCHANGE}" 'log to this AMQP exchange' 'l'
 DEFINE_boolean 'version' false 'print version number and exit' 'V'
 DEFINE_boolean 'verbose' false 'be verbose' 'v'
 
@@ -56,9 +61,9 @@ usage() {
     cat <<EOD
 
 This script provides a generic interface to logging messages
-for DIMS components. It uses Linux 'logger' to send logs to
-rsyslog, and/or uses the 'logmon' AMQP log channel utility
-to log to the 'logs' channel.
+for DIMS components. It uses Linux "logger" to send logs to
+rsyslog, and/or uses the "logmon" AMQP logging utility
+to log to an AMQP exchange.
 
 Use "--nologmon" to disable AMQP logging.
 
@@ -75,13 +80,17 @@ function logwith_logger() {
 }
 
 function logwith_logmon() {
-    . $HOME/dims/envs/dimsenv/bin/activate ||
-    . /opt/dims/envs/dimsenv/bin/active ||
-    return 0
-    which logmon >/dev/null &&
-        logmon -l ${FLAGS_logmon_channel} -m "$@" ||
+    if [[ -f $HOME/dims/envs/dimsenv/bin/activate ]]; then
+        . $HOME/dims/envs/dimsenv/bin/activate
+    elif [[ -f /opt/dims/envs/dimsenv/bin/activate ]]; then
+        . /opt/dims/envs/dimsenv/bin/activate
+    fi
+    if which logmon >/dev/null; then
+        logmon -l ${FLAGS_logmon_exchange} -m "$@"
+        return $?
+    else
         return 1
-    return 0
+    fi
 }
 
 main()
