@@ -134,7 +134,7 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Create symlink to enable sites
+- name: Create symlinks from sites-available to sites-enabled
   file:
     src: '/etc/nginx/sites-available/{{ item }}'
     dest: '/etc/nginx/sites-enabled/{{ item }}'
