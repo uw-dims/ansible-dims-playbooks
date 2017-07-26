@@ -1,0 +1,23 @@
+---
+
+# File: roles/nginx/tasks/install-site-available.yml
+
+- name: Configure sites-available for {{ _sitename }}
+  template:
+    src: '{{ item }}'
+    dest: '/etc/nginx/sites-available/{{ item|basename|regex_replace(".j2","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ _sitename }}.{{ inventory_hostname }}.j2'
+        - '{{ _sitename }}.category-{{ category }}.j2'
+        - '{{ _sitename }}.deployment-{{ deployment }}.j2'
+        - '{{ _sitename }}.j2'
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
+        - sites-available/
+  ignore_errors: yes
+
+# vim: ft=ansible :
