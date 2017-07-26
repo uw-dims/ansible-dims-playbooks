@@ -1,0 +1,17 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+
+# This template provides PXE boot services for systems on a private
+# network, such as an internal VLAN or a Virtualbox virtual network
+# as described in https://gist.github.com/jtyr/816e46c2c5d9345bd6c9
+#
+# Create path {{ dims_data }}/pxeboot for PXE boot files.
+
+server {
+  listen 0.0.0.0:80;
+  server_name {{ inventory_hostname_short }}.{{ nginx_default_domain }};
+  root {{ dims_data }}/pxeboot;
+
+  location ^~ /kickstart {
+    try_files $uri $uri/ =404;
+  }
+}
