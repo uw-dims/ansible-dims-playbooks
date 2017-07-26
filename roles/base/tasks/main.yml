@@ -2,6 +2,17 @@
 
 # File: roles/base/tasks/main.yml
 
+  # This is not DRY, but base role does not use pre_tasks.yml
+- name: Log start of 'base' role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Starting role: base'
+  ignore_errors: yes
+  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
+
 - debug: msg=System "{{ inventory_hostname }}"
   when: verbose
   tags: [ base ]
@@ -799,5 +810,16 @@
   include: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
+
+  # This is not DRY, but base role does not use post_tasks.yml
+- name: Log end of 'base' role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Ending role: base'
+  ignore_errors: yes
+  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
 # vim: ft=ansible :
