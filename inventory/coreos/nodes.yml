@@ -4,7 +4,7 @@
 
 coreos:
   vars:
-    ansible_python_interpreter: "/home/ansible/pypy/bin/python"
+    ansible_python_interpreter: '/opt/bin/python'
     # We are using a specific file for the "with_first_found" logic
     # to handle coreos-specific settings for multiple vagrants in
     # the "ectf" deployment.
@@ -31,5 +31,6 @@ coreos:
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
+    'core-01':
 
 # vim: ft=ansible :

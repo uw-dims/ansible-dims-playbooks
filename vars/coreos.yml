@@ -7,28 +7,14 @@ dist_tag: u'{{ ansible_distribution_version }}'
 packages_install:
   "Container Linux by CoreOS": [
     'bash-completion',
-    'ca-certificates',
-    'cpanminus',
-    'curl',
-    'git-core',
+    'findutils',
+    'binutils',
+    'less',
+    'python27',
+    'python2-pip',
+    'python2-simplejson',
+    'tcpdump',
     'htop',
-    'ifstat',
-    'make',
-    'chrony',
-    'ntpdate',
-    'openssh-server',
-    'patch',
-    'perl',
-    'postfix',
-    'python',
-    'remake',
-    'rsync',
-    'rsyslog',
-    'sshfs',
-    'strace',
-    'tree',
-    'vim',
-    'smartmontools',
   ]
 
 packages_remove:
@@ -42,9 +28,5 @@ services_enabled:
 
 root_user: 'root'
 root_group: 'root'
-
-# The following is for testing and validation of where this
-# variable gets (re)defined.
-was_defined_in: 'vars/coreos.yml'
 
 # vim: ft=ansible :

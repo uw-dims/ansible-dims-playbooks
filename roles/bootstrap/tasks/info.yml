@@ -51,7 +51,8 @@
         sha256sum -b |
         awk '{print $1}' |
         xxd -r -p |
-        base64)
+        base64 |
+        sed 's/=$/\./')
         awk -v kfp="$_kfp" '{$2 = kfp; print}' $KEY
     done
   when: ansible_distribution == "Ubuntu"

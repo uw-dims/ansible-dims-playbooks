@@ -22,6 +22,10 @@
   include: 'hardware.yml'
   tags: [ 'bootstrap', 'hardware' ]
 
+- name: Bootstrap Container Linux by CoreOS for Ansible
+  include: 'coreos.yml'
+  tags: [ 'bootstrap', 'coreos' ]
+
 - name: Ensure required packages are present
   include: 'packages.yml'
   tags: [ 'bootstrap', 'packages' ]

@@ -33,9 +33,7 @@ vagrants:
           netmask: "255.255.255.0"
           cidr_bits: "24"
           broadcast: "192.168.56.255"
-          # Use NAT via VM Host, unless one VM set up for NAT
-          #gateway: "192.168.56.1"
-          gateway: "10.0.2.2"
+          gateway: "192.168.56.1"
           dns_search: "{{ deployment }}"
           dns_servers: "10.0.2.2"
           vagrant_net: "private_network"
@@ -111,6 +109,16 @@ vagrants:
         'red.devops.local':
         'yellow.devops.local':
         'orange.devops.local':
+    coreos-vagrant:
+      hosts:
+        'core-01':
+          ansible_host: '127.0.0.1'
+          #ansible_host: '172.17.8.101'
+          ansible_user: 'core'
+          ansible_port: 2222
+          ansible_ssh_private_key_file: '/home/dittrich/.vagrant.d/insecure_private_key'
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
 
 # vim: ft=ansible :
 

@@ -469,7 +469,7 @@
 # start logging to central site as soon as possible for diagnositc
 # purposes. Using 'notify' delays execution of handlers to the end.
 
-- name: restart rsyslog
+- name: start rsyslog
   service: name=rsyslog state=started
   become: yes
   tags: [ base, config, rsyslogd ]
@@ -704,6 +704,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.j2'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Make sure common (non-templated) BASH scripts are present
@@ -715,6 +716,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.sh'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Make sure common (non-templated) Python scripts are present
@@ -726,6 +728,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.py'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Ensure Ubuntu locale set (Ubuntu)
@@ -808,6 +811,7 @@
 
 - name: Ensure bashpass is present
   include: "{{ tasks_path }}/install-bashpass.yml"
+  become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -846,15 +850,24 @@
 
 - name: Ensure bats is present
   include: "{{ tasks_path }}/install-bats.yml"
+  become: yes
   tags: [ base, packages ]
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
+  become: yes
   tags: [ base, tests ]
 
 - name: Make defined triggers present
   include: "{{ tasks_path }}/triggers.yml"
+  become: yes
   tags: [ base, triggers ]
+
+- name: Make CoreOS resources present
+  include: coreos.yml
+  become: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, packages ]
 
   # This is not DRY, but base role does not use post_tasks.yml
 - name: Log end of 'base' role

@@ -16,6 +16,7 @@ for short) repository contents.
    :caption: Contents:
 
    introduction
+   bootstrapping
    license
 
 .. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
