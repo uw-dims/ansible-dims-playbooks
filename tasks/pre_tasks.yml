@@ -13,20 +13,14 @@
 - name: PRE_TASK - Check proxy availability
   include: "{{ tasks_path }}/proxy_check.yml"
 
-- name: PRE_TASK - Test for existence of dimsenv venv
-  shell: ". {{ dimsenv_activate }}"
-  register: dimsenv_check
+- name: PRE_TASK - Log start of role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Starting role: {{ role_name | quote }}'
   ignore_errors: yes
-
-- name: PRE_TASK - Log start of role with venv logmon
-  shell: ". {{ dimsenv_activate }} && which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
-  ignore_errors: yes
-  when: dimsenv_check.rc == 0
-
-- name: PRE_TASK - Log the start of role w/o venv logmon
-  shell: "which logmon >/dev/null && logmon -l devops -m 'pre_tasks: Starting role: {{ role_name | quote }}'"
-  ignore_errors: yes
-  when: dimsenv_check.rc != 0
 
 # We don't want to save files to deploy_dir (owned by dims)
 # that are owned by root. But the target may already have
@@ -47,3 +41,5 @@
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
   when: role_name is defined
+
+# vim: ft=ansible :

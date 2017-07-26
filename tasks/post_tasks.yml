@@ -16,24 +16,6 @@
   ignore_errors: yes
   when: listfiles is defined and listfiles
 
-- name: POST_TASK - Set path to venv activate
-  set_fact: "dimsenv_activate={{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
-
-- name: POST_TASK - Test for existence of dimsenv venv
-  shell: ". {{ dimsenv_activate }}"
-  register: dimsenv_check
-  ignore_errors: yes
-
-- name: POST_TASK - Log end of role (venv+logmon exist)
-  shell: ". {{ dimsenv_activate }} && which logmon >/dev/null && logmon -l devops -m 'post_tasks: Ending role: {{ role_name | quote }}'"
-  when: dimsenv_check.rc == 0
-  ignore_errors: yes
-
-- name: POST_TASK - Log end of role (logmon exists, venv does not)
-  shell: "which logmon >/dev/null && logmon -l devops -m 'post_tasks: Ending role: {{ role_name | quote }}'"
-  when: dimsenv_check.rc != 0
-  ignore_errors: yes
-
 - name: POST_TASK - Remove role deploy directory
   file:
     state: absent
@@ -42,3 +24,14 @@
 
 - name: POST_TASK - Delete CURRENT_ROLE file
   file: "path={{ deploy_dir }}/CURRENT_ROLE state=absent"
+
+- name: POST_TASK - Log end of role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Ending role: {{ role_name | quote }}'
+  ignore_errors: yes
+
+# vim: ft=ansible :
