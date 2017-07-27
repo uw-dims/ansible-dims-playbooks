@@ -109,6 +109,7 @@
   loop_control:
     loop_var: _sitename
   become: yes
+  when: nginx_sites_available is defined
   tags: [ nginx, config ]
 
 - name: Define nginx_sites_enabled variable
