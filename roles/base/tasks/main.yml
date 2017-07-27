@@ -316,13 +316,14 @@
     name: rsyslog
     state: stopped
   notify: restart rsyslog
+  when: ansible_os_family != "Container Linux by CoreOS"
   ignore_errors: yes
   tags: [ base, config, rsyslogd ]
 
 - name: Add group for rsyslog
   group: name=syslog state=present
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Add non-privileged user for rsyslog
@@ -332,7 +333,7 @@
     shell=/bin/true
     group=syslog
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make DIMS logging directory present
@@ -343,6 +344,7 @@
     group={{ root_group }}
     mode={{ mode_0775 }}
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make /etc/rsyslog.conf present
@@ -364,6 +366,7 @@
         - rsyslog/
       skip: true
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Ensure /etc/rsyslog.d present
@@ -372,6 +375,7 @@
     state: directory
     mode: '{{ mode_0644 }}'
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make /etc/rsyslog.d/00-ignore.conf present
@@ -393,6 +397,7 @@
         - rsyslog.d/
       skip: true
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 # The 49-consolidation.conf file is intended to control log consolidation (i.e., "remote" log
@@ -420,6 +425,7 @@
         - rsyslog.d/
       skip: true
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 # The 50-default.conf file is intended to be default for host configuration, with Jinja logic
@@ -442,6 +448,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Configure journald for systems running systemd
@@ -472,6 +479,7 @@
 - name: start rsyslog
   service: name=rsyslog state=started
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
@@ -492,7 +500,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/logrotate/'
         - logrotate/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, logrotate ]
 
 # Handle the configuration of network interfaces in a manner that
