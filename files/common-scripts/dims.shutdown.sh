@@ -35,7 +35,11 @@
 # Tracks with bumpversion
 DIMS_VERSION=2.7.0
 
-INVENTORY=${INVENTORY:-$PBR/inventory}
+# This script is designed to handle shutting down Vagrants before
+# the VM host, so DEPLOYMENT here applies to the Vagrants.
+DEPLOYMENT=${DIMS_VAGRANT_DEPLOYMENT:-$(get_deployment)}
+CATEGORY=${DIMS_CATEGORY:-devops}
+INVENTORY=${INVENTORY:-$(get_inventory $DEPLOYMENT)}
 GROUP=${GROUP:-production}
 FLAGS_HELP="usage: $BASE [options] [TIME]"
 DEFAULT_TIME="+3"

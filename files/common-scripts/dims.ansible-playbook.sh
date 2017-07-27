@@ -43,7 +43,7 @@ DEPLOYMENT=${DIMS_DEPLOYMENT:-$(get_deployment)}
 CATEGORY=${DIMS_CATEGORY:-devops}
 GROUP=${DEPLOYMENT}
 HOSTNAME=$(hostname)
-INVENTORY=${INVENTORY:-$PBR/inventory}
+INVENTORY=${INVENTORY:-$(get_inventory $DEPLOYMENT)}
 
 # If you change this from 'hello' to something else, make sure to also
 # change the tightly-coupled output string in the usage() function.
