@@ -108,7 +108,7 @@ vagrants:
       hosts:
         'red.devops.local':
         'yellow.devops.local':
-        'orange.devops.local':
+        'purple.devops.local':
     coreos-vagrant:
       hosts:
         'core-01':
