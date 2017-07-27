@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+# Boot to hard drive by default as a fallback
+DEFAULT hd
+
+# Wait 10 seconds unless the user types something,
+# but always boot after 1 minute.
+TIMEOUT 100
+TOTALTIMEOUT 600
+
+{% if dev is not defined %}
+{% set dev=['eth0', 'em1'] %}
+{% endif %}
+
+{% for d in dev %}
+LABEL install{{ d }}
+MENU LABEL ^Install Ubuntu Server ({{ d }})
+KERNEL /install/vmlinuz
+APPEND boot=install auto=true priority=critical noprompt locale=en interface={{ d }} cdrom-detect/try-usb=true persistent file=/cdrom/preseed-{{ d }}.cfg vga=788 initrd=/install/initrd.gz quiet splash --
+{% endfor %}
+
+label memtest
+menu label Test ^memory
+kernel /install/mt86plus
+
+label hd
+menu label ^Boot from first hard disk
+localboot 0x80
