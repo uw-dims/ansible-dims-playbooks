@@ -4,22 +4,32 @@
 
 swarm:
   hosts:
+    'vmhost.devops.local':
     'red.devops.local':
     'yellow.devops.local':
+    'orange.devops.local':
+    'blue14.devops.local':
     'purple.devops.local':
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
   children:
     manager:
+      vars:
+        consul_server: yes
       hosts:
         'node01.devops.local':
         'node02.devops.local':
         'node03.devops.local':
     worker:
+      vars:
+        consul_server: no
       hosts:
+        'vmhost.devops.local':
         'red.devops.local':
         'yellow.devops.local':
+        'orange.devops.local':
+        'blue14.devops.local':
         'purple.devops.local':
 
 # vim: ft=ansible :
