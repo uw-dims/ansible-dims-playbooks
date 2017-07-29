@@ -249,8 +249,6 @@ rest of this document.
 
 ..
 
-.. _Alejandro Guirao Rodríguez - Extending and embedding Ansible with Python: https://www.youtube.com/watch?v=qLoBHbVb0Fw
-
 .. _ansibleVariables:
 
 Variables
