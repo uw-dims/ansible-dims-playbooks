@@ -32,6 +32,7 @@
     - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
     - { role: ansible-server }
     - { role: virtualbox }
+    - { role: nginx }
     - { role: packer }
     - { role: vagrant }
     - { role: docker }
