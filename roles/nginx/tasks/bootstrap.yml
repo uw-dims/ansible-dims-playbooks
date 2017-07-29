@@ -1,0 +1,51 @@
+---
+
+# File: roles/nginx/tasks/bootstrap.yml
+
+- block:
+  - name: Determine if nginx_source_bootstrap_dir is remote
+    stat:
+      path: '{{ nginx_source_bootstrap_dir }}'
+    register: _remote_stat
+
+  - name: Define _bootstrap_remote variable (remote exists)
+    set_fact:
+      _remote_source: '{{ _remote_stat.stat.exists|bool }}'
+
+  rescue:
+  - name: Define _bootstrap_remote variable (fail)
+    set_fact:
+      _remote_source: no
+
+- block:
+  - name: Determine if nginx_source_bootstrap_dir is local
+    stat:
+      path: '{{ nginx_source_bootstrap_dir }}'
+    register: _local_stat
+    delegate_to: 127.0.0.1
+    when: _remote_source is defined and not _remote_source
+
+  - name: Define _local_source if path exists
+    set_fact:
+      _local_source: yes
+
+  rescue:
+  - name: Define _local_source if path does not exist
+    set_fact:
+      _local_source: no
+
+- fail: msg="Bootstrap source directory {{ nginx_source_bootstrap_dir }} not found"
+  when: _remote_source is defined and not _remote_source and
+        _local_source is defined and not _local_source
+
+- name: Bootstrap artifacts for source service
+  copy:
+    src: '{{ nginx_source_bootstrap_dir }}/'
+    dest: '{{ dims }}/source/'
+    owner: '{{ dims_user }}'
+    group: 'www-data'
+    mode: 0644
+    remote_src: '{{ _remote_source|bool }}'
+  become: yes
+
+# vim: ft=ansible :
