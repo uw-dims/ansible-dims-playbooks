@@ -1,0 +1,15 @@
+---
+
+# File: group_vars/all/00-globals.yml
+
+ansible_user: 'ansible'
+ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
+category: 'devops'
+deployment: 'local'
+dims_domain: 'devops.local'
+playbooks_root: "{{ lookup('env', 'PBR') }}"
+#dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+dims_private: '{{ playbooks_root }}'
+
+# vim: ft=ansible :
+
