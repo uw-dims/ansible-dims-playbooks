@@ -16,9 +16,14 @@
     [ '{{ '192.168.0.1' | ip_to_in_addr_arpa }}' == '0.168.192.in-addr.arpa' ]
 }
 
-@test "[U][EV] ['node01','node02','node03'] | initial_cluster(category='devops',deployment='local') returns 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380'" {
+@test "[U][EV] ['node01','node02','node03'] | initial_cluster_lookup_short(category='devops',deployment='local') returns 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380'" {
     [[ "$DIMS_DEPLOYMENT" != "develop" ]] && skip "Only applicable in deployment 'develop'"
-    [ '{{ ['node01','node02','node03'] | initial_cluster(category='devops',deployment='local') }}' == 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380' ]
+    [ '{{ ['node01','node02','node03'] | initial_cluster_lookup_short(category='devops',deployment='local') }}' == 'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380' ]
+}
+
+@test "[U][EV] ['node01.devops.local','node02.devops.local','node03.devops.local'] | initial_cluster() returns 'node01=http://node01.devops.local:2380,node02=http://node02.devops.local:2380,node03=http://node03.devops.local:2380'" {
+    [[ "$DIMS_DEPLOYMENT" != "develop" ]] && skip "Only applicable in deployment 'develop'"
+    [ '{{ ['node01.devops.local','node02.devops.local','node03.devops.local'] | initial_cluster() }}' == 'node01=http://node01.devops.local:2380,node02=http://node02.devops.local:2380,node03=http://node03.devops.local:2380' ]
 }
 
 @test "[U][EV] ['node01','node02','node03'] | add_domain(category='devops',deployment='local') returns ['node01.devops.local','node02.devops.local','node03.devops.local'] " {
