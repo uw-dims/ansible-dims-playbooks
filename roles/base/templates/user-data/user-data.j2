@@ -210,8 +210,8 @@ coreos:
           -listen-peer-urls http://{{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:2380 \
           -listen-client-urls http://0.0.0.0:2379 \
           -advertise-client-urls http://{{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:2379 \
-          -initial-cluster-token etcd-cluster-feature_dims-617 \
-          -initial-cluster {{ consul_servers|initial_cluster(category=category, deployment=deployment) }} \
+          -initial-cluster-token etcd-cluster-{{ deployment }} \
+          -initial-cluster {{ groups.consul|initial_cluster() }} \
           -initial-cluster-state new
       Restart=always
       RestartSec=10s
