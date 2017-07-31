@@ -4,11 +4,14 @@
 
 vagrants:
   vars:
+    ansible_user: 'root'
     ansible_port: 22
+    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     artifacts_url: 'file:///home/ansible/sources'
     # Set this variable for all vagrants
     box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
     box_url: "file:///vm/box/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+    iso_source: "file:///vm/cache/isos"
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
     custom_rules: [
