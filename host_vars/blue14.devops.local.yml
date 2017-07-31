@@ -12,10 +12,6 @@ eth2:
   ip: "10.168.56.14"
   auto_config: "false"
 
-box_baseos: "ubuntu"
-box_osversion: "14.04.5"
-box_osnick: "trusty"
-box_type: "server"
 iso_source: "file:///vm/cache/isos"
 iso_arch: "amd64"
 iso_checksum_type: "sha256"

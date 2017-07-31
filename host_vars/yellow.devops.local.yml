@@ -12,10 +12,6 @@ eth2:
 tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
 udp_ports: [ 53, 4789, 7946 ]
 
-box_baseos: "debian"
-box_osversion: "8.5.0"
-box_osnick: "jessie"
-box_type: "server"
 iso_source: "file:///vm/cache/isos"
 iso_arch: "amd64"
 iso_checksum_type: "sha256"

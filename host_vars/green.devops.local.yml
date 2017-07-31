@@ -12,11 +12,6 @@ eth2:
   ip: "10.168.56.12"
   auto_config: "false"
 
-# Variables for building "ovf" and "box" files
-box_baseos: "debian"
-box_osversion: "7.11.0"
-box_osnick: "wheezy"
-box_type: "server"
 iso_source: "file:///vm/cache/isos"
 iso_arch: "amd64"
 iso_checksum_type: "sha256"

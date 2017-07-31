@@ -12,11 +12,6 @@ eth2:
   ip: "10.168.56.10"
   auto_config: "false"
 
-# Variables for building "ovf" and "box" files
-box_baseos: "ubuntu"
-box_osversion: "16.04.1"
-box_osnick: "xenial"
-box_type: "server"
 iso_source: "file:///vm/cache/isos"
 iso_arch: "amd64"
 iso_checksum_type: "sha256"
