@@ -3,10 +3,10 @@
 # File: host_vars/hub.devops.local.yml
 
 eth1:
-  ip: "192.168.56.33"
+  ip: "192.168.56.25"
   auto_config: "true"
 eth2:
-  ip: "10.168.56.33"
+  ip: "10.168.56.25"
   auto_config: "false"
 
 # vim: ft=ansible :
