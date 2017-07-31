@@ -10,7 +10,7 @@ vagrants:
     artifacts_url: 'file:///home/ansible/sources'
     # Set this variable for all vagrants
     box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
-    box_url: "file:///vm/box/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+    box_url: "file:///vm/box/{{ box_baseos }}-{{ box_osversion }}/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
     iso_source: "file:///vm/cache/isos"
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
@@ -56,19 +56,19 @@ vagrants:
         #   vagrant_bridge: "[ 'eth0', 'wlan0' ]"
   hosts:
     'red.devops.local':
-      #box_file: "ubuntu/trusty64"
+      #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"
       box_osversion: "14.04.5"
       box_osnick: "trusty"
       box_type: "server"
     'black.devops.local':
-      box_file: "ubuntu/trusty64"
+      #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"
       box_osversion: "14.04.5"
       box_osnick: "trusty"
       box_type: "server"
     'blue14.devops.local':
-      box_file: "ubuntu/trusty64"
+      #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"
       box_osversion: "14.04.5"
       box_osnick: "trusty"
