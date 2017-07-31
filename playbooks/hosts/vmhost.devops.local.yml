@@ -26,8 +26,9 @@
   remote_user: "ansible"
   become: yes
 
+  # DO NOT APPLY 'base' ROLE HERE!
+  # Use the real host's playbook.
   roles:
-    - { role: debug }
     - { role: dns, zones: ['local']}
     - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
     - { role: ansible-server }
