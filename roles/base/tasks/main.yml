@@ -18,13 +18,13 @@
   tags: [ base ]
 
 - name: Set hostname (runtime) (Debian, CoreOS)
-  shell: 'hostname {{ name | default(ansible_hostname) }}'
+  shell: 'hostname {{ inventory_hostname_short }}'
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Make /etc/hostname present (Debian, CoreOS)
-  shell: 'echo {{ name | default(ansible_hostname) }} > /etc/hostname'
+  shell: 'echo {{ inventory_hostname_short }} > /etc/hostname'
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
