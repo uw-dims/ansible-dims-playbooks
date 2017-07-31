@@ -1,0 +1,22 @@
+---
+
+# File: host_vars/black.devops.local.yml
+
+tcp_ports: [ 53, 9999 ]
+udp_ports: [ 53 ]
+
+eth1:
+  ip: "192.168.56.24"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.24"
+  auto_config: "false"
+
+iso_source: "file:///vm/cache/isos"
+iso_arch: "amd64"
+iso_checksum_type: "sha256"
+iso_checksum: "dde07d37647a1d2d9247e33f14e91acb10445a97578384896b4e1d985f754cc1" # ubuntu-14.04.5-server-amd64.iso
+ssh_pass: "{{ vault_ssh_pass }}"
+installDesktop: "apt-get -y install ubuntu-desktop"
+
+# vim: ft=ansible :
