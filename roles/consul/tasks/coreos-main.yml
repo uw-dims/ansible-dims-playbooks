@@ -20,7 +20,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
       skip: true
-  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  when: hostvars[inventory_hostname].ansible_os_family == "Container Linux by CoreOS"
   become: yes
   tags: [ consul, config ]
 
@@ -42,7 +42,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
       skip: true
-  when: hostvars[inventory_hostname]['ansible_os_family'] == "Container Linux by CoreOS"
+  when: hostvars[inventory_hostname].ansible_os_family == "Container Linux by CoreOS"
   become: yes
   tags: [ consul, config ]
 
