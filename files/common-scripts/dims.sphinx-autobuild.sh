@@ -40,7 +40,7 @@
 export DOCSURL=${DOCSURL:-file://${GIT}}
 
 # Tracks with bumpversion
-DIMS_VERSION=2.7.0
+DIMS_VERSION=2.7.1
 
 DEFINE_boolean 'debug' false 'enable debug mode' 'd'
 DEFINE_integer 'delay' 5 'browser open delay' 'D'
