@@ -19,6 +19,8 @@ for short) repository contents.
    ansible
    bootstrapping
    localcustomization
+   debugging
+   upgrading
    license
 
 .. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
