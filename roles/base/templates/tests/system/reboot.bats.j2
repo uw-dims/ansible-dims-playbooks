@@ -1,0 +1,25 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+
+{% if ansible_lsb.id == 'Ubuntu' %}
+@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
+    ! cat /var/run/reboot-required.pkgs >&2
+} 
+{% elif ansible_lsb.id == 'Debian' %}
+@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
+    ! cat /var/run/reboot-required >&2
+} 
+{% elif ansible_pkg_mgr == 'yum' %}
+@test "[S][EV] System does not require a reboot ({{ ansible_pkg_mgr }})" {
+    [ ! which needs-restarting ] && skip "yum-utils program 'needs-restarting' not found"
+    ! needs-restarting -r >/dev/null
+}
+{% else %}
+@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
+    skip "No test defined for ansible_lsb.id=='{{ ansible_lsb.id }}'" {
+} 
+{% endif %}
