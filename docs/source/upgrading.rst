@@ -77,4 +77,31 @@ you can delete the old directory.
 
 ..
 
+Identifying When Rebooting is Needed
+------------------------------------
+
+A ``bats`` system test exists to check to see if any packages were installed that
+require a reboot.  This test is templated to tailor it for supported operating
+systems.  Use the ``test.runner`` script to execute just the ``reboot`` test:
+
+.. code-block:: none
+
+    $ test.runner --match reboot
+    [+] Running test system/reboot
+     ✗ [S][EV] System does not require a reboot (Ubuntu)
+       (in test file system/reboot.bats, line 8)
+         `@test "[S][EV] System does not require a reboot (Ubuntu)" {' failed
+       linux-image-4.4.0-87-generic
+       linux-base
+       linux-base
+
+    1 test, 1 failure
+
+..
+
+.. todo::
+
+   Show how to use ad-hoc mode to run this test on all systems at once...
+
+..
 
