@@ -8,12 +8,12 @@
 {% if ansible_os_family == 'ubuntu' %}
 @test "[S][EV] All APT packages are up to date ({{ ansible_os_familty }})" {
     assert "0 packages can be updated. 0 updates are security updates." bash -c "/usr/lib/update-notifier/apt-check --human-readable"
-} 
+}
 {% endif %}
 
 {% if ansible_os_family == 'debian' %}
 @test "[S][EV] All APT packages are up to date ({{ ansible_os_family }})" {
     assert "0 packages can be updated." bash -c "apt list --upgradable"
-} 
+}
 {% endif %}
 
