@@ -40,7 +40,7 @@ DIMS_VERSION=2.7.1
 DEPLOYMENT=${DIMS_VAGRANT_DEPLOYMENT:-$(get_deployment)}
 CATEGORY=${DIMS_CATEGORY:-devops}
 INVENTORY=${INVENTORY:-$(get_inventory $DEPLOYMENT)}
-GROUP=${GROUP:-production}
+GROUP=${GROUP:-vagrants}
 FLAGS_HELP="usage: $BASE [options] [TIME]"
 DEFAULT_TIME="+3"
 

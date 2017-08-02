@@ -29,15 +29,13 @@
   # DO NOT APPLY 'base' ROLE HERE!
   # Use the real host's playbook.
   roles:
+    - { role: virtualbox }
+    - { role: vagrant }
+    - { role: packer }
+    - { role: ansible-server }
     - { role: dns, zones: ['local']}
     - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
-    - { role: ansible-server }
-    - { role: virtualbox }
     - { role: nginx }
-    - { role: packer }
-    - { role: vagrant }
-    - { role: docker }
-    - { role: consul }
     - { role: apache-directory-studio }
 
   handlers:

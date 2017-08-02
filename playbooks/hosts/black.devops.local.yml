@@ -1,0 +1,28 @@
+---
+
+# File: playbooks/hosts/black.devops.local.yml
+
+- name: Configure host "black.devops.local"
+  hosts: black.devops.local
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+   - "{{ playbooks_root }}/vars/trusty.yml"
+
+  remote_user: "ansible"
+  become: yes
+
+  roles:
+    - { role: base }
+    - { role: dims-ci-utils }
+    - { role: python-virtualenv, use_sphinx: true }
+    - { role: docker }
+    - { role: consul }
+
+  handlers:
+   - include: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

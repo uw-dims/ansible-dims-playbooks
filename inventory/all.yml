@@ -1,0 +1,18 @@
+---
+
+all:
+  hosts:
+    'black.devops.local':
+    'blue14.devops.local':
+    'blue16.devops.local':
+    'hub.devops.local':
+    'node01.devops.local':
+    'node02.devops.local':
+    'node03.devops.local':
+    'orange.devops.local':
+    'purple.devops.local':
+    'red.devops.local':
+    'vmhost.devops.local':
+    'yellow.devops.local':
+
+# vim: ft=ansible:
