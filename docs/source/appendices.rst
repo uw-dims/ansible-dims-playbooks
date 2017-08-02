@@ -46,13 +46,96 @@ A ``bats`` test exists to test the proxy:
 ..
 
 When it fails like this, it usually means that ``iptables`` must be restarted,
-followed by restarting the ``docker`` service, followed by restarting the
-``squid-deb-proxy`` container.
+followed by restarting the ``docker`` service. That usually is enough to fix
+the problem. If not, it may be necessary to also restart the ``squid-deb-proxy``
+container.
 
 .. note::
 
-    The root cause and a more reliable solution has not yet been determined,
-    nor have these steps been automated. Pull requests are welcomed!
+    The cause of this the recreation of the ``DOCKER`` chain, which removes the rules added by
+    Docker, when restarting just the ``iptables-persistent`` service as can be seen here:
+
+    .. code-block:: none
+
+        $ sudo iptables -nvL | grep "Chain DOCKER"
+        Chain DOCKER (2 references)
+        Chain DOCKER-ISOLATION (1 references)
+        $ sudo iptables-persistent restart
+        sudo: iptables-persistent: command not found
+        $ sudo service iptables-persistent restart
+         * Loading iptables rules...
+         *  IPv4...
+         *  IPv6...
+           ...done.
+        $ sudo iptables -nvL | grep "Chain DOCKER"
+        Chain DOCKER (0 references)
+
+    ..
+
+    Restarting the ``docker`` service will restore the rules for containers
+    that Docker is keeping running across restarts.
+
+    .. code-block:: none
+
+        $ sudo service docker restart
+        docker stop/waiting
+        docker start/running, process 18276
+        $ sudo iptables -nvL | grep "Chain DOCKER"
+        Chain DOCKER (2 references)
+        Chain DOCKER-ISOLATION (1 references)
+
+    ..
+
+    The solution for this is to notify a special handler that conditionally
+    restarts the ``docker`` service after restarting ``iptables`` in order to
+    re-establish the proper firewall rules. The handler is shown here:
+
+    .. code-block:: yaml
+       :emphasize-lines: 1
+
+        - name: conditional restart docker
+          service: name=docker state=restarted
+          when: hostvars[inventory_hostname].ansible_docker0 is defined
+
+    ..
+
+    Use of the handler (from ``roles/base/tasks/main.yml``) is shown here:
+
+    .. code-block:: yaml
+       :emphasize-lines: 20,21
+
+        - name: iptables v4 rules (Debian)
+          template:
+            src: '{{ item }}'
+            dest: /etc/iptables/rules.v4
+            owner: '{{ root_user }}'
+            group: '{{ root_group }}'
+            mode: '{{ mode_0600 }}'
+            validate: '/sbin/iptables-restore --test %s'
+          with_first_found:
+            - files:
+                - '{{ iptables_rules }}'
+                - rules.v4.{{ inventory_hostname }}.j2
+                - rules.v4.category-{{ category }}.j2
+                - rules.v4.deployment-{{ deployment }}.j2
+                - rules.v4.j2
+              paths:
+                - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+                - iptables/
+          notify:
+            - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+            - "conditional restart docker"
+          become: yes
+          when: ansible_os_family == "Debian"
+          tags: [ base, config, iptables ]
+
+    ..
+
+    A tag ``iptables`` exists to allow regeneration of the ``iptables`` rules and
+    perform the proper restarting sequence, which should be used instead of just
+    restarting the ``iptables-persistent`` service manually. Use ``ansible-playbook``
+    instead (e.g., ``run.playbook --tags iptables``) after making changes to
+    variables that affect ``iptables`` rules.
 
 ..
 
@@ -96,4 +179,3 @@ The test should now succeed:
     2 tests, 0 failures
 
 ..
-
