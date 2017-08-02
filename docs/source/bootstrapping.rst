@@ -8,26 +8,62 @@ baremetal machine to serve as a Virtualbox hypervisor
 for hosting multiple Virtual Machine guests, serving as
 the Ansible control host for managing their configuration.
 
-.. todo::
+.. note::
 
-    Steps here...
+    We are assuming that you have set up ``/etc/ansible/ansible.cfg``, or a
+    perhaps ``~/.ansible.cfg``, to point to the correct inventory directory.
+    You can see what the default is using ``ansible --help``:
+
+    .. code-block:: none
+
+        Usage: ansible <host-pattern> [options]
+
+        Options:
+          . . .
+          -i INVENTORY, --inventory-file=INVENTORY
+                                specify inventory host path
+                                (default=/Users/dittrich/dims/git/ansible-dims-
+                                playbooks/inventory) or comma separated host list.
+          . . .
+
+        ..
+
+    If this is set up properly, you should be able to list the ``all`` group
+    and see results like this:
+
+    .. code-block:: none
+
+        hosts (11):
+          blue14.devops.local
+          purple.devops.local
+          node03.devops.local
+          vmhost.devops.local
+          node02.devops.local
+          yellow.devops.local
+          node01.devops.local
+          orange.devops.local
+          red.devops.local
+          blue16.devops.local
+          hub.devops.local
+
+    ..
 
 ..
 
-We now validate the temporary ``bootstrap`` group that defines
-the two hosts we are setting up.
+.. todo::
 
-.. block: none
+     Missing steps here...
+
+..
+
+We now validate the temporary ``bootstrap`` group that defines the two hosts we
+are setting up.
+
+.. code-block:: none
 
     $ export ANSIBLE_HOST_KEY_CHECKING=False
-    $ ansible -i inventory/ -m raw -a uptime --ask-pass bootstrap
+    $ ansible -m raw -a uptime --ask-pass bootstrap
     SSH password:
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
     dellr510.devops.develop | SUCCESS | rc=0 >>
      22:21:50 up  3:37,  3 users,  load average: 0.78, 1.45, 1.29
     Shared connection to 140.142.29.186 closed.
@@ -46,18 +82,12 @@ systems, using the ``file`` lookup and the ``dims.function``
 shell utility function to get the path to the private
 key, adding the ``.pub`` extension for the public key.
 
-.. block: none
+.. code-block:: none
 
-    $ ansible -i inventory/ -m authorized_key -a "user=ansible state=present \
+    $ ansible -m authorized_key -a "user=ansible state=present \
     > key='{{ lookup('file', '$(dims.function get_ssh_private_key_file ansible).pub') }}'" \
     > --ask-pass bootstrap
     SSH password:
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
     dellr510.devops.develop | SUCCESS => {
         "changed": true,
         "exclusive": false,
@@ -91,15 +121,9 @@ Now remove the ``--ask-pass`` option to instead use the specified
 SSH private key to validate that standard remote access with
 Ansible will work.
 
-.. block: none
+.. code-block:: none
 
-    $ ansible -i inventory/ -m raw -a uptime  bootstrap
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 22, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
-     [WARNING]: While constructing a mapping from /home/dittrich/dims/git/private-develop/inventory/servers/nodes.yml, line 28, column 7, found a
-    duplicate dict key (ansible_host). Using last defined value only.
-
+    $ ansible -m raw -a uptime  bootstrap
     dellr510.devops.develop | SUCCESS | rc=0 >>
      22:33:44 up  3:49,  3 users,  load average: 1.14, 0.81, 0.99
     Shared connection to 140.142.29.186 closed.
