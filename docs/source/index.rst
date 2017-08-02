@@ -23,6 +23,7 @@ for short) repository contents.
    debugging
    upgrading
    license
+   appendices
 
 .. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
 
