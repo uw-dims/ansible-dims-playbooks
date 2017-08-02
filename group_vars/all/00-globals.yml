@@ -12,4 +12,3 @@ playbooks_root: "{{ lookup('env', 'PBR') }}"
 dims_private: '{{ playbooks_root }}'
 
 # vim: ft=ansible :
-
