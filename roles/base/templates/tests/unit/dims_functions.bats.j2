@@ -9,22 +9,6 @@ load helpers
 function setup() {
     source $DIMS/bin/dims_functions.sh
     touch --reference=/bin/ls /tmp/bats.ls-marker
-    cat <<EOD > /tmp/bats.varsdefs
-A=1
-C=3
-B=2
-EOD
-    cat <<EOD > /tmp/bats.reqvars.1
-B
-A
-C
-EOD
-    cat <<EOD > /tmp/bats.reqvars.2
-A
-D
-B
-C
-EOD
     for name in A B; do
         mkdir -p /tmp/bats.tmp/${name}.dir
         touch /tmp/bats.tmp/${name}.txt
@@ -32,7 +16,7 @@ EOD
 }
 
 function teardown() {
-    rm -f /tmp/bats.ls-marker /tmp/bats.varsdefs /tmp/bats.reqvars.{1,2}
+    rm -f /tmp/bats.ls-marker
     rm -rf /tmp/bats.tmp
 }
 
@@ -51,14 +35,6 @@ function teardown() {
 
 @test "[U][EV] get_hostname() returns hostname" {
     assert "$(hostname)" get_hostname
-}
-
-@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1 succeeds" {
-    validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1
-}
-
-@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2 fails" {
-    ! validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2
 }
 
 @test "[U][EV] is_fqdn host.category.deployment returns success" {
