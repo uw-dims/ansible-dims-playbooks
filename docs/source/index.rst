@@ -16,7 +16,12 @@ for short) repository contents.
    :caption: Contents:
 
    introduction
+   ansible
    bootstrapping
+   localcustomization
+   tests
+   debugging
+   upgrading
    license
 
 .. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
