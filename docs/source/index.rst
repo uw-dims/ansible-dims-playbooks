@@ -19,6 +19,7 @@ for short) repository contents.
    ansible
    bootstrapping
    localcustomization
+   tests
    debugging
    upgrading
    license
