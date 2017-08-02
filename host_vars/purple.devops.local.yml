@@ -2,11 +2,6 @@
 
 # File: host_vars/purple.devops.local.yml
 
-name: "purple"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', ]
-
 tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
 udp_ports: [ 53, 4789, 7946 ]
 
@@ -17,9 +12,6 @@ eth2:
   ip: "10.168.56.15"
   auto_config: "false"
 
-box_baseos: "debian"
-box_osnick: "jessie"
-box_osversion: "8.5.0"
 iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
 installDesktop: ""
 

@@ -1,10 +1,10 @@
 {
-    "server": {{ consul_server | to_json }},
+    "server": {{ consul_server|default('no')|to_json }},
     "datacenter": "{{ consul_data_center }}",
     "data_dir": "{{ consul_data_dir }}",
     "encrypt": "",
     "log_level": "{{ consul_log_level }}",
-    "enable_syslog": {{ consul_enable_syslog | to_json }},
+    "enable_syslog": {{ consul_enable_syslog|to_json }},
     "retry_join": [ "{{ consul_retry_join }}" ],
     "client_addr": "{{ consul_client_address }}"
 }

@@ -15,38 +15,36 @@
 auto lo
 iface lo inet loopback
 
-{% if networking is defined %}
+{% if net is defined %}
 
 # The following logic allows definition of multiple interfaces
 # via the array 'networking' containing dictionaries of interface
 # definitions. If no dictionary exists, a minimalist interfaces
 # file allowing DHCP for all unspecified interfaces is produced.
 
-{%  for interface in networking.interfaces %}
-{%   if interface.inet == 'dhcp' %}
-
-allow-hotplug {{ interface.device }}
-auto {{ interface.device }}
-iface {{ interface.device }} inet {{ interface.inet }}
-
-{%   else %}
-
-allow-hotplug {{ interface.device }}
-auto {{ interface.device }}
-iface {{ interface.device }} inet {{ interface.inet }}
-      address {{ interface.ip }}
-      netmask {{ interface.netmask }}
-      broadcast {{ interface.broadcast }}
-{%    if interface.gateway is defined %}
-      gateway {{ interface.gateway }}
-{%    endif %}
-{%    if interface.dns_search is defined %}
-      dns-search {{ interface.dns_search }}
-{%    endif %}
-{%    if interface.dns_servers is defined %}
-      dns-servers {{ interface.dns_servers }}
-{%    endif %}
-
+{%  for i in net.iface|list|sort %}
+{% set iface = net.iface[i] %}
+allow-hotplug {{ i }}
+auto {{ i }}
+iface {{ i }} inet {{ iface.inet }}
+{%   if iface.ip is defined %}
+      address {{ iface.ip }}
 {%   endif %}
+{%   if iface.netmask is defined %}
+      netmask {{ iface.netmask }}
+{%   endif %}
+{%   if iface.broadcast is defined %}
+      broadcast {{ iface.broadcast }}
+{%   endif %}
+{%   if iface.gateway is defined %}
+      gateway {{ iface.gateway }}
+{%   endif %}
+{%   if iface.dns_search is defined %}
+      dns-search {{ iface.dns_search }}
+{%   endif %}
+{%   if iface.dns_servers is defined %}
+      dns-servers {{ iface.dns_servers }}
+{%   endif %}
+
 {%  endfor %}
 {% endif %}

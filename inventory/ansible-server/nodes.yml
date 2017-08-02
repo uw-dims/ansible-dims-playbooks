@@ -4,12 +4,21 @@ ansible_server:
   vars:
     ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
     ansible_dims_playbooks_version: 'master'
+    ansible_host: 127.0.0.1
+    ansible_connection: local
     ansible_accounts:
-      - jenkins
       - ansible
+    https_proxy: 'https://127.0.0.1:8000'
   hosts:
     'vmhost.devops.local':
       artifacts_url: 'file://vm/cache/sources/'
+      nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
+      nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
+      nginx_source_hostname: '{{ inventory_hostname }}'
     'orange.devops.local':
+      nginx_source_hostname: '{{ inventory_hostname }}'
+      ansible_accounts:
+        - jenkins
+        - ansible
 
 # vim: ft=ansible :

@@ -2,20 +2,299 @@
 
 # File: roles/base/tasks/main.yml
 
-- name: Check for ansible 2.x
-  include: "{{ tasks_path }}/ansible2check.yml"
-  tags: [ always ]
+  # This is not DRY, but base role does not use pre_tasks.yml
+- name: Log start of 'base' role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Starting role: base'
+  ignore_errors: yes
+  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
 - debug: msg=System "{{ inventory_hostname }}"
   when: verbose
   tags: [ base ]
 
+- name: Set hostname (runtime) (Debian, CoreOS)
+  shell: 'hostname {{ inventory_hostname_short }}'
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make /etc/hostname present (Debian, CoreOS)
+  shell: 'echo {{ inventory_hostname_short }} > /etc/hostname'
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Set domainname (Debian, CoreOS)
+  shell: 'domainname {{ category }}.{{ deployment }}'
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Set domainname (MacOSX)
+  lineinfile:
+    dest=/etc/defaultdomain
+    regexp='^.*$'
+    line={{ category }}.{{ deployment }}
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode={{ mode_0644 }}
+  become: yes
+  when: ansible_os_family == "MacOSX"
+  tags: [ base, config ]
+
+  # Must include tag for any task in this playbook that uses
+  # apt, yum, or any site configured for squid proxying.
+  # This includes tasks that are included, so pay attention to
+  # the coupling of this logic. You can find them with a
+  # command like this (and look for something like what is
+  # shown here):
+  # {% raw %}  # ... because templating in commented example is not really commented out.
+  # $ egrep "tags:|apt|yum" roles/base/tasks/*
+  # . . .
+  # roles/base/tasks/main.yml:  apt: state=absent name={{ item }} force=yes
+  # roles/base/tasks/main.yml:  tags: [ base, packages, updates ]
+  # roles/base/tasks/main.yml:  apt: update_cache=yes cache_valid_time=3600
+  # roles/base/tasks/main.yml:  tags: [ base, packages, updates ]
+  # roles/base/tasks/main.yml:  apt: state=present name={{ item }} force=yes
+  # roles/base/tasks/main.yml:  tags: [ base, packages, updates ]
+  # roles/base/tasks/main.yml:  apt:
+  # roles/base/tasks/main.yml:  tags: [ base, packages, updates ]
+  # roles/base/tasks/main.yml:  apt:
+  # roles/base/tasks/main.yml:  tags: [ base, config ]
+  # . . .
+  # {% endraw %}
+
+- name: Create base /etc/hosts file (Debian, RedHat, CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/hosts
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ base_hosts }}'
+        - hosts.{{ inventory_hostname }}.j2
+        - hosts.category-{{ category }}.j2
+        - hosts.deployment-{{ deployment }}.j2
+        - hosts.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
+        - hosts/
+  become: yes
+  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ]
+  tags: [ base, hosts, config ]
+
+- name: Disable IPv6 in kernel on non-CoreOS
+  shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  become: yes
+  tags: [ base, packages ]
+
+- name: iptables v4 rules (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/iptables/rules.v4
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, iptables ]
+
+- name: iptables v4 rules (CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/iptables/rules-save
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  become: yes
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: iptables v6 rules (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/iptables/rules.v6
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config, iptables ]
+
+- name: iptables v6 rules (CoreOS)
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/ip6tables/rules-save
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0600 }}'
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  become: yes
+  notify:
+    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "conditional restart docker"
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Set timezone variables (Debian)
+  copy: content={{ dims_timezone }}
+        dest=/etc/timezone
+        owner={{ root_user }}
+        group={{ root_group }}
+        mode={{ mode_0644 }}
+        backup=yes
+  notify:
+  - update timezone
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+# https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
+- name: Set timezone (CoreOS)
+  shell: timedatectl set-timezone {{ dims_timezone }}
+  become: yes
+  when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Ensure getaddrinfo configuration is present (Debian)
+  template:
+    src: '{{ item }}'
+    dest: /etc/gai.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ gai_rules }}'
+        - gai.conf.{{ inventory_hostname }}.j2
+        - gai.conf.category-{{ category }}.j2
+        - gai.conf.deployment-{{ deployment }}.j2
+        - gai.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/gai/'
+        - gai/
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, config ]
+
+- name: Make sure blacklisted packages are absent (Debian)
+  apt: state=absent name={{ item }} force=yes
+  with_items:
+    - '{{ packages_remove[ansible_lsb.id] }}'
+  become: yes
+  when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  ignore_errors: yes
+  tags: [ base, packages, updates ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ base, packages, updates ]
+
+- name: Make sure required APT packages are present (Debian)
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - "{{ packages_install[ansible_lsb.id] }}"
+  become: yes
+  ignore_errors: yes
+  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  tags: [ base, packages, updates ]
+
+- name: Make upgraded packages present if we are explicitly upgrading
+  apt:
+    upgrade: safe
+    autoremove: yes
+  become: yes
+  when: packages_upgrade and ansible_os_family == "Debian"
+  tags: [ base, packages, updates ]
+
+# Using "meta: flush_handlers" will run any handlers that have
+# been set up to this point.
+# http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
+- meta: flush_handlers
+
+# TODO(mboggess): unsure if chony usable on CoreOS
+#   Added "when" statement
+- name: Make sure that chrony is running (Debian)
+  service:
+    name: chrony
+    state: started
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ base, services ]
+
 - name: Check proxy availability
   include: "{{ tasks_path }}/proxy_check.yml"
-  tags: [ always ]
+  tags: [ base, config, packages, updates, triggers ]
 
 - name: Make DIMS-specific resources present
   include: dims_base.yml
+  tags: [ base, packages ]
+
+- name: Make CoreOS resources present
+  include: coreos.yml
+  when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
 
 # Set up logging first to aid in debugging installation problems.
@@ -32,10 +311,19 @@
 # on the CoreOS nodes to funnel logs back to their central holding place.
 # Adding "when" statements to make these all Debian-only tasks.
 
+- name: Stop rsyslogd
+  service:
+    name: rsyslog
+    state: stopped
+  notify: restart rsyslog
+  when: ansible_os_family != "Container Linux by CoreOS"
+  ignore_errors: yes
+  tags: [ base, config, rsyslogd ]
+
 - name: Add group for rsyslog
   group: name=syslog state=present
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Add non-privileged user for rsyslog
@@ -45,7 +333,7 @@
     shell=/bin/true
     group=syslog
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make DIMS logging directory present
@@ -56,6 +344,7 @@
     group={{ root_group }}
     mode={{ mode_0775 }}
   become: yes
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make /etc/rsyslog.conf present
@@ -77,7 +366,7 @@
         - rsyslog/
       skip: true
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Ensure /etc/rsyslog.d present
@@ -86,7 +375,7 @@
     state: directory
     mode: '{{ mode_0644 }}'
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Make /etc/rsyslog.d/00-ignore.conf present
@@ -108,7 +397,7 @@
         - rsyslog.d/
       skip: true
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 # The 49-consolidation.conf file is intended to control log consolidation (i.e., "remote" log
@@ -136,7 +425,7 @@
         - rsyslog.d/
       skip: true
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 # The 50-default.conf file is intended to be default for host configuration, with Jinja logic
@@ -159,17 +448,38 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
+
+- name: Configure journald for systems running systemd
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/journald.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ journald_config }}'
+        - journald.conf.{{ inventory_hostname }}
+        - journald.conf.category-{{ category }}.j2
+        - journald.conf.deployment-{{ deployment }}.j2
+        - journald.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/journald/'
+        - journald/
+  become: yes
+  when: ansible_os_family == "Debian" and ansible_service_mgr == "systemd"
+  tags: [ base, config, journald ]
 
 # Force restart of rsyslogd here (rather than use 'notify') to
 # start logging to central site as soon as possible for diagnositc
 # purposes. Using 'notify' delays execution of handlers to the end.
 
-- name: restart rsyslog
-  service: name=rsyslog state=restarted
+- name: start rsyslog
+  service: name=rsyslog state=started
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: /etc/logrotate.d/dims
@@ -190,38 +500,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/logrotate/'
         - logrotate/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, logrotate ]
-
-- name: Set hostname (runtime) (Debian, CoreOS)
-  shell: 'hostname {{ name | default(ansible_hostname) }}'
-  become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Make /etc/hostname present (Debian, CoreOS)
-  shell: 'echo {{ name | default(ansible_hostname) }} > /etc/hostname'
-  become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Set domainname (Debian, CoreOS)
-  shell: 'domainname {{ category }}.{{ deployment }}'
-  become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Set domainname (MacOSX)
-  lineinfile:
-    dest=/etc/defaultdomain
-    regexp='^.*$'
-    line={{ category }}.{{ deployment }}
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode={{ mode_0644 }}
-  become: yes
-  when: ansible_os_family == "MacOSX"
-  tags: [ base, config ]
 
 # Handle the configuration of network interfaces in a manner that
 # matches policy for configuring bare-metal machines.
@@ -393,59 +673,6 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Create base /etc/hosts file (Debian, CoreOS)
-  template:
-    src: '{{ item }}'
-    dest: /etc/hosts
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  with_first_found:
-    - files:
-        - '{{ base_hosts }}'
-        - hosts.{{ inventory_hostname }}.j2
-        - hosts.category-{{ category }}.j2
-        - hosts.deployment-{{ deployment }}.j2
-        - hosts.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
-        - hosts/
-  become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, hosts, config ]
-
-- name: Make sure blacklisted packages are absent (Debian)
-  apt: state=absent name={{ item }} force=yes
-  with_items:
-    - '{{ packages_remove[ansible_lsb.id] }}'
-  become: yes
-  when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  ignore_errors: yes
-  tags: [ base, packages, updates ]
-
-- name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
-  become: yes
-  tags: [ base, packages, updates ]
-
-- name: Make sure required APT packages are present (Debian)
-  apt: state=present name={{ item }} force=yes
-  with_items:
-   - "{{ packages_install[ansible_lsb.id] }}"
-  become: yes
-  ignore_errors: yes
-  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
-  tags: [ base, packages, updates ]
-
-- name: Make upgraded packages present if we are explicitly upgrading
-  apt:
-    upgrade: safe
-    autoremove: yes
-  become: yes
-  when: packages_upgrade and ansible_os_family == "Debian"
-  tags: [ base, packages, updates ]
-
 - name: Ensure pip installed for system python
   apt:
     name: '{{ item }}'
@@ -468,117 +695,6 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
-- name: Disable IPv6 in kernel on non-CoreOS
-  shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
-  when: ansible_os_family != "Container Linux by CoreOS"
-  become: yes
-  tags: [ base, packages ]
-
-- name: iptables v4 rules (Debian)
-  template:
-    src: '{{ item }}'
-    dest: /etc/iptables/rules.v4
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
-    validate: '/sbin/iptables-restore --test %s'
-  with_first_found:
-    - files:
-        - '{{ iptables_rules }}'
-        - rules.v4.{{ inventory_hostname }}.j2
-        - rules.v4.category-{{ category }}.j2
-        - rules.v4.deployment-{{ deployment }}.j2
-        - rules.v4.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
-        - iptables/
-  notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-    - "conditional restart docker"
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config, iptables ]
-
-- name: iptables v4 rules (CoreOS)
-  template:
-    src: '{{ item }}'
-    dest: /var/lib/iptables/rules-save
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
-    validate: '/sbin/iptables-restore --test %s'
-  with_first_found:
-    - files:
-        - '{{ iptables_rules }}'
-        - rules.v4.{{ inventory_hostname }}.j2
-        - rules.v4.category-{{ category }}.j2
-        - rules.v4.deployment-{{ deployment }}.j2
-        - rules.v4.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
-        - iptables/
-  become: yes
-  notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-    - "conditional restart docker"
-  when: ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config, iptables ]
-
-- name: iptables v6 rules (Debian)
-  template:
-    src: '{{ item }}'
-    dest: /etc/iptables/rules.v6
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
-    validate: '/sbin/ip6tables-restore --test %s'
-  with_first_found:
-    - files:
-        - '{{ ip6tables_rules }}'
-        - rules.v6.{{ inventory_hostname }}.j2
-        - rules.v6.category-{{ category }}.j2
-        - rules.v6.deployment-{{ deployment }}.j2
-        - rules.v6.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
-        - iptables/
-  notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-    - "conditional restart docker"
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config, iptables ]
-
-- name: iptables v6 rules (CoreOS)
-  template:
-    src: '{{ item }}'
-    dest: /var/lib/ip6tables/rules-save
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
-    validate: '/sbin/ip6tables-restore --test %s'
-  with_first_found:
-    - files:
-        - '{{ ip6tables_rules }}'
-        - rules.v6.{{ inventory_hostname }}.j2
-        - rules.v6.category-{{ category }}.j2
-        - rules.v6.deployment-{{ deployment }}.j2
-        - rules.v6.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
-        - iptables/
-  become: yes
-  notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
-    - "conditional restart docker"
-  when: ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config, iptables ]
-
-# Using "meta: flush_handlers" will run any handlers that have
-# been set up to this point.
-# http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
-- meta: flush_handlers
-
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
   include: "{{ tasks_path }}/install-shflags.yml"
@@ -596,6 +712,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.j2'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Make sure common (non-templated) BASH scripts are present
@@ -607,6 +724,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.sh'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Make sure common (non-templated) Python scripts are present
@@ -618,6 +736,7 @@
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - '{{ files }}/common-scripts/*.py'
+  become: yes
   tags: [ base, packages, scripts, tests ]
 
 - name: Ensure Ubuntu locale set (Ubuntu)
@@ -639,57 +758,6 @@
   become: yes
   when: ansible_lsb.id == "Debian"
   tags: [ base, packages ]
-
-- name: Set timezone variables (Debian)
-  copy: content={{ dims_timezone }}
-        dest=/etc/timezone
-        owner={{ root_user }}
-        group={{ root_group }}
-        mode={{ mode_0644 }}
-        backup=yes
-  notify:
-  - update timezone
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config ]
-
-# https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
-- name: Set timezone (CoreOS)
-  shell: timedatectl set-timezone {{ dims_timezone }}
-  become: yes
-  when: ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Ensure getaddrinfo configuration is present (Debian)
-  template:
-    src: '{{ item }}'
-    dest: /etc/gai.conf
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  with_first_found:
-    - files:
-        - '{{ gai_rules }}'
-        - gai.conf.{{ inventory_hostname }}.j2
-        - gai.conf.category-{{ category }}.j2
-        - gai.conf.deployment-{{ deployment }}.j2
-        - gai.conf.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/gai/'
-        - gai/
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config ]
-
-# TODO(mboggess): unsure if chony usable on CoreOS
-#   Added "when" statement
-- name: Make sure that chrony is running (Debian)
-  service:
-    name: chrony
-    state: started
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, services ]
 
 # NOTE(mboggess): on CoreOS, /etc/ssh/sshd_config is a symlink to /usr/share/ssh/sshd_config
 # and /usr is a readonly filesystem. Might need to use user-data file for this step...
@@ -751,6 +819,7 @@
 
 - name: Ensure bashpass is present
   include: "{{ tasks_path }}/install-bashpass.yml"
+  become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -789,19 +858,34 @@
 
 - name: Ensure bats is present
   include: "{{ tasks_path }}/install-bats.yml"
+  become: yes
   tags: [ base, packages ]
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
+  become: yes
   tags: [ base, tests ]
 
 - name: Make defined triggers present
   include: "{{ tasks_path }}/triggers.yml"
+  become: yes
   tags: [ base, triggers ]
 
 - name: Make CoreOS resources present
   include: coreos.yml
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
+
+  # This is not DRY, but base role does not use post_tasks.yml
+- name: Log end of 'base' role
+  shell: >
+    [ -f {{ dims_bin }}/dims.logger ] &&
+    {{ dims_bin }}/dims.logger
+    --logger-tag ansible-playbook
+    --logmon-exchange devops
+    'Ending role: base'
+  ignore_errors: yes
+  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
 # vim: ft=ansible :

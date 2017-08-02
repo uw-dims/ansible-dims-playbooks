@@ -456,18 +456,51 @@
   become: yes
   tags: [ trident-core ]
 
-- name: Determine if trident user already exists in postgres
-  shell: "psql -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='trident'\""
-  become: yes
-  become_user: 'postgres'
-  register: psql_results
-  tags: [ trident-core, config ]
+  # "trident" in pg_roles.  The value "1" means the roles
+  # exists (which implies that the setup tasks below
+  # have already been applied.) If not, it is safe to
+  # restore the database prior to applying the rest of
+  # the configuration tasks.
+  #
+  # $ psql -U postgres -tAc "SELECT * FROM pg_roles"
+  # postgres|t|t|t|t|t|t|t|-1|***********|||10
+  # trident|f|t|f|f|f|t|f|-1|************|||16384
+  # $ psql -U postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='trident'"
+  # 1
+
+- block:
+  - name: Determine if trident user already exists in postgres
+    shell: "psql -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='trident'\""
+    become: yes
+    become_user: 'postgres'
+    register: _psql_result
+    tags: [ trident-core ]
+
+  - name: Define _trident_role_exists
+    set_fact:
+      _trident_role_exists: '{{ _psql_result is defined and _psql_result.stdout == "1" }}'
+    tags: [ trident-core ]
+
+  - debug: 'var=_trident_role_exists'
+    tags: [ trident-core ]
+
+  rescue:
+  - name: Define _trident_role_exists
+    set_fact:
+      _trident_role_exists: no
+    tags: [ trident-core ]
 
 - name: Ensure Trident user and database present
   shell: "/usr/sbin/tsetup setup_db"
-  when: psql_results.stdout != "1"
+  when: not _trident_role_exists
   become: yes
   become_user: 'postgres'
+  tags: [ trident-core ]
+
+  # Restore database from a previous backup if enabled and if first
+  # time.
+- include: '{{ tasks_path }}/postgresql_restore.yml'
+  when: postgresql_backup_restorefrom is defined and not _trident_role_exists
   tags: [ trident-core ]
 
 # Add initial sysadmin user. This step is necessary according to Linda's email
@@ -476,7 +509,7 @@
   shell: >
     /usr/sbin/tsetup adduser trident {{ tridentSysAdminPass }}
   no_log: '{{ nolog }}'
-  when: psql_results.stdout != "1"
+  when: postgresql_backup_restorefrom is not defined and not _trident_role_exists
   become: yes
   become_user: 'postgres'
   tags: [ trident-core ]

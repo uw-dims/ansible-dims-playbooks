@@ -17,7 +17,6 @@
     url: http://nginx.org/keys/nginx_signing.key
     state: present
   become: yes
-  when: ansible_os_family == "Debian"
   tags: [ nginx, packages ]
 
 - name: Make deb sources present
@@ -29,7 +28,6 @@
     - deb http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
     - deb-src http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
   become: yes
-  when: ansible_os_family == "Debian"
   tags: [ nginx, packages ]
 
 - name: Only "update_cache=yes" if >3600s since last update
@@ -70,7 +68,6 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  when: ansible_os_family == "Debian"
   with_first_found:
     - files:
         - '{{ nginx_conf }}'
@@ -90,82 +87,66 @@
   become: yes
   tags: [ nginx, packages ]
 
-- name: Configure default server
-  template:
-    src: '{{ item }}'
-    dest: /etc/nginx/sites-available/default
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  when: ansible_os_family == "Debian"
-  with_first_found:
-    - files:
-        - '{{ directive_nginx_conf }}'
-        - default.{{ inventory_hostname }}.j2
-        - default.category-{{ category }}.j2
-        - default.deployment-{{ deployment }}.j2
-        - default.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
-        - sites-available/
-  become: yes
-  notify: restart nginx
+- name: Define nginx_sites_available variable
+  set_fact:
+    nginx_sites_available: '{{ _nginx_sites_available }}'
+  when: nginx_sites_available is not defined
   tags: [ nginx, config ]
 
-- name: Configure health check server directive
-  template:
-    src: '{{ item }}'
-    dest: /etc/nginx/sites-available/health_check
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
-  when: ansible_os_family == "Debian"
-  with_first_found:
-    - files:
-        - '{{ directive_nginx_conf }}'
-        - health_check.{{ inventory_hostname }}.j2
-        - health_check.category-{{ category }}.j2
-        - health_check.deployment-{{ deployment }}.j2
-        - health_check.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
-        - sites-available/
+  # Ansible does not support nested loops of with_items
+  # wrapping with_first_found. We are using with_first_found
+  # to enable generalization of templates across groups,
+  # and we want to use an array of sites_available and
+  # sites_enabled. This requires looping using with_items
+  # to include a task that then performs the with_first_found.
+  # This only works with Ansible >2.1 and its dynamic
+  # inclusion behavior.
+- name: Install sites in nginx_sites_available
+  include: 'install-site-available.yml'
+  static: no
+  with_items:
+    - '{{ nginx_sites_available }}'
+  loop_control:
+    loop_var: _sitename
   become: yes
-  notify: restart nginx
+  when: nginx_sites_available is defined
   tags: [ nginx, config ]
 
-- name: Create symlink to enable sites
+- name: Define nginx_sites_enabled variable
+  set_fact:
+    nginx_sites_enabled: '{{ nginx_sites_enabled|default(_nginx_sites_enabled) }}'
+  tags: [ nginx, config ]
+
+- name: Create symlinks to nginx_sites_enabled
   file:
     src: '/etc/nginx/sites-available/{{ item }}'
     dest: '/etc/nginx/sites-enabled/{{ item }}'
     state: link
   with_items:
-    - default
-    - health_check
+    - '{{ nginx_sites_enabled }}'
   become: yes
+  ignore_errors: yes
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Make default directories present
+- name: Create health_check directory if selected
   file:
-    path: '{{ item }}'
+    path: '/var/www/health_check'
     state: directory
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     mode: '{{ mode_0755 }}'
-  with_items:
-    - /var/www/health_check
+  when: '"health_check" in nginx_sites_available'
   become: yes
   tags: [ nginx, config ]
 
-- name: Make base Nginx configuration present
+- name: Set up health_check site if selected
   template:
     src: '{{ item }}'
     dest: /var/www/health_check/index.html
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: '{{ mode_0644 }}'
-  when: ansible_os_family == "Debian"
   with_first_found:
     - files:
         - '{{ nginx_index }}'
@@ -177,8 +158,35 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/html/'
         - html/
   become: yes
+  when: '"health_check" in nginx_sites_available'
   notify: restart nginx
   tags: [ nginx, config ]
+
+- name: Make artifacts (source) directory present
+  file:
+    path: '{{ dims }}/source'
+    state: directory
+    owner: '{{ dims_user }}'
+    group: www-data
+    mode: '{{ mode_0775 }}'
+  become: yes
+  when: '"source" in nginx_sites_available'
+  notify: restart nginx
+  tags: [ nginx, config ]
+
+- name: Define nginx_source_hostname
+  set_fact:
+    nginx_source_hostname: 'source.devops.{{ deployment }}'
+  when: '"source" in nginx_sites_available
+        and nginx_source_hostname is not defined'
+  tags: [ nginx, config ]
+
+  # We only need to worry about bootstrapping the source directory
+  # to serve source when this is meant to be a source server. Duh.
+- include: 'bootstrap.yml'
+  when: '"source" in nginx_sites_available
+        and nginx_source_bootstrap_dir is defined'
+  tags: [ nginx ]
 
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
 - name: Generate Strong Diffie-Hellman Group

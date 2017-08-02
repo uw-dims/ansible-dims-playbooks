@@ -13,9 +13,6 @@
 # http://michlstechblog.info/blog/openvpn-set-a-static-ip-address-for-a-client/
 # http://beenje.github.io/blog/posts/installing-openvpn-on-a-raspberry-pi-with-ansible/
 
-- include: "{{ tasks_path }}/ansible2check.yml"
-  tags: [ always ]
-
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ openvpn-server ]
 

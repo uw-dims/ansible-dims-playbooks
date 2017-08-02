@@ -22,21 +22,22 @@ function setup() {
 }
 
 @test "[S][EV] consul version is {{ consul_version }}" {
+    is_coreos && skip "Not applicable on CoreOS"
     assert '{{ consul_version }}' bash -c "consul version | awk -Fv '/Consul/ { print \$2; }'"
 }
 
 @test "[S][EV] systemd consul service file exists" {
-    ! is_coreos && skip "Not applicable not on CoreOS"
+    ! is_coreos && skip "Only applicable on CoreOS"
     [ -f /etc/systemd/system/consul.service ]
 }
 
 @test "[S][EV] systemd consul-join service file exists" {
-    ! is_coreos && skip "Not applicable not on CoreOS"
+    ! is_coreos && skip "Only applicable on CoreOS"
     [ -f /etc/systemd/system/consul-join.service ]
 }
 
 @test "[S][EV] Consul docker container exists" {
-    ! is_coreos && skip "Not applicable not on CoreOS"
+    ! is_coreos && skip "Only applicable on CoreOS"
     docker ps | grep -q consul-$(hostname)
     [ $? -eq 0 ]
 }

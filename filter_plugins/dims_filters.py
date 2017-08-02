@@ -56,7 +56,7 @@ def _add_domain(_list, category='devops', deployment='local'):
         raise errors.AnsibleFilterError('Unrecognized input arguments to _add_domains()')
 
 
-def _initial_cluster(_list, category='devops', deployment='local', port=2380):
+def _initial_cluster_lookup_short(_list, category='devops', deployment='local', port=2380):
     '''
     Return a comma (no spaces!) separated list of Consul initial cluster
     members. The "no spaces" is because this is used as a single command line
@@ -67,8 +67,14 @@ def _initial_cluster(_list, category='devops', deployment='local', port=2380):
     check for this error before attempting to use the results.
 
     a = ['node01','node02','node03']
-    _initial_cluster(a)
+    _initial_cluster_lookup_short(a)
     'node01=http://192.168.56.21:2380,node02=http://192.168.56.22:2380,node03=http://192.168.56.23:2380'
+
+    $ ansible -i inventory/ -m debug -a msg="{{ groups.consul|initial_cluster() }}" node01.devops.local
+    node01.devops.local | SUCCESS => {
+      "changed": false,
+      "msg": "node03=http://node03.devops.local:2380,node02=http://node02.devops.local:2380,node01=http://node01.devops.local:2380"
+    }
 
     '''
 
@@ -87,6 +93,35 @@ def _initial_cluster(_list, category='devops', deployment='local', port=2380):
         except Exception as e:
             #raise errors.AnsibleFilterError(
             #    'initial_cluster() could not perform lookups: {0}'.format(str(e))
+            #)
+            return ''
+    else:
+        raise errors.AnsibleFilterError('Unrecognized input arguments to initial_cluster()')
+
+def _initial_cluster(_list, port=2380):
+    '''
+    Return a comma (no spaces!) separated list of Consul initial cluster
+    members from fully qualified domain names (e.g., Ansible group member
+    names). The "no spaces" is because this is used as a single command line
+    argument.
+
+    a = ['node01.devops.local','node02.devops.local','node03.devops.local']
+    _initial_cluster(a)
+    'node01=http://node01.devops.local:2380,node02=http://node02.devops.local:2380,node03=http://node03.devops.local:2380'
+
+    '''
+
+    if type(_list) == type([]):
+        try:
+            return ','.join(
+                ['{0}=http://{1}:{2}'.format(
+                    i.decode('utf-8').split('.')[0],
+                    i.decode('utf-8'),
+                    port) for i in _list]
+            )
+        except Exception as e:
+            #raise errors.AnsibleFilterError(
+            #    'initial_cluster() filed to convert: {0}'.format(str(e))
             #)
             return ''
     else:
@@ -160,6 +195,7 @@ class FilterModule(object):
             # Docker/Consul/Swarm filters
             'names_to_ips': _names_to_ips,
             'initial_cluster': _initial_cluster,
+            'initial_cluster_lookup_short': _initial_cluster_lookup_short,
             'add_domain': _add_domain,
 
             # Networking filters

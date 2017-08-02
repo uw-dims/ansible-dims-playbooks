@@ -9,22 +9,6 @@ load helpers
 function setup() {
     source $DIMS/bin/dims_functions.sh
     touch --reference=/bin/ls /tmp/bats.ls-marker
-    cat <<EOD > /tmp/bats.varsdefs
-A=1
-C=3
-B=2
-EOD
-    cat <<EOD > /tmp/bats.reqvars.1
-B
-A
-C
-EOD
-    cat <<EOD > /tmp/bats.reqvars.2
-A
-D
-B
-C
-EOD
     for name in A B; do
         mkdir -p /tmp/bats.tmp/${name}.dir
         touch /tmp/bats.tmp/${name}.txt
@@ -32,7 +16,7 @@ EOD
 }
 
 function teardown() {
-    rm -f /tmp/bats.ls-marker /tmp/bats.varsdefs /tmp/bats.reqvars.{1,2}
+    rm -f /tmp/bats.ls-marker
     rm -rf /tmp/bats.tmp
 }
 
@@ -51,14 +35,6 @@ function teardown() {
 
 @test "[U][EV] get_hostname() returns hostname" {
     assert "$(hostname)" get_hostname
-}
-
-@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1 succeeds" {
-    validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.1
-}
-
-@test "[U][EV] validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2 fails" {
-    ! validate_required_vars /tmp/bats.varsdefs /tmp/bats.reqvars.2
 }
 
 @test "[U][EV] is_fqdn host.category.deployment returns success" {
@@ -149,15 +125,11 @@ function teardown() {
     assert "packer_ubuntu-14.04.5_box_virtualbox" get_packer_box_name ubuntu 14.04.5
 }
 
-@test "[U][EV] get_packer_box_name coreos 1262.0.0 returns 'packer_coreos-1262.0.0_box_virtualbox'" {
-    assert "packer_coreos-1262.0.0_box_virtualbox" get_packer_box_name coreos 1262.0
-}
-
-@test "[U][EV] get_packer_ovf_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.4_base'" {
+@test "[U][EV] get_packer_ovf_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.5_base'" {
     assert "ubuntu-14.04.5_base" get_packer_ovf_json_name ubuntu 14.04.5
 }
 
-@test "[U][EV] get_packer_box_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.4_box'" {
+@test "[U][EV] get_packer_box_json_name ubuntu 14.04.5 returns 'ubuntu-14.04.5_box'" {
     assert "ubuntu-14.04.5_box" get_packer_box_json_name ubuntu 14.04.5
 }
 
@@ -216,14 +188,6 @@ function teardown() {
 
 @test "[U][EV] escape_spaces turns 'this line has spaces' to 'this\ line\ has\ spaces'" {
     assert 'this\ line\ has\ spaces' escape_spaces 'this line has spaces'
-}
-
-@test "[U][EV] get_inventory /path/to/playbooks deploymentA returns \"/path/to/playbooks/inventory/deploymentA\"" {
-    assert "/path/to/playbooks/inventory/deploymentA" get_inventory /path/to/playbooks deploymentA
-}
-
-@test "[U][EV] get_inventory /path/to/playbooks host.cat.deploymentA returns \"/path/to/playbooks/inventory/deploymentA\"" {
-    assert "/path/to/playbooks/inventory/deploymentA" get_inventory /path/to/playbooks host.cat.deploymentA
 }
 
 @test "[U][EV] get_directories_in_directory /tmp/bats.tmp returns \"A.dir B.dir\"" {

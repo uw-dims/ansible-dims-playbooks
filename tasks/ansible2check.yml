@@ -1,9 +1,0 @@
----
-
-# File: tasks/ansible2check.yml
-
-# This playbook requires Ansible 2.x features.
-- name: Validate Ansible 2.x is being used
-  fail: msg="Ansible 2.x is required and it doesn't look like you are using Ansible 2.x"
-  when: ansible_version is undefined or
-       (ansible_version.major is defined and ansible_version.major|int != 2)

@@ -7,6 +7,6 @@
 
 server {
   listen *:{{ nginx_health_check_port }};
-  server_name {{ ansible_hostname }}.{{ nginx_default_domain }};
+  server_name {{ inventory_hostname_short }}.{{ nginx_default_domain }};
   root /var/www/health_check;
 }

@@ -2,16 +2,11 @@
 
 # File: host_vars/node02.devops.local.yml
 
-name: "node02"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', ]
-
 eth1:
   ip: "192.168.56.22"
   auto_config: "true"
 eth2:
   ip: "10.168.56.22"
-  auto_config: "true"
+  auto_config: "false"
 
 # vim: ft=ansible :

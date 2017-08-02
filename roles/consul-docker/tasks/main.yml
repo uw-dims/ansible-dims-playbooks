@@ -2,10 +2,6 @@
 
 # File: roles/consul-docker/tasks/main.yml
 
-# This playbook requires Ansible 2.x features.
-- include: "{{ tasks_path }}/ansible2check.yml"
-  tags: [ always ]
-
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ consul-docker, config ]
 

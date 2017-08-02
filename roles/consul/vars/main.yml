@@ -2,15 +2,24 @@
 
 # Local customization is in group_vars/all/consul.yml file.
 
-consul_servers: []
 consul_os: 'linux'
-consul_version: '0.8.5'
+consul_version: '0.9.0'
 consul_artifact: 'consul_{{ consul_version }}_{{ consul_os }}_amd64.zip'
 # TODO(dittrich): We use "XXX_url" elsewhere to point to directory, not full URL path to file
 consul_dist_url: 'https://releases.hashicorp.com/consul/{{ consul_version }}'
-consul_sha256sum: '35dc317c80862c306ea5b1d9bc93709483287f992fd0797d214d1cc1848e7b62'
-consul_agent_type: 'client'
+consul_sha256sum: '33e54c7d9a93a8ce90fc87f74c7f787068b7a62092b7c55a945eea9939e8577f'
+
 consul_log_file: '/var/log/consul.log'
-consul_dns_port: 8600
+consul_data_dir: '/tmp/consul'
+consul_ui_dir: '{{ consul_data_dir }}/dist'
+# NOTE(mboggess): syslog is for Linux machines; it doesn't play nice with Docker containers.
+consul_enable_syslog: false
+consul_log_level: 'INFO'
+consul_inet_interface: 'eth0'
+consul_bind_interface: 'eth1'
+# Default is '0.0.0.0'
+consul_bind_address: '0.0.0.0'
+# Default is '127.0.0.1'
+consul_client_address: '127.0.0.1'
 
 # vim: ft=ansible :

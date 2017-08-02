@@ -2,8 +2,8 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
 # What ports, IPs and protocols we listen for
-{% if PORT is defined %}
-Port {{ PORT }}
+{% if hostvars[inventory_hostname].ansible_port is defined %}
+Port {{ hostvars[inventory_hostname].ansible_port }}
 {% else %}
 Port 22
 {% endif %}

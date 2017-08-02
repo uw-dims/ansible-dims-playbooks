@@ -8,7 +8,7 @@ After=consul.service
 [Service]
 TimeoutStartSec=0
 ExecStartPre=/bin/sh -c 'sleep 30'
-ExecStart=/usr/bin/docker exec consul-%H consul join {{ consul_servers|names_to_ips|list_to_args }}
+ExecStart=/usr/bin/docker exec consul-%H consul join {{ groups.manager|list_to_args }}
 RestartSec=30
 Restart=on-failure
 

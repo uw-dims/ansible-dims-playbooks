@@ -2,11 +2,6 @@
 
 # File: host_vars/blue16.devops.local.yml
 
-name: "blue16"
-PORT: "22"
-
-dims_users: [ 'dittrich', 'mboggess', 'revere', 'msouthwe', ]
-
 tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
 udp_ports: [ 53, 4789, 7946 ]
 
@@ -17,11 +12,6 @@ eth2:
   ip: "10.168.56.10"
   auto_config: "false"
 
-# Variables for building "ovf" and "box" files
-box_baseos: "ubuntu"
-box_osversion: "16.04.1"
-box_osnick: "xenial"
-box_type: "server"
 iso_source: "file:///vm/cache/isos"
 iso_arch: "amd64"
 iso_checksum_type: "sha256"

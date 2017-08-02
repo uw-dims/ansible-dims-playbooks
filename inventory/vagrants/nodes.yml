@@ -4,21 +4,27 @@
 
 vagrants:
   vars:
+    ansible_user: 'root'
     ansible_port: 22
+    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     artifacts_url: 'file:///home/ansible/sources'
-    zone_iface:
-      'vmnet': 'eth0'
-      'local': 'eth1'
-      'swarm': 'eth1'
-      'consul': 'eth1'
-      'private_network': 'eth1'
-
+    # Set this variable for all vagrants
+    box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
+    box_url: "file:///vm/box/{{ box_baseos }}-{{ box_osversion }}/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+    iso_source: "file:///vm/cache/isos"
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
     custom_rules: [
       '-A INPUT -i eth0 -s 10.0.2.0/24 -j ACCEPT',
       '-A INPUT -i eth1 -s 192.168.56.0/24 -j ACCEPT',
     ]
+    zone_iface:
+      'vmnet': 'eth0'
+      'local': 'eth1'
+      'swarm': 'eth1'
+      'docker': 'eth1'
+      'consul': 'eth1'
+      'private_network': 'eth1'
     net:
       iface:
         'eth0':
@@ -33,9 +39,7 @@ vagrants:
           netmask: "255.255.255.0"
           cidr_bits: "24"
           broadcast: "192.168.56.255"
-          # Use NAT via VM Host, unless one VM set up for NAT
-          #gateway: "192.168.56.1"
-          gateway: "10.0.2.2"
+          #gateway: "10.0.2.2"
           dns_search: "{{ deployment }}"
           dns_servers: "10.0.2.2"
           vagrant_net: "private_network"
@@ -50,49 +54,50 @@ vagrants:
         #   dns_servers: "8.8.8.8"
         #   vagrant_net: "public_network"
         #   vagrant_bridge: "[ 'eth0', 'wlan0' ]"
-
-    # TODO(dittrich): DEPRECATED: use above instead.
-    # Defaults for Vagrants host-only and private_network
-    networking:
-      interfaces:
-      - device: "eth0"
-        inet: "dhcp"
-        auto_config: "true"
-        vagrant_net: "default"
-      - device: "eth1"
-        inet: "static"
-        auto_config: "{{ eth1.auto_config }}"
-        ip: "{{ eth1.ip }}"
-        network: "192.168.56.0"
-        netmask: "255.255.255.0"
-        cidr_bits: "24"
-        broadcast: "192.168.56.255"
-        # Use NAT via VM Host, unless one VM set up for NAT
-        #gateway: "192.168.56.1"
-        gateway: "10.0.2.2"
-        dns_search: "{{ deployment }}"
-        dns_servers: "10.0.2.2"
-        vagrant_net: "private_network"
-    # - device: "eth2"
-    #   inet: "static"
-    #   auto_config: "{{ eth2.auto_config }}"
-    #   ip: "{{ eth2.ip }}"
-    #   network: "10.10.0.0"
-    #   netmask: "255.255.0.0"
-    #   broadcast: "10.10.255.255"
-    #   dns_search: "foobar"
-    #   dns_servers: "8.8.8.8"
-    #   vagrant_net: "public_network"
-    #   vagrant_bridge: "[ 'eth0', 'wlan0' ]"
   hosts:
     'red.devops.local':
+      #box_name: "ubuntu/trusty64"
+      box_baseos: "ubuntu"
+      box_osversion: "14.04.5"
+      box_osnick: "trusty"
+      box_type: "server"
+    'black.devops.local':
+      #box_name: "ubuntu/trusty64"
+      box_baseos: "ubuntu"
+      box_osversion: "14.04.5"
+      box_osnick: "trusty"
+      box_type: "server"
+    'blue14.devops.local':
+      #box_name: "ubuntu/trusty64"
+      box_baseos: "ubuntu"
+      box_osversion: "14.04.5"
+      box_osnick: "trusty"
+      box_type: "server"
+    'blue16.devops.local':
+      box_name: "ubuntu/xenial64"
+      box_baseos: "ubuntu"
+      box_osversion: "16.04.1"
+      box_osnick: "xenial"
+      box_type: "server"
+    'yellow.devops.local':
+      box_baseos: "debian"
+      box_osversion: "8.5.0"
+      box_osnick: "jessie"
+      box_type: "server"
+    'purple.devops.local':
+      box_baseos: "debian"
+      box_osnick: "jessie"
+      box_osversion: "8.5.0"
+      box_type: "server"
+    'orange.devops.local':
+      box_baseos: "ubuntu"
+      box_osversion: "14.04.5"
+      box_osnick: "trusty"
+      box_type: "server"
+    # box_* variables for cores are set in inventory/coreos/nodes.yml
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
-    'yellow.devops.local':
-    'purple.devops.local':
-    'blue14.devops.local':
-    'orange.devops.local':
   children:
     production:
       hosts:
@@ -106,11 +111,42 @@ vagrants:
       hosts:
         'purple.devops.local':
         'blue14.devops.local':
+        'black.devops.local':
+    coreos:
+      vars:
+        #ansible_python_interpreter: '/opt/bin/python'
+        ansible_python_interpreter: '/home/ansible/pypy/bin/python'
+        iptables_rules: rules.v4.coreos-local.j2
+        dims_environment: environment.coreos-local.j2
+        consul_service_file: consul.service.coreos.j2
+        box_baseos: "coreos"
+        box_osnick: "coreos"
+        box_oschannel: "alpha"
+        #box_osversion: "1451.2.0"
+        box_osversion: "1248.2.0"
+        box_vagrant_boxversion: "0"
+        # The path to boxes for CoreOS is different than other OSs.
+        # TODO(dittrich): Handle all boxes the same. Special cases confuse things.
+        box_url: "file:///vm/box/{{ box_baseos }}/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+      hosts:
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+        'core-01':
     demo:
       hosts:
         'red.devops.local':
         'yellow.devops.local':
-        'orange.devops.local':
+        'purple.devops.local':
+    coreos-vagrant:
+      hosts:
+        'core-01':
+          ansible_host: '127.0.0.1'
+          #ansible_host: '172.17.8.101'
+          ansible_user: 'core'
+          ansible_port: 2222
+          ansible_ssh_private_key_file: '/home/dittrich/.vagrant.d/insecure_private_key'
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
 
 # vim: ft=ansible :
-

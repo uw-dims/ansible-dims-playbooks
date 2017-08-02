@@ -2,36 +2,17 @@
 
 # Local customization variables (remainder are in role's vars/main.yml file)
 
-consul_servers: [
-  'node01',
-  'node02',
-  'node03',
-]
+# These are used by programs outside the consul role, so they are
+# defined here for all hosts.
 
-consul_bind_interface: 'eth1'
-# Default is '0.0.0.0'
-consul_bind_address: '0.0.0.0'
-consul_inet_interface: 'eth0'
-# Default is '127.0.0.1'
-consul_client_address: '127.0.0.1'
-# TODO(dittrich): This should align with dimscli (it handles fallback)
-consul_data_center: 'local'
-consul_dns_domain: 'local'
-# TODO(dittrich): This should align with dimscli (it handles fallback)
-consul_start_join: '192.168.56.21'
-# TODO(dittrich): This should align with dimscli (it handles fallback)
-consul_retry_join: '192.168.56.21'
-# TODO(dittrich): Why both a "Mode" and a "Server" boolean? Isn't second derivable from first? (consulMode != 'client')
-consul_mode: 'client'
-consul_server: false
-consul_data_dir: '/tmp/consul'
-# NOTE(mboggess): syslog is for Linux machines; it doesn't play nice with Docker containers.
-consul_enable_syslog: false
-consul_log_level: 'INFO'
-# NOTE(mboggess): If you don't set the client address, then it defaults to 'localhost'
-# which messes with the user-data file to bootstrap CoreOS nodes. If you set it to the
-# 'eth1' interface, this messes with the RPC services which uses localhost. So, for
-# this deployment, we have the "client" services address be 0.0.0.0.
-consul_ui_dir: '{{ consul_data_dir }}/dist'
+consul_ui_port: 8500
+consul_dns_port: 8600
+consul_start_join: '[{{ groups.consul|list_to_string_args }}]'
+consul_retry_join: '[{{ groups.consul|list_to_string_args }}]'
+consul_data_center: '{{ deployment }}'
+consul_dns_domain: '{{ deployment }}'
+# Type (and mode... not sure why both?) are set based on whether in groups.consul
+consul_agent_type: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
+consul_mode: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
 
 # vim: ft=ansible :

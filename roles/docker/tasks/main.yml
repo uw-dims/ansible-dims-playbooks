@@ -36,10 +36,11 @@
   when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "wheezy" and ansible_architecture == "x86_64"
   tags: [ docker, packages ]
 
+  # https://github.com/moby/moby/issues/20022
 - name: Make Docker registry key present
   apt_key:
     id: 58118E89F3A912897C070ADBF76221572C52609D
-    keyserver: hkp://p80.pool.sks-keyservers.net:80
+    keyserver: '{{ docker_keyserver|default("hkp://p80.pool.sks-keyservers.net:80") }}'
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]

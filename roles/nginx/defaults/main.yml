@@ -1,0 +1,15 @@
+---
+
+# File: roles/nginx/defaults/main.yml
+
+# Default array of sites-available templates to install
+_nginx_sites_available:
+  - 'default'
+  - 'health_check'
+
+# Default array of sites-enabled symlinks to install
+_nginx_sites_enabled:
+  - 'default'
+  - 'health_check'
+
+# vim: ft=ansible :

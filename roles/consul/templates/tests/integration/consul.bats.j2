@@ -10,8 +10,8 @@ function setup() {
 	source $DIMS/bin/dims_functions.sh
 }
 
-{% if consul_servers is defined %}
-{%- for node in consul_servers %}
+{% if groups.consul is defined %}
+{%- for node in groups.consul %}
 @test "[I][EV] {{ node }} is member of consul cluster" {
     is_coreos && skip "Not applicable on CoreOS"
     # TODO(dittrich): Something wrong with calling dimscli...

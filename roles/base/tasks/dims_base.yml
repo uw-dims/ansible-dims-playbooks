@@ -8,14 +8,15 @@
   become: yes
   tags: [ base, config ]
 
-- name: Ensure ansible user is in dims group
+- name: Ensure ansible user is in required groups
   user:
     name: ansible
     append: yes
-    groups: '{{ dims_group }}'
+    groups:
+      - '{{ dims_group }}'
+      - sudo
   become: yes
   tags: [ base, config ]
-
 
 - name: Ensure dims service account exists
   user:

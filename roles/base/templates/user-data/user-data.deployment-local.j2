@@ -69,7 +69,7 @@ write_files:
       #Port {{ dims_ssh_port }}
       Port 22
       ListenAddress 10.0.2.15
-      ListenAddress {{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}
+      ListenAddress {{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}
       PermitRootLogin no
       AllowUsers core ansible
       PasswordAuthentication no
@@ -163,9 +163,9 @@ coreos:
       [Socket]
       # See https://github.com/coreos/bugs/issues/426
       # TODO(dittrich): Work in how to switch to this for consistency with other hosts
-      #ListenStream={{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:8422
+      #ListenStream={{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:8422
       #ListenStream=10.0.2.15:8422
-      ListenStream={{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:22
+      ListenStream={{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:22
       ListenStream=10.0.2.15:22
       ReusePort=true
       FreeBind=true
@@ -196,7 +196,7 @@ coreos:
       - name: 50-dims-docker.conf
         content: |
           [Service]
-          Environment="DOCKER_OPTS={{ docker_opts | regex_replace('\n',' ') }}"
+          Environment="DOCKER_NETWORK_OPTS= {{ docker_network_opts|replace('\n',' ') }}, DOCKER_OPTS={{ docker_opts|regex_replace('\n',' ') }}"
   # TODO(dittrich): Changed 'false' to 'true' 2016-11-16: validate?
   - name: etcd2.service
     command: start
@@ -213,12 +213,12 @@ coreos:
       # Saving a templated variable here, using %H instead of ETCD_HOST_NAME
       ExecStart=/usr/bin/etcd2 \
           -name %H \
-          -initial-advertise-peer-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2380 \
-          -listen-peer-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2380 \
+          -initial-advertise-peer-urls http://{{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:2380 \
+          -listen-peer-urls http://{{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:2380 \
           -listen-client-urls http://0.0.0.0:2379 \
-          -advertise-client-urls http://{{ lookup('dig', '{{ name }}.{{ category }}.{{ deployment }}') }}:2379 \
-          -initial-cluster-token etcd-cluster-feature_dims-617 \
-          -initial-cluster {{ consul_servers|initial_cluster(category=category, deployment=deployment) }} \
+          -advertise-client-urls http://{{ lookup('dig', '{{ inventory_hostname_short }}.{{ category }}.{{ deployment }}') }}:2379 \
+          -initial-cluster-token etcd-cluster-{{ deployment }} \
+          -initial-cluster {{ groups.consul|initial_cluster() }} \
           -initial-cluster-state new
       Restart=always
       RestartSec=10s
