@@ -12,9 +12,11 @@ docker_keyserver: 'keyserver.ubuntu.com'
 docker_registry: hub.devops.{{ deployment }}:5000
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
+# e.g., docker_insecure_registry_net: '{{ networks["vlan1"].network }}/{{ networks["vlan1"].cidr_bits }}'
 docker_insecure_registry_net: 192.168.56.0/24
-docker_network_opts: |
-  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
+docker_network_opts: ''
+#docker_network_opts: |
+  #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
 docker_opts: |
   -H=tcp://{{ inventory_hostname }}:2376
   -H=unix:///var/run/docker.sock
