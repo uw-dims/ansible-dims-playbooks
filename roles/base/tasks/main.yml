@@ -3,13 +3,19 @@
 # File: roles/base/tasks/main.yml
 
   # This is not DRY, but base role does not use pre_tasks.yml
+- name: Check to see if dims.logger exists yet
+  stat:
+    path: '{{ dims_bin }}/dims.logger'
+  register: _logger_stat
+  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
+
 - name: Log start of 'base' role
   shell: >
-    [ -f {{ dims_bin }}/dims.logger ] &&
     {{ dims_bin }}/dims.logger
     --logger-tag ansible-playbook
     --logmon-exchange devops
     'Starting role: base'
+  when: _logger_stat is defined and _logger_stat.stat.exists
   ignore_errors: yes
   tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
