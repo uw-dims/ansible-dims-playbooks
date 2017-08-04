@@ -227,7 +227,17 @@ to one of Google's DNS servers.
 At this point we have verified Ansible can access the systems and that
 they can access the Internet. Those are the basics we need to now run
 the ``bootstrap.yml`` playbook to prepare the system for being a
-virtual machine hypervisor and Ansible control host.
+virtual machine hypervisor and Ansible control host. The tasks
+performed (at the high level) are seen here:
+
+.. literalinclude:: ../../roles/bootstrap/tasks/main.yml
+   :language: yaml
+
+Run the playbook as shown (or substitute the inventory host name
+directly, e.g., ``dellr510.ops.ectf``, instead of the group
+name ``bootstrap``. Using the group, you can prepare as many hosts
+as you wish at one time, in this case we show configuration of
+two hosts simultaneously.
 
 .. code-block:: none
 
