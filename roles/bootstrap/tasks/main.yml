@@ -16,7 +16,8 @@
 # Be sure to use '--become' as well, as all of these tasks
 # require root.
 #
-# TODO(dittrich): Add example...
+#  $ ansible-playbook $PBR/playbooks/bootstrap.yml \
+#  > --ask-sudo-pass --ask-pass --become -e host=bootstrap
 
 - name: Ensure hardware-specific packages present
   include: 'hardware.yml'
