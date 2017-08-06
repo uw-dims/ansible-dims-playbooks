@@ -1,0 +1,42 @@
+---
+
+# File: tasks/synchronize-vm.yml
+
+# Synchronize the contents of the {{ vm_dir }} directory path
+# (except 'run/' contents and 'cache/apt/' directory used by
+# squid-deb-proxy, which will be re-populated as needed.)
+
+- name: Verify existence of {{ vm_dir }}
+  stat:
+    path: '{{ vm_dir }}'
+  register: _vmdir_stat
+
+- name: Define synchronize_vmdir
+  set_fact:
+    synchronize_vmdir: no
+  when: synchronize_vmdir is not defined
+        or _vmdir_stat is not defined
+        or not _vmdir_stat.stat.exists
+
+  # Note: http://cheat.readthedocs.io/en/latest/ansible/synchronize.html
+- name: Synchronize {{ vm_dir }} contents
+  synchronize:
+    src: '{{ vm_dir }}/'
+    dest: '{{ vm_dir }}'
+    mode: push
+    recursive: yes
+    compress: '{{ synchronize_compress|default("no") }}'
+    archive: '{{ synchronize_archivef|default("yes") }}'
+    dest_port: '{{ hostvars[inventory_hostname].ansible_port }}'
+    checksum: '{{ synchronize_checksum|default("no") }}'
+    rsync_path: 'sudo rsync' # Use sudo on the remote system...
+    rsync_opts:
+      - "--exclude=run"
+      - "--exclude=cache/apt"
+    set_remote_user: False
+    ssh_args: "-l {{ hostvars[inventory_hostname].ansible_user }} -i {{ hostvars[inventory_hostname].ansible_ssh_private_key_file }}"
+  become: no                 # ...not on the local system
+  delegate_to: 127.0.0.1
+  when: vm_dir is defined and synchronize_vmdir|bool
+
+# vim: ft=ansible :

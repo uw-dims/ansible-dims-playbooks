@@ -111,19 +111,6 @@
   become_user: '{{ dims_user }}'
   tags: [ ansible-server ]
 
-  # Synchronize the contents of the {{ vm_dir }} directory path
-  # (except 'run/' contents and 'cache/apt/' directory used by
-  # squid-deb-proxy, which will be re-populated as needed.)
-
-- name: Synchronize {{ vm_dir }} contents
-  synchronize:
-    src: '{{ vm_dir }}'
-    dest: '{{ vm_dir }}'
-    archive: yes
-    checksum: yes
-    rsync_opts:
-      - "--exclude=run"
-      - "--exclude=cache/apt"
   become: yes
   tags: [ ansible-server ]
 
