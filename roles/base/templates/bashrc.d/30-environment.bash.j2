@@ -1,0 +1,21 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
+#
+# This file is sourced by Bash at startup. DO NOT use 'exit'
+#
+# Set defaults for required variables if not set by users
+# in their $HOME/.bashrc file.
+
+if [[ -z "$PBR" ]]; then
+    if [[ -d $HOME/dims/git/ansible-dims-playbooks ]]; then
+        echo "[+] Setting PBR to $HOME/dims/git/ansible-dims-playbooks"
+        export PBR="$HOME/dims/git/ansible-dims-playbooks"
+    elif [[ -d $DIMS/git/ansible-dims-playbooks ]]; then
+        echo "[+] Setting PBR to $DIMS/git/ansible-dims-playbooks"
+        export PBR="$DIMS/git/ansible-dims-playbooks"
+    else
+        echo "[!] Could not find ansible-dims-playbooks in $HOME/dims/git or $DIMS/git"
+        echo "[!] Set PBR manually to point to ansible-dims-playbooks repo directory."
+    fi
+fi
+
+# do not 'exit' - sourced script
