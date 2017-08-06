@@ -93,6 +93,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
   become: yes
+  notify: restart dnsmasq
   when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
 
