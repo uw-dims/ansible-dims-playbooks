@@ -10,6 +10,7 @@
 - name: Look for running VM guests
   shell: "ps auxwww| grep 'virtualbox/VBox.* --startvm'|grep -v 'grep '| wc -l"
   register: _vbox_result
+  delegate_to: '{{ inventory_hostname }}'
   tags: [ virtualbox, packages ]
 
 - name: Register number of running VM guests
