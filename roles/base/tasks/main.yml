@@ -244,7 +244,7 @@
   tags: [ base, config ]
 
 - name: Check to see if update-manager is running on Ubuntu
-  shell: "ps aux | awk '/\\/usr\\/bin\\/update-manager$/ { print $2; }'"
+  shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
   register: _ps
   ignore_errors: yes
   when: ansible_os_family == "Debian"
