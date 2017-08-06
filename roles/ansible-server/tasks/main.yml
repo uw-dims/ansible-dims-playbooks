@@ -105,7 +105,8 @@
 - name: Ensure ansible-dims-playbooks present
   git:
     repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
-    dest: '{{ dims_src }}/ansible-dims-playbooks'
+    dest: '{{ dims_git }}/ansible-dims-playbooks'
+    update: yes
     force: yes
   become: yes
   become_user: '{{ dims_user }}'
