@@ -20,6 +20,7 @@
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
   hosts: "{{ host|default('bootstrap') }}" # override with '-e host=$host.fq.dn'
+  become: yes
   gather_facts: True
 
 # Everything from here on out will be stripped by dims.ansible-playbooks
