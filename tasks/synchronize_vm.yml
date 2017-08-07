@@ -26,7 +26,7 @@
     mode: push
     recursive: yes
     compress: '{{ synchronize_compress|default("no") }}'
-    archive: '{{ synchronize_archivef|default("yes") }}'
+    archive: '{{ synchronize_archive|default("yes") }}'
     dest_port: '{{ hostvars[inventory_hostname].ansible_port }}'
     checksum: '{{ synchronize_checksum|default("no") }}'
     rsync_path: 'sudo rsync' # Use sudo on the remote system...
