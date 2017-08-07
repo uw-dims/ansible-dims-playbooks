@@ -538,7 +538,6 @@ Note the lines that show up right after the command line
 (highlighted here):
 
 .. code-block:: none
-   :emphasize-lines: 2-5
 
     $ cookiecutter --no-input -f -o /tmp --config-file testrepo.yml dims-new-repo
     [+] Fix underlining in these files:

@@ -9,7 +9,7 @@
 # for portable VMs, run this playbook in addition to the laptop's
 # own host-specific playbook.
 
-- name: Configure host "vmhost.devops.local"
+- name: Configure host for being virtual machine hypervisor
   hosts: '{{ host|default("vmhost.devops.local") }}'
   connection: local
 
@@ -37,6 +37,10 @@
     - { role: postfix, smtp_relayhost: true, postfix_group: 'local_vagrant_host' }
     - { role: nginx }
     - { role: apache-directory-studio }
+
+  tasks:
+    - include: '{{ tasks_path }}/synchronize_vm.yml'
+      tags: [ 'always' ]
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"

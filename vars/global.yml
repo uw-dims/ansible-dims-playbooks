@@ -165,10 +165,6 @@ mode_0444: 'u=r,g=r,o=r'
 mode_0440: 'u=r,g=r'
 mode_0400: 'u=r,go='
 
-# Python version for virtualenv
-dims_python_version: 2.8.03
-
-
 # Jenkins variables
 build_user: jenkins
 # Relative path from ansible-playbooks location in jenkins job workspace to the
