@@ -22,6 +22,22 @@ append_dot_mydomain = no
 
 readme_directory = no
 
+myhostname = {{ ansible_hostname }}.{{ category }}.{{ deployment }}
+myorigin = {{ category }}.{{ deployment }}
+mydestination =
+
+{% set iface = hostvars[inventory_hostname].net.iface[zone_iface["private_network"]] %}
+mynetworks = 127.0.0.0/8 {{ iface.ip }}/32 {{ iface.network }}/{{ iface.cidr_bits }}
+
+
+relayhost = smtp.{{ category }}.{{ deployment }}
+
+# Make sure to secure access with iptables
+inet_interfaces = loopback-only
+inet_protocols = ipv4
+
+# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
+# information on enabling SSL in the smtp client.
 # TLS parameters
 smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
 smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
@@ -29,19 +45,9 @@ smtpd_use_tls=yes
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
-# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
-# information on enabling SSL in the smtp client.
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = {{ ansible_hostname }}.{{ category }}.{{ deployment }}
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
-myorigin = {{ category }}.{{ deployment }}
-mydestination =
-relayhost = smtp.{{ category }}.{{ deployment }}
-mynetworks = 127.0.0.0/8
 mailbox_size_limit = 0
 recipient_delimiter = +
-# Make sure to secure access with iptables
-inet_interfaces = loopback-only
-inet_protocols = ipv4

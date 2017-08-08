@@ -7,6 +7,18 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ ansible-server ]
 
+- name: Define ansible_dims_playbooks_repo
+  set_fact:
+    ansible_dims_playbooks_repo: '{{ _ansible_dims_playbooks_repo }}'
+  when: ansible_dims_playbooks_repo is not defined
+  tags: [ ansible-server ]
+
+- name: Define ansible_dims_playbooks_version
+  set_fact:
+    ansible_dims_playbooks_version: '{{ _ansible_dims_playbooks_version }}'
+  when: ansible_dims_playbooks_version is not defined
+  tags: [ ansible-server ]
+
 - name: Make sure directory exists for ansible configurations
   file:
     path: /etc/ansible
@@ -105,10 +117,36 @@
 - name: Ensure ansible-dims-playbooks present
   git:
     repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
-    dest: '{{ dims_src }}/ansible-dims-playbooks'
+    dest: '{{ dims_git }}/ansible-dims-playbooks'
+    version: '{{ ansible_dims_playbooks_version }}'
+    update: yes
     force: yes
   become: yes
-  become_user: '{{ dims_user }}'
+  tags: [ ansible-server ]
+
+- name: Define install_ssh_keypair
+  set_fact:
+    install_ssh_keypair: false
+  when: install_ssh_keypair is not defined
+  tags: [ ansible-server ]
+
+- name: Define variable with ansible private key
+  set_fact:
+    _private_key_file: '{{ lookup("dims_function", "get_ssh_private_key_file {{ ansible_user }}") }}'
+  tags: [ ansible-server ]
+
+- name: Ensure ansible SSH key pair is present
+  copy:
+    src: '{{ item }}'
+    dest: '/home/{{ ansible_user }}/.ssh/{{ item|basename }}'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: 0600
+  with_items:
+    - '{{ _private_key_file }}'
+    - '{{ _private_key_file }}.pub'
+  when: install_ssh_keypair is defined and install_ssh_keypair|bool
+  become: yes
   tags: [ ansible-server ]
 
 - include: '{{ tasks_path }}/post_tasks.yml'

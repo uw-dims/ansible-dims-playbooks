@@ -78,7 +78,7 @@
   action: service name=ip6tables-persistent state=reloaded
 
 - name: restart iptables (Ubuntu/xenial)
-  action: service name=netfilter-persistent state=reloaded
+  action: service name=netfilter-persistent state=restarted
 
 - name: restart ip6tables (Ubuntu/xenial)
   action: service name=netfilter-persistent state=reloaded

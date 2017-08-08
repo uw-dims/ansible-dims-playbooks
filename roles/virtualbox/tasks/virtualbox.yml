@@ -53,8 +53,11 @@
   become: yes
   tags: [ virtualbox, packages ]
 
-- name: Install
-  shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ virtualbox_artifact }}"
+- name: Install virtualbox deb file
+  apt:
+    deb: '{{ dims_deploy }}/{{ role_name }}/{{ virtualbox_artifact }}'
+    state: present
+    force: yes
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ virtualbox, packages ]

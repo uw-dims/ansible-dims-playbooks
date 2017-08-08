@@ -794,6 +794,96 @@ SSH port to ``8422`` and the transport mechanism to ``smart``:
 
 ..
 
+.. _tags_on_tasks:
+
+Tags on Tasks
+-------------
+
+The ``ansible-dims-playbooks`` roles and playbooks use *tags* to allow fine-grained
+control of which actions are applied during a given run of a complete host playbook.
+This allows all roles to be defined and fewer playbooks to be used to execute tasks,
+but requires that *all tasks have tags* in order for ``--tags`` and ``--skip-tags``
+to work properly.
+
+.. todo::
+
+   Put in link to docs on defining tags and use of ``--tags`` and ``--skip-tags``.
+
+..
+
+Some of the general and specific tags that are used frequently for performing
+regular system maintenance and development tasks are listed below.  As a
+general rule, all roles have a tag that matches the role's name, allowing just
+that one role to be applied out of a general host playbook. (For example,
+you can apply all of the ``base`` role's tasks to the host you are
+currently logged in to using ``run.playbook --tags base``.)
+
+.. attention::
+
+   The tags listed in these tables are *not* the full set of tags that are
+   applied to tasks within playbooks. To easily identify all of the tags that
+   exist, a coding convention of placing all tags in an array on one line is
+   used, allowing one to search for them using ``grep`` as seen here:
+
+   .. code-block:: none
+
+       roles/base/tasks/coreos.yml:  tags: [ base, config ]
+       roles/base/tasks/dims_base.yml:  tags: [ base, config ]
+       roles/base/tasks/dims_base.yml:  tags: [ base, config, tests ]
+       roles/base/tasks/dnsmasq.yml:  tags: [ base, config ]
+       roles/base/tasks/dnsmasq.yml:  tags: [ base, config, dns ]
+       roles/base/tasks/dnsmasq.yml:  tags: [ base, packages, config ]
+       roles/base/tasks/main.yml:  tags: [ base ]
+       roles/base/tasks/main.yml:  tags: [ base, config ]
+       roles/base/tasks/main.yml:  tags: [ base, config, dns ]
+       roles/base/tasks/main.yml:  tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
+       roles/base/tasks/main.yml:  tags: [ base, config, iptables ]
+       roles/base/tasks/main.yml:  tags: [ base, config, journald ]
+       roles/base/tasks/main.yml:  tags: [ base, config, logrotate ]
+       roles/base/tasks/main.yml:  tags: [ base, config, packages, updates, triggers ]
+       roles/base/tasks/main.yml:  tags: [ base, config, rsyslogd ]
+       roles/base/tasks/main.yml:  tags: [ base, hosts, config ]
+       roles/base/tasks/main.yml:  tags: [ base, packages ]
+       roles/base/tasks/main.yml:  tags: [ base, packages, scripts, tests ]
+       roles/base/tasks/main.yml:  tags: [ base, packages, updates ]
+       roles/base/tasks/main.yml:  tags: [ base, services ]
+       roles/base/tasks/main.yml:  tags: [ base, tests ]
+       roles/base/tasks/main.yml:  tags: [ base, triggers ]
+
+..
+
++--------------+-------------------------------------------------------------------------+
+|    Tag       |       Description                                                       |
++==============+=========================================================================+
+| ``config``   | Configuration files (usually requires ``notify`` of restart handlers to |
+|              | apply changes.                                                          |
++--------------+-------------------------------------------------------------------------+
+| ``dns``      | Applies any DNS resolution settings and service restarts for            |
+|              | ``resolv.conf``, ``dnsmasq``.                                           |
++--------------+-------------------------------------------------------------------------+
+| ``packages`` | Ensures package cache is updated and necessary packages (at specific    |
+|              | pinned versions in some cases) are installed and/or held.               |
++--------------+-------------------------------------------------------------------------+
+| ``rsyslogd`` | Applies any ``rsyslogd`` related configruation and log handling tasks.  |
++--------------+-------------------------------------------------------------------------+
+| ``tests``    | Installs/updates ``dims_functions.sh`` and generates ``bats`` tests for |
+|              | applicable roles, etc.                                                  |
++--------------+-------------------------------------------------------------------------+
+
+
++--------------+-------------------------------------------------------------------------+
+|    Tag       |       Description                                                       |
++==============+=========================================================================+
+| ``hosts``    | (Re)generates the ``/etc/hosts`` file and restarts ``dnsmasq`` server   |
+|              | to apply. (Define ``custom_hosts`` to add IP address mappings in        |
+|              | special cases, e.g., when bootstrapping a new deployment that does not  |
+|              | yet have its own DNS server configured.)                                |
++--------------+-------------------------------------------------------------------------+
+| ``iptables`` | (Re)generates ``iptables`` V4 and V6 rules files and reloads rules.     |
++--------------+-------------------------------------------------------------------------+
+| ``updates``  | Updates installed packages that are not held back.                      |
++--------------+-------------------------------------------------------------------------+
+
 .. _bestpractices:
 
 Ansible Best Practices and Related Documentation

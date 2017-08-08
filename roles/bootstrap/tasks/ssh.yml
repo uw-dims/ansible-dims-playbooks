@@ -5,12 +5,13 @@
 - name: Define variable with ansible public key
   set_fact:
     _public_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}.pub'
-  tags: [ 'bootstrap' ]
+  tags: [ bootstrap ]
   
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
     user: ansible
     state: present
     key: '{{ lookup("file", _public_key) }}'
+  tags: [ bootstrap ]
 
 # vim: ft=ansible :

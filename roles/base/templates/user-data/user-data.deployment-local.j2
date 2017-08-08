@@ -196,7 +196,7 @@ coreos:
       - name: 50-dims-docker.conf
         content: |
           [Service]
-          Environment="DOCKER_NETWORK_OPTS= {{ docker_network_opts|replace('\n',' ') }}, DOCKER_OPTS={{ docker_opts|regex_replace('\n',' ') }}"
+          Environment="{% if docker_network_opts is defined %}DOCKER_NETWORK_OPTS={{ docker_network_opts|replace('\n',' ')|default('') }}, {% endif %}DOCKER_OPTS={{ docker_opts|regex_replace('\n',' ') }}"
   # TODO(dittrich): Changed 'false' to 'true' 2016-11-16: validate?
   - name: etcd2.service
     command: start
