@@ -15,5 +15,5 @@ load helpers
 }
 
 @test "[S][EV] Packer installed version number is {{ packer_version }}" {
-    assert "{{ packer_version }}" bash -c "packer version | head -n 1 | sed 's/Packer v//'"
+    assert "{{ packer_version }}" packer --version
 }
