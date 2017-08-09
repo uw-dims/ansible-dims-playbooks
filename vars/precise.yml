@@ -2,6 +2,8 @@
 
 # File: vars/precise.yml
 
+# AKA Ubuntu 12
+
 dist_tag: u'{{ ansible_distribution_version }}'
 
 packages_install:
@@ -35,6 +37,7 @@ packages_install:
     'rsync',
     'rsyslog',
     'sshfs',
+    'sshpass',
     'strace',
     'tree',
     'vim',

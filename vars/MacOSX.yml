@@ -2,6 +2,8 @@
 
 # File: vars/Darwin.yml
 
+# AKA MacOSX
+
 #dist_tag: u{{ ansible_distribution_version }}
 #base_pkgs_inst: [
 #  'chrony',

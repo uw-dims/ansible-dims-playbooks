@@ -2,6 +2,8 @@
 
 # File: vars/trusty.yml
 
+# AKA Ubuntu 14
+
 dist_tag: u'{{ ansible_distribution_version }}'
 
 packages_install:
@@ -36,6 +38,7 @@ packages_install:
     'rsync',
     'rsyslog',
     'sshfs',
+    'sshpass',
     'strace',
     'tree',
     'vim',

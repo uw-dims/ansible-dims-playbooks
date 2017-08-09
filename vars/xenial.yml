@@ -2,6 +2,8 @@
 
 # File: vars/xenial.yml
 
+# AKA Ubuntu 16
+
 dist_tag: u'{{ ansible_distribution_version }}'
 
 packages_install:
