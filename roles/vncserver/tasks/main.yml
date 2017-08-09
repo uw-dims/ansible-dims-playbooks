@@ -1,0 +1,179 @@
+---
+
+# File: roles/vncserver/tasks/main.yml
+
+# Playbook based in part on this resource:
+# https://rbgeek.wordpress.com/2012/06/25/how-to-install-vnc-server-on-ubuntu-server-12-04/
+
+- include: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ vncserver ]
+
+- name: Define vncserver_packages
+  set_fact:
+    vncserver_packages: '{{ _vncserver_packages }}'
+  when: vncserver_packages is not defined
+  tags: [ vncserver ]
+
+- name: Define vncserver_default_password
+  set_fact:
+    vncserver_default_password: '{{ _vncserver_default_password }}'
+  when: vncserver_default_password is not defined
+  tags: [ vncserver ]
+
+- name: Define vncserver_resolution
+  set_fact:
+    vncserver_resolution: '{{ _vncserver_resolution }}'
+  when: vncserver_resolution is not defined
+  tags: [ vncserver ]
+
+- name: Define vncserver_xterm_geometry
+  set_fact:
+    vncserver_xterm_geometry: '{{ _vncserver_xterm_geometry }}'
+  when: vncserver_xterm_geometry is not defined
+  tags: [ vncserver ]
+
+- name: Define vncserver_depth
+  set_fact:
+    vncserver_depth: '{{ _vncserver_depth }}'
+  when: vncserver_depth is not defined
+  tags: [ vncserver ]
+
+- name: Define vncserver_users
+  set_fact:
+    vncserver_users: '{{ _vncserver_users }}'
+  when: vncserver_users is not defined
+  tags: [ vncserver ]
+
+  # Must start additional X11 servers at 1 (already have :0 by default)
+- name: Defined indexed users list
+  set_fact:
+    vncserver_users_indexed: "{{ vncserver_users_indexed|default([]) + [ {'server': (item.0|int+1), 'user': item.1} ] }}"
+  with_indexed_items: '{{ vncserver_users }}'
+  tags: [ vncserver ]
+
+- debug: var=vncserver_users_indexed
+  tags: [ vncserver ]
+
+- name: Ensure vncserver is stopped
+  service: 
+    name: vncserver 
+    state: stopped
+  ignore_errors: yes
+  tags: [ vncserver ]
+
+- name: Only "update_cache=yes" if >3600s since last update
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ vncserver ]
+
+- name: Ensure required packages are present (Ubuntu)
+  apt:
+    name: "{{ item }}"
+    state: installed
+    update_cache: yes
+  with_items: "{{ vncserver_packages }}"
+  when: ansible_distribution == "Ubuntu"
+  tags: [ vncserver ]
+
+  # Handle other distros when/if necessary...
+
+- name: Ensure /etc/init.d startup script is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/init.d/vncserver
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+        - '{{ vncserver_init }}'
+        - vncserver.{{ inventory_hostname }}.j2
+        - vncserver.category-{{ category }}.j2
+        - vncserver.deployment-{{ deployment }}.j2
+        - vncserver.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/init.d/'
+        - init.d/
+  register: vnc_service
+  tags: [ vncserver ]
+
+  #- name: Ensure rc.d defaults are updated
+  #command: "update-rc.d vncserver defaults"
+  #when: vnc_service.changed
+  #tags: [ vncserver ]
+
+- name: Set user's vncpasswd
+  shell: >
+    echo '{{ vncserver_default_password }}' > .vnc/passwd.txt;
+    echo '{{ vncserver_default_password }}' >> .vnc/passwd.txt;
+    vncserver -display :99 < .vnc/passwd.txt > /dev/null 2>/dev/null;
+    vncserver -kill :99 > /dev/null 2>/dev/null;
+    rm .vnc/passwd.txt
+  no_log: '{{ nolog }}'
+  become: '{{ item.user }}'
+  with_items: '{{ vncserver_users_indexed }}'
+  tags: [ vncserver ]
+
+- name: Copy the modified "xstartup" file
+  template:
+    src: xstartup.j2
+    dest: "/home/{{ item.user }}/.vnc/xstartup"
+    owner: '{{ item.user }}'
+    group: '{{ item.user }}'
+    mode: '{{ mode_0750 }}'
+  with_items: '{{ vncserver_users_indexed }}'
+  tags: [ vncserver ]
+
+- name: Ensure vncserver is started
+  service: 
+    name: vncserver 
+    pattern: /etc/init.d/vncserver
+    enabled: true
+    state: restarted
+  tags: [ vncserver ]
+
+- name: Ensure local tunnel helper script is present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ inventory_hostname }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0755 }}'
+  with_first_found:
+    - files:
+        - '{{ vnc_script }}'
+        - vnc.sh.{{ inventory_hostname }}.j2
+        - vnc.sh.category-{{ category }}.j2
+        - vnc.sh.deployment-{{ deployment }}.j2
+        - vnc.sh.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/scripts/'
+        - scripts/
+  delegate_to: 127.0.0.1
+  become: yes
+  tags: [ vncserver ]
+
+- name: Ensure vncserver.conf file present in /etc
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/vncserver
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ vncserver_default }}'
+        - vncserver.{{ inventory_hostname }}.j2
+        - vncserver.category-{{ category }}.j2
+        - vncserver.deployment-{{ deployment }}.j2
+        - vncserver.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
+        - default/
+  tags: [ vncserver ]
+
+- include: '{{ tasks_path }}/post_tasks.yml'
+  tags: [ vncserver ]
+
+# vim: ft=ansible :
