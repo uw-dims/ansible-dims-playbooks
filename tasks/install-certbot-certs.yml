@@ -16,12 +16,12 @@
 
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
+    certbot_sitename: '{{ tridentFQDN|default("{{ inventory_hostname }}") }}' # For now, use this variable
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: '{{ trident_site_adminemail }}'
+    certbot_adminemail: '{{ trident_site_adminemail|default("admin@{{ inventory_hostname }}") }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
