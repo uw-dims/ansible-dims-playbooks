@@ -8,6 +8,13 @@ used to control a set of virtual machines, bare metal hosts, or a combination.
 It all depends on what services you wish to provide and how you chose to deploy
 them.
 
+There are several options for creating a hybrid "private-cloud" comprised
+from a combination of bare-metal hosts, virtual machine hosts, and containerized
+microservices. This flexibility comes at a cost in added complexity and
+configuration management, but does afford for better linear horizontal
+scalability and/or addition of compute or storage resources as the
+system grows in size.
+
 .. hint::
 
    For the bigger picture of architectural design options considered while
@@ -15,13 +22,6 @@ them.
    :ref:`dimsad:dimsarchitecturaldesign` of :ref:`dimsad:dimsad`. 
 
 ..
-
-There are several options for creating a hybrid "private-cloud" comprised
-from a combination of bare-metal hosts, virtual machine hosts, and containerized
-microservices. This flexibility comes at a cost in added complexity and
-configuration management, but does afford for better linear horizontal
-scalability and/or addition of compute or storage resources as the
-system grows in size.
 
 Figure :ref:`VM-Architecture` shows a design similar to that being described in
 this and the previous chapters.  The *Host* is shown at the bottom, comprised

@@ -571,6 +571,11 @@ shown here:
 
 ..
 
+.. _dims_private:
+
+The ``dims-private`` Cookiecutter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If the repo is supposed to be non-public, use the same configuration file
 to overlay files from the ``dims-private`` Cookiecutter onto the same output
 directory as the main repo directory. It uses a symbolic link for the
@@ -628,11 +633,10 @@ in the Git output:
 Populating the Private Configuration Repository
 -----------------------------------------------
 
-Start creating your local customization repository using the ``cookiecutter`` template
-discussed in the :ref:`dimscookiecutters` section. We will call this private
-deployment ``devtest``, thus creating a repository in a the directory
-named ``$GIT/private-devtest``. Here is the configuration file
-we will use:
+Start creating your local customization repository using the ``cookiecutter``
+template discussed in the previous section. We will call this private
+deployment ``devtest``, thus creating a repository in a the directory named
+``$GIT/private-devtest``. Here is the configuration file we will use:
 
 .. code-block:: none
 
