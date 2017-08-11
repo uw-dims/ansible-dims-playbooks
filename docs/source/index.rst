@@ -18,6 +18,7 @@ for short) repository contents.
    introduction
    ansible
    bootstrapping
+   creatingvms
    localcustomization
    tests
    debugging
