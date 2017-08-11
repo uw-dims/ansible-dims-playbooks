@@ -105,11 +105,11 @@
 
 - name: Set user's vncpasswd
   shell: >
-    echo '{{ vncserver_default_password }}' > .vnc/passwd.txt;
-    echo '{{ vncserver_default_password }}' >> .vnc/passwd.txt;
-    vncserver -display :99 < .vnc/passwd.txt > /dev/null 2>/dev/null;
+    echo '{{ vncserver_default_password }}' > ${HOME}/passwd.txt;
+    echo '{{ vncserver_default_password }}' >> ${HOME}/passwd.txt;
+    vncserver -display :99 < ${HOME}/passwd.txt > /dev/null 2>/dev/null;
     vncserver -kill :99 > /dev/null 2>/dev/null;
-    rm .vnc/passwd.txt
+    rm ${HOME}/passwd.txt
   no_log: '{{ nolog }}'
   become: '{{ item.user }}'
   with_items: '{{ vncserver_users_indexed }}'
@@ -122,6 +122,13 @@
     owner: '{{ item.user }}'
     group: '{{ item.user }}'
     mode: '{{ mode_0750 }}'
+  become: yes
+  with_items: '{{ vncserver_users_indexed }}'
+  tags: [ vncserver ]
+
+- name: Save DISPLAY number
+  shell: echo ":{{ item.server }}" > /home/{{ item.user }}/.vnc/DISPLAY
+  become: '{{ item.user }}'
   with_items: '{{ vncserver_users_indexed }}'
   tags: [ vncserver ]
 

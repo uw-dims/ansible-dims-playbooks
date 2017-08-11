@@ -44,7 +44,7 @@ TUNNEL_PORT="${TUNNEL_PORT:-5901}"
 TUNNEL_HOST="${TUNNEL_HOST:-127.0.0.1}"
 
 # Test connectivity while also getting X11 DISPLAY from remote host
-DISPLAY=$(ssh -i $PRIVATE_KEY -p ${SSH_PORT} ${ANSIBLE_USER}@${SSH_HOST} cat .vnc/SERVERINFO | sed 's/SERVER=[^:]*\(:[0-9][0-9]*\).*$/\1/')
+DISPLAY=$(ssh -i $PRIVATE_KEY -p ${SSH_PORT} ${ANSIBLE_USER}@${SSH_HOST} cat .vnc/DISPLAY)
 if [[ -z $DISPLAY ]]; then
     echo "[!] Failed to determine DISPLAY"
     exit 1
