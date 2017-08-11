@@ -7,6 +7,18 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ ansible-server ]
 
+- name: Define ansible_dims_playbooks_repo
+  set_fact:
+    ansible_dims_playbooks_repo: '{{ _ansible_dims_playbooks_repo }}'
+  when: ansible_dims_playbooks_repo is not defined
+  tags: [ ansible-server ]
+
+- name: Define ansible_dims_playbooks_version
+  set_fact:
+    ansible_dims_playbooks_version: '{{ _ansible_dims_playbooks_version }}'
+  when: ansible_dims_playbooks_version is not defined
+  tags: [ ansible-server ]
+
 - name: Make sure directory exists for ansible configurations
   file:
     path: /etc/ansible
@@ -106,10 +118,10 @@
   git:
     repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
     dest: '{{ dims_git }}/ansible-dims-playbooks'
+    version: '{{ ansible_dims_playbooks_version }}'
     update: yes
     force: yes
   become: yes
-  become_user: '{{ dims_user }}'
   tags: [ ansible-server ]
 
 - name: Define install_ssh_keypair

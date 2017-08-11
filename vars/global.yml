@@ -99,7 +99,7 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "2.8.0"
+ansibleplaybooks_version: "2.9.3"
 
 # Set Python interpreter to be one from DIMS Python virtual
 # environment (the global one, although would be ideal to

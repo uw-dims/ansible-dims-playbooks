@@ -1,0 +1,38 @@
+#!/bin/sh
+# {{ ansible_managed }}
+
+# Based in part on comments in:
+# https://askubuntu.com/questions/475023/how-to-make-vnc-server-work-with-ubuntu-desktop-without-xfce
+
+[ -r /etc/sysconfig/i18n ] && . /etc/sysconfig/i18n
+export LANG
+export SYSFONT
+export XKL_XMODMAP_DISABLE=1
+
+unset DBUS_SESSION_BUS_ADDRESS
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+OS=`uname -s`
+if [ $OS = 'Linux' ]; then
+  case "$WINDOWMANAGER" in
+    *gnome*)
+      if [ -e /etc/SuSE-release ]; then
+        PATH=$PATH:/opt/gnome/bin
+        export PATH
+      fi
+      ;;
+  esac
+fi
+
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+
+/usr/bin/xsetroot -solid grey
+/usr/bin/x-window-manager &
+/usr/bin/gnome-session --session=gnome-classic &
+/usr/bin/gnome-panel &
+/usr/bin/gnome-settings-daemon &
+/usr/bin/x-terminal-emulator -geometry {{ vncserver_xterm_geometry }} -ls -title "$VNCDESKTOP Desktop" &
+
+# EOF

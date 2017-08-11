@@ -1,0 +1,8 @@
+#{{ ansible_managed }}
+
+{% if vncserver_users_indexed is defined %}
+VNCSERVERS="{% for user in vncserver_users_indexed %}{{user.server}}:{{user.user}} {% endfor %}"
+{%  for vnc in vncserver_users_indexed %}
+VNCSERVERARGS[{{ vnc.server }}]="-geometry {{ vncserver_resolution }} -depth {{ vncserver_depth }} -localhost"
+{%  endfor %}
+{% endif %}

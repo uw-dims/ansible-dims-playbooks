@@ -2,6 +2,8 @@
 
 # File: vars/jessie.yml
 
+# AKA Debian 8
+
 dist_tag: u'{{ ansible_distribution_version }}'
 
 packages_install:
