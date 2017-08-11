@@ -37,7 +37,7 @@
 FACTSD="/opt/dims/data/facts.d"
 
 # Tracks with bumpversion
-DIMS_VERSION=2.9.2
+DIMS_VERSION=2.9.3
 
 DEPLOYMENT=${DIMS_DEPLOYMENT:-$(get_deployment)}
 CATEGORY=${DIMS_CATEGORY:-devops}
