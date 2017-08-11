@@ -1,7 +1,7 @@
 .. _bootstrapping:
 
 Bootstrapping a VM Host as an Ansible Controller
-------------------------------------------------
+================================================
 
 This chapter walks through the process of bootstrapping a
 baremetal machine to serve as a Virtualbox hypervisor
@@ -10,8 +10,12 @@ the Ansible control host for managing their configuration.
 
 .. note::
 
-    We are assuming that you have set up ``/etc/ansible/ansible.cfg``, or a
-    perhaps ``~/.ansible.cfg``, to point to the correct inventory directory.
+    Some of the examples here explicitly use ``-i`` to point to an inventory
+    directory, and some do not. When there is no ``-i`` flag, it is assumed
+    that ``/etc/ansible/ansible.cfg``, or a perhaps ``ansible.cfg`` in the top
+    level of a private customization directory, is configured to point to the
+    correct inventory directory.
+
     You can see what the default is using ``ansible --help``:
 
     .. code-block:: none
@@ -28,8 +32,20 @@ the Ansible control host for managing their configuration.
 
         ..
 
+    ... or by using ``ansible --version``:
+
+    .. code-block:: none
+
+        ansible 2.3.0.0
+          config file = /etc/ansible/ansible.cfg
+          configured module search path = [u'/home/dittrich/dims/git/private-develop/library',
+          u'/home/dittrich/dims/git/ansible-dims-playbooks/library', u'/usr/share/ansible']
+          python version = 2.7.13 (default, Jun 23 2017, 23:57:31) [GCC 4.8.4]
+
+    ..
+
     If this is set up properly, you should be able to list the ``all`` group
-    and see results like this:
+    and see results for the correct deployment:
 
     .. code-block:: none
 
@@ -50,6 +66,11 @@ the Ansible control host for managing their configuration.
     ..
 
 ..
+
+.. _initial_connectivity:
+
+Initial Connectivity
+--------------------
 
 The first step in putting hosts under Ansible control is to add them to an
 inventory, setting parameters allowing access to them. We will add them to a
@@ -196,6 +217,11 @@ private key, adding the ``.pub`` extension to get the public key.
 
 ..
 
+.. _full_network_connectivity:
+
+Establishing Full Internet Connectivity
+---------------------------------------
+
 Now that the SSH public key is in the ``authorized_keys`` files, we can remove
 the ``--ask-pass`` option and present the SSH private key to validate that
 standard remote access with Ansible will now work.  Let's also use this
@@ -224,6 +250,11 @@ to one of Google's DNS servers.
 
 ..
 
+.. _bootstrapping_ansible_control:
+
+Bootstrapping Full Ansible Control
+----------------------------------
+
 At this point we have verified Ansible can access the systems and that
 they can access the Internet. Those are the basics we need to now run
 the ``bootstrap.yml`` playbook to prepare the system for being a
@@ -234,7 +265,7 @@ performed (at the high level) are seen here:
    :language: yaml
 
 Run the playbook as shown (or substitute the inventory host name
-directly, e.g., ``dellr510.ops.ectf``, instead of the group
+directly, e.g., ``dellr510.devops.develop``, instead of the group
 name ``bootstrap``. Using the group, you can prepare as many hosts
 as you wish at one time, in this case we show configuration of
 two hosts simultaneously.
@@ -512,431 +543,355 @@ two hosts simultaneously.
 
 ..
 
-.. code-block:: none
-
-    $ ansible -m authorized_key -a "user=ansible key=$(dims.function get_ssh_private_key_file ansible).pub"  --ask-pass bootstrap
-    SSH password:
-    dellr510.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    stirling.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    $ ansible -m authorized_key -a "user=ansible state=present key='$(dims.function get_ssh_private_key_file ansible).pub'"  --ask-pass bootstrap
-    SSH password:
-    dellr510.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    stirling.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    $ vi files/ssh-keys/user/ansible/dims_ansible_rsa.pub
-    $ ansible -m authorized_key -a "user=ansible state=present key='$(dims.function get_ssh_private_key_file ansible).pub'"  --ask-pass bootstrap
-    SSH password:
-    dellr510.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    stirling.devops.develop | FAILED! => {
-        "changed": false,
-        "failed": true,
-        "msg": "invalid key specified: /home/dittrich/dims/git/private-develop/files/ssh-keys/user/ansible/dims_ansible_rsa.pub"
-    }
-    $ ansible -m authorized_key -a "user=ansible state=present key='{{ lookup('file', '$(dims.function get_ssh_private_key_file ansible).pub') }}'"  --ask-pass bootstrap
-    SSH password:
-    dellr510.devops.develop | SUCCESS => {
-        "changed": true,
-        "exclusive": false,
-        "key": "ssh-rsa AAAAB3NzaC1yc...",
-        "key_options": null,
-        "keyfile": "/home/ansible/.ssh/authorized_keys",
-        "manage_dir": true,
-        "path": null,
-        "state": "present",
-        "unique": false,
-        "user": "ansible",
-        "validate_certs": true
-    }
-    stirling.devops.develop | SUCCESS => {
-        "changed": true,
-        "exclusive": false,
-        "key": "ssh-rsa AAAAB3NzaC1yc2...",
-        "key_options": null,
-        "keyfile": "/home/ansible/.ssh/authorized_keys",
-        "manage_dir": true,
-        "path": null,
-        "state": "present",
-        "unique": false,
-        "user": "ansible",
-        "validate_certs": true
-    }
-    $ ansible -m raw -a uptime  bootstrap
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-     22:33:44 up  3:49,  3 users,  load average: 1.14, 0.81, 0.99
-    Shared connection to 140.142.29.186 closed.
-
-
-    stirling.devops.develop | SUCCESS | rc=0 >>
-     22:33:44 up  4:27,  3 users,  load average: 1.12, 1.10, 1.03
-    Shared connection to 140.142.29.161 closed.
-
-
-    $ ansible-playbook -i inventory /home/dittrich/dims/git/ansible-dims-playbooks/playbooks/hosts/vmhost.devops.local.yml -e host=bootstrap
-
-    PLAY [Configure host "vmhost.devops.local"] ***********************************************************************************************************
-
-    TASK [Gathering Facts] ********************************************************************************************************************************
-    Wednesday 19 July 2017  19:52:40 -0700 (0:00:00.122)       0:00:00.122 ********
-     [WARNING]: Removed restricted key from module data: ansible_docker_gwbridge = {u'macaddress': u'02:42:f3:d1:a9:0e', u'features':
-    {u'tx_checksum_ipv4': u'off [fixed]', u'generic_receive_offload': u'on', u'tx_checksum_ipv6': u'off [fixed]', u'tx_scatter_gather_fraglist': u'on',
-    u'rx_all': u'off [fixed]', u'highdma': u'on', u'rx_fcs': u'off [fixed]', u'tx_lockless': u'on [fixed]', u'tx_tcp_ecn_segmentation': u'on',
-    u'tx_gso_robust': u'on', u'tx_ipip_segmentation': u'on', u'tx_checksumming': u'on', u'vlan_challenged': u'off [fixed]', u'loopback': u'off [fixed]',
-    u'fcoe_mtu': u'off [fixed]', u'tx_checksum_sctp': u'off [fixed]', u'tx_vlan_stag_hw_insert': u'on', u'rx_vlan_stag_hw_parse': u'off [fixed]',
-    u'tx_nocache_copy': u'off', u'rx_vlan_stag_filter': u'off [fixed]', u'large_receive_offload': u'off [fixed]', u'tx_checksum_ip_generic': u'on',
-    u'rx_checksumming': u'off [fixed]', u'tx_tcp_segmentation': u'on', u'tx_fcoe_segmentation': u'on', u'busy_poll': u'off [fixed]',
-    u'generic_segmentation_offload': u'on', u'tx_udp_tnl_segmentation': u'on', u'tcp_segmentation_offload': u'on', u'l2_fwd_offload': u'off [fixed]',
-    u'rx_vlan_offload': u'off [fixed]', u'ntuple_filters': u'off [fixed]', u'rx_vlan_filter': u'off [fixed]', u'tx_tcp6_segmentation': u'on',
-    u'udp_fragmentation_offload': u'on', u'scatter_gather': u'on', u'tx_sit_segmentation': u'on', u'tx_checksum_fcoe_crc': u'off [fixed]',
-    u'hw_tc_offload': u'off [fixed]', u'tx_scatter_gather': u'on', u'netns_local': u'on [fixed]', u'tx_vlan_offload': u'on', u'receive_hashing': u'off
-    [fixed]', u'tx_gre_segmentation': u'on'}, u'interfaces': [], u'mtu': 1500, u'active': False, u'promisc': False, u'stp': False, u'ipv4': {u'broadcast':
-    u'global', u'netmask': u'255.255.0.0', u'network': u'172.18.0.0', u'address': u'172.18.0.1'}, u'device': u'docker_gwbridge', u'type': u'bridge',
-    u'id': u'8000.0242f3d1a90e'}
-
-     [WARNING]: Removed restricted key from module data: ansible_docker_gwbridge = {u'macaddress': u'02:42:f3:d1:a9:0e', u'features':
-    {u'tx_checksum_ipv4': u'off [fixed]', u'generic_receive_offload': u'on', u'tx_checksum_ipv6': u'off [fixed]', u'tx_scatter_gather_fraglist': u'on',
-    u'rx_all': u'off [fixed]', u'highdma': u'on', u'rx_fcs': u'off [fixed]', u'tx_lockless': u'on [fixed]', u'tx_tcp_ecn_segmentation': u'on',
-    u'tx_gso_robust': u'on', u'tx_ipip_segmentation': u'on', u'tx_checksumming': u'on', u'vlan_challenged': u'off [fixed]', u'loopback': u'off [fixed]',
-    u'fcoe_mtu': u'off [fixed]', u'tx_checksum_sctp': u'off [fixed]', u'tx_vlan_stag_hw_insert': u'on', u'rx_vlan_stag_hw_parse': u'off [fixed]',
-    u'tx_nocache_copy': u'off', u'rx_vlan_stag_filter': u'off [fixed]', u'large_receive_offload': u'off [fixed]', u'tx_checksum_ip_generic': u'on',
-    u'rx_checksumming': u'off [fixed]', u'tx_tcp_segmentation': u'on', u'tx_fcoe_segmentation': u'on', u'busy_poll': u'off [fixed]',
-    u'generic_segmentation_offload': u'on', u'tx_udp_tnl_segmentation': u'on', u'tcp_segmentation_offload': u'on', u'l2_fwd_offload': u'off [fixed]',
-    u'rx_vlan_offload': u'off [fixed]', u'ntuple_filters': u'off [fixed]', u'rx_vlan_filter': u'off [fixed]', u'tx_tcp6_segmentation': u'on',
-    u'udp_fragmentation_offload': u'on', u'scatter_gather': u'on', u'tx_sit_segmentation': u'on', u'tx_checksum_fcoe_crc': u'off [fixed]',
-    u'hw_tc_offload': u'off [fixed]', u'tx_scatter_gather': u'on', u'netns_local': u'on [fixed]', u'tx_vlan_offload': u'on', u'receive_hashing': u'off
-    [fixed]', u'tx_gre_segmentation': u'on'}, u'interfaces': [], u'mtu': 1500, u'active': False, u'promisc': False, u'stp': False, u'ipv4': {u'broadcast':
-    u'global', u'netmask': u'255.255.0.0', u'network': u'172.18.0.0', u'address': u'172.18.0.1'}, u'device': u'docker_gwbridge', u'type': u'bridge',
-    u'id': u'8000.0242f3d1a90e'}
-
-    ok: [stirling.devops.develop]
-    ok: [dellr510.devops.develop]
-
-    TASK [base : Check for ansible 2.x] *******************************************************************************************************************
-    Wednesday 19 July 2017  19:52:43 -0700 (0:00:02.306)       0:00:02.429 ********
-    included: /home/dittrich/dims/git/ansible-dims-playbooks/tasks/ansible2check.yml for dellr510.devops.develop, stirling.devops.develop
-
-    TASK [base : Validate Ansible 2.x is being used] ******************************************************************************************************
-    Wednesday 19 July 2017  19:52:44 -0700 (0:00:01.137)       0:00:03.566 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : debug] ***********************************************************************************************************************************
-    Wednesday 19 July 2017  19:52:45 -0700 (0:00:01.077)       0:00:04.644 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : Check proxy availability] ****************************************************************************************************************
-    Wednesday 19 July 2017  19:52:46 -0700 (0:00:01.058)       0:00:05.702 ********
-    included: /home/dittrich/dims/git/ansible-dims-playbooks/tasks/proxy_check.yml for dellr510.devops.develop, stirling.devops.develop
-
-    TASK [base : Check to see if http_proxy is working] ***************************************************************************************************
-    Wednesday 19 July 2017  19:52:47 -0700 (0:00:01.157)       0:00:06.860 ********
-    changed: [stirling.devops.develop]
-    changed: [dellr510.devops.develop]
-
-    TASK [base : Disable http_proxy if it is not working] *************************************************************************************************
-    Wednesday 19 July 2017  19:52:49 -0700 (0:00:01.562)       0:00:08.423 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : Check to see if https_proxy is working] **************************************************************************************************
-    Wednesday 19 July 2017  19:52:50 -0700 (0:00:01.106)       0:00:09.530 ********
-    changed: [dellr510.devops.develop]
-    changed: [stirling.devops.develop]
-
-    TASK [base : Disable https_proxy if it is not working] ************************************************************************************************
-    Wednesday 19 July 2017  19:52:52 -0700 (0:00:01.850)       0:00:11.380 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : Ensure dims group exists] ****************************************************************************************************************
-    Wednesday 19 July 2017  19:52:53 -0700 (0:00:01.063)       0:00:12.443 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Ensure ansible user is in dims group] ****************************************************************************************************
-    Wednesday 19 July 2017  19:52:54 -0700 (0:00:01.222)       0:00:13.666 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Ensure dims service account exists] ******************************************************************************************************
-    Wednesday 19 July 2017  19:52:55 -0700 (0:00:01.338)       0:00:15.004 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Ensure dims top level directory exists] **************************************************************************************************
-    Wednesday 19 July 2017  19:52:56 -0700 (0:00:01.158)       0:00:16.162 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Ensure tests directory absent if initializing clean-up] **********************************************************************************
-    Wednesday 19 July 2017  19:52:58 -0700 (0:00:01.188)       0:00:17.351 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : Ensure dims (system-level) subdirectories exist] *****************************************************************************************
-    Wednesday 19 July 2017  19:52:59 -0700 (0:00:01.061)       0:00:18.412 ********
-    ok: [dellr510.devops.develop] => (item=/opt/dims/backups)
-    ok: [stirling.devops.develop] => (item=/opt/dims/backups)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/bin)
-    ok: [stirling.devops.develop] => (item=/opt/dims/bin)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/data)
-    ok: [stirling.devops.develop] => (item=/opt/dims/data)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/deploy)
-    ok: [stirling.devops.develop] => (item=/opt/dims/deploy)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/docs)
-    ok: [stirling.devops.develop] => (item=/opt/dims/docs)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/etc)
-    ok: [stirling.devops.develop] => (item=/opt/dims/etc)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/etc/bashrc.dims.d)
-    ok: [stirling.devops.develop] => (item=/opt/dims/etc/bashrc.dims.d)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/git)
-    ok: [stirling.devops.develop] => (item=/opt/dims/git)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/lib)
-    ok: [stirling.devops.develop] => (item=/opt/dims/lib)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/tests.d)
-    ok: [stirling.devops.develop] => (item=/opt/dims/tests.d)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/triggers.d)
-    ok: [stirling.devops.develop] => (item=/opt/dims/triggers.d)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/data/logmon)
-    ok: [stirling.devops.develop] => (item=/opt/dims/data/logmon)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/src)
-    ok: [stirling.devops.develop] => (item=/opt/dims/src)
-    ok: [dellr510.devops.develop] => (item=/opt/dims/srv)
-    ok: [stirling.devops.develop] => (item=/opt/dims/srv)
-
-    TASK [base : Ensure private directory ("secrets" storage) is present] *********************************************************************************
-    Wednesday 19 July 2017  19:53:14 -0700 (0:00:15.401)       0:00:33.814 ********
-    changed: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Populate /etc/environment (Debian, CoreOS)] **********************************************************************************************
-    Wednesday 19 July 2017  19:53:15 -0700 (0:00:01.172)       0:00:34.986 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/environment/environment.j2)
-    changed: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/environment/environment.j2)
-
-    TASK [base : Make DIMS bash shell functions present] **************************************************************************************************
-    Wednesday 19 July 2017  19:53:17 -0700 (0:00:01.413)       0:00:36.399 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Ensure DIMS system shell init hook is present (Debian, CoreOS)] **************************************************************************
-    Wednesday 19 July 2017  19:53:18 -0700 (0:00:01.225)       0:00:37.625 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/bash.bashrc/bash.bashrc.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/bash.bashrc/bash.bashrc.j2)
-
-    TASK [base : Make DIMS system level profile present] **************************************************************************************************
-    Wednesday 19 July 2017  19:53:19 -0700 (0:00:01.307)       0:00:38.933 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/profile.d/dims.sh.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/profile.d/dims.sh.j2)
-
-    TASK [base : Make directory for DIMS bashrc plugins present] ******************************************************************************************
-    Wednesday 19 July 2017  19:53:21 -0700 (0:00:01.259)       0:00:40.193 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Make DIMS-specific bashrc setup file present] ********************************************************************************************
-    Wednesday 19 July 2017  19:53:22 -0700 (0:00:01.145)       0:00:41.338 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/bashrc.dims/bashrc.dims.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/bashrc.dims/bashrc.dims.j2)
-
-    TASK [base : Add group for rsyslog] *******************************************************************************************************************
-    Wednesday 19 July 2017  19:53:23 -0700 (0:00:01.254)       0:00:42.593 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Add non-privileged user for rsyslog] *****************************************************************************************************
-    Wednesday 19 July 2017  19:53:24 -0700 (0:00:01.137)       0:00:43.730 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Make DIMS logging directory present] *****************************************************************************************************
-    Wednesday 19 July 2017  19:53:25 -0700 (0:00:01.162)       0:00:44.893 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Make /etc/rsyslog.conf present] **********************************************************************************************************
-    Wednesday 19 July 2017  19:53:26 -0700 (0:00:01.155)       0:00:46.048 ********
-    changed: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog/rsyslog.conf.j2)
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog/rsyslog.conf.j2)
-
-    TASK [base : Ensure /etc/rsyslog.d present] ***********************************************************************************************************
-    Wednesday 19 July 2017  19:53:28 -0700 (0:00:01.255)       0:00:47.304 ********
-    ok: [dellr510.devops.develop]
-    ok: [stirling.devops.develop]
-
-    TASK [base : Make /etc/rsyslog.d/00-ignore.conf present] **********************************************************************************************
-    Wednesday 19 July 2017  19:53:29 -0700 (0:00:01.137)       0:00:48.441 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/00-ignore.conf.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/00-ignore.conf.j2)
-
-    TASK [base : Make /etc/rsyslog.d/49-consolidation.conf present] ***************************************************************************************
-    Wednesday 19 July 2017  19:53:30 -0700 (0:00:01.245)       0:00:49.686 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/49-consolidation.conf.j2)
-    changed: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/49-consolidation.conf.j2)
-
-    TASK [base : Make /etc/rsyslog.d/50-default.conf present] *********************************************************************************************
-    Wednesday 19 July 2017  19:53:31 -0700 (0:00:01.286)       0:00:50.973 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/50-default.conf.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/rsyslog.d/50-default.conf.j2)
-
-    TASK [base : restart rsyslog] *************************************************************************************************************************
-    Wednesday 19 July 2017  19:53:33 -0700 (0:00:01.246)       0:00:52.220 ********
-    changed: [stirling.devops.develop]
-    changed: [dellr510.devops.develop]
-
-    TASK [base : /etc/logrotate.d/dims] *******************************************************************************************************************
-    Wednesday 19 July 2017  19:53:34 -0700 (0:00:01.475)       0:00:53.695 ********
-    changed: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/logrotate/dims.j2)
-    ok: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/logrotate/dims.j2)
-
-    TASK [base : Set hostname (runtime) (Debian, CoreOS)] *************************************************************************************************
-    Wednesday 19 July 2017  19:53:35 -0700 (0:00:01.275)       0:00:54.971 ********
-    changed: [dellr510.devops.develop]
-    changed: [stirling.devops.develop]
-
-    TASK [base : Make /etc/hostname present (Debian, CoreOS)] *********************************************************************************************
-    Wednesday 19 July 2017  19:53:36 -0700 (0:00:01.139)       0:00:56.110 ********
-    changed: [dellr510.devops.develop]
-    changed: [stirling.devops.develop]
-
-    TASK [base : Set domainname (Debian, CoreOS)] *********************************************************************************************************
-    Wednesday 19 July 2017  19:53:38 -0700 (0:00:01.143)       0:00:57.254 ********
-    changed: [dellr510.devops.develop]
-    changed: [stirling.devops.develop]
-
-    TASK [base : Set domainname (MacOSX)] *****************************************************************************************************************
-    Wednesday 19 July 2017  19:53:39 -0700 (0:00:01.139)       0:00:58.393 ********
-    skipping: [dellr510.devops.develop]
-    skipping: [stirling.devops.develop]
-
-    TASK [base : Make resolv.conf file present on Debian] *************************************************************************************************
-    Wednesday 19 July 2017  19:53:40 -0700 (0:00:01.064)       0:00:59.458 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/resolv.conf/resolv.conf.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/resolv.conf/resolv.conf.j2)
-
-    TASK [base : Make appropriate NetworkManager configruation present] ***********************************************************************************
-    Wednesday 19 July 2017  19:53:41 -0700 (0:00:01.242)       0:01:00.700 ********
-    changed: [dellr510.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/NetworkManager/NetworkManager.conf.j2)
-    ok: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/NetworkManager/NetworkManager.conf.j2)
-
-    TASK [base : include] *********************************************************************************************************************************
-    Wednesday 19 July 2017  19:53:42 -0700 (0:00:01.283)       0:01:01.983 ********
-    included: /home/dittrich/dims/git/ansible-dims-playbooks/tasks/dnsmasq.yml for dellr510.devops.develop, stirling.devops.develop
-
-    TASK [base : Only "update_cache=yes" if >3600s since last update] *************************************************************************************
-    Wednesday 19 July 2017  19:53:43 -0700 (0:00:01.153)       0:01:03.136 ********
-    fatal: [dellr510.devops.develop]: FAILED! => {
-        "changed": false,
-        "failed": true
-    }
-
-    MSG:
-
-    Failed to lock apt for exclusive operation
-
-    changed: [stirling.devops.develop]
-
-    TASK [base : Make backports present for APT on Debian jessie] *****************************************************************************************
-    Wednesday 19 July 2017  19:54:02 -0700 (0:00:18.053)       0:01:21.190 ********
-    skipping: [stirling.devops.develop]
-
-     . . .
-
-    TASK [base : iptables v6 rules (CoreOS)] **************************************************************************************************************
-    Wednesday 19 July 2017  19:54:55 -0700 (0:00:01.547)       0:02:14.954 ********
-    skipping: [stirling.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/iptables/rules.v6.j2)
-
-    RUNNING HANDLER [base : restart dnsmasq] **************************************************************************************************************
-    Wednesday 19 July 2017  19:54:56 -0700 (0:00:01.074)       0:02:16.029 ********
-    ^C [ERROR]: User interrupted execution
-
-
-    $ ansible -m shell -a "ps auxwww | grep dpkg"  bootstrap
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-    ansible  18600  0.0  0.0   4460   872 ?        S    19:58   0:00 /bin/sh -c ps auxwww | grep dpkg
-    ansible  18602  0.0  0.0  15956  2240 ?        S    19:58   0:00 grep dpkg
-
-    stirling.devops.develop | SUCCESS | rc=0 >>
-    ansible  26519  0.0  0.0   4460   796 ?        S    19:58   0:00 /bin/sh -c ps auxwww | grep dpkg
-    ansible  26521  0.0  0.0  15956  2164 ?        S    19:58   0:00 grep dpkg
-
-    $ ansible -m shell -a "ps auxwww | grep apt"  bootstrap
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-    ansible  18614  0.0  0.0   4460   776 ?        S    19:58   0:00 /bin/sh -c ps auxwww | grep apt
-    ansible  18616  0.0  0.0  15956  2268 ?        S    19:58   0:00 grep apt
-
-    stirling.devops.develop | SUCCESS | rc=0 >>
-    ansible  26533  0.0  0.0   4460   648 ?        S    19:58   0:00 /bin/sh -c ps auxwww | grep apt
-    ansible  26535  0.0  0.0  15956  2132 ?        S    19:58   0:00 grep apt
-
-    $ ansible -m shell -a "ps auxwww | egrep -i 'apt|dpkg|package|update'" bootstrap
-    stirling.devops.develop | SUCCESS | rc=0 >>
-    ansible   4278  0.0  0.0 506496 19956 ?        Sl   Jul18   0:00 update-notifier
-    ansible  26548  0.0  0.0   4460   684 ?        S    19:58   0:00 /bin/sh -c ps auxwww | egrep -i 'apt|dpkg|package|update'
-    ansible  26550  0.0  0.0  13656  2112 ?        S    19:58   0:00 egrep -i apt|dpkg|package|update
-
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-    ansible   2680  0.0  0.1 506492 21928 ?        Sl   Jul18   0:00 update-notifier
-    ansible  18625  0.0  0.0   4460   780 ?        S    19:58   0:00 /bin/sh -c ps auxwww | egrep -i 'apt|dpkg|package|update'
-    ansible  18627  0.0  0.0  13660  2240 ?        S    19:58   0:00 egrep -i apt|dpkg|package|update
-
-    $ ansible -m shell -a "sudo killall update-notifier"  bootstrap
-     [WARNING]: Consider using 'become', 'become_method', and 'become_user' rather than running sudo
-
-    dellr510.devops.develop | FAILED | rc=1 >>
-    sudo: no tty present and no askpass program specified
-
-    stirling.devops.develop | FAILED | rc=1 >>
-    sudo: no tty present and no askpass program specified
-
-    $ ansible -m shell -a "killall update-notifier"  bootstrap
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-
-
-    stirling.devops.develop | SUCCESS | rc=0 >>
-
-
-    $ ansible -m shell -a "ps auxwww | egrep -i 'apt|dpkg|package|update'" bootstrap
-    dellr510.devops.develop | SUCCESS | rc=0 >>
-    ansible  18652  0.0  0.0   4460   760 ?        S    20:00   0:00 /bin/sh -c ps auxwww | egrep -i 'apt|dpkg|package|update'
-    ansible  18654  0.0  0.0  13656  2104 ?        S    20:00   0:00 egrep -i apt|dpkg|package|update
-
-    stirling.devops.develop | SUCCESS | rc=0 >>
-    ansible  26583  0.0  0.0   4460   792 ?        S    20:00   0:00 /bin/sh -c ps auxwww | egrep -i 'apt|dpkg|package|update'
-    ansible  26585  0.0  0.0  13656  2108 ?        S    20:00   0:00 egrep -i apt|dpkg|package|update
-
-    $ ansible-playbook -i inventory /home/dittrich/dims/git/ansible-dims-playbooks/playbooks/hosts/vmhost.devops.local.yml -e host=bootstrap
-
-..
-
+.. _integration_into_inventory:
+
+Integration into Working Inventory
+----------------------------------
+
+After the ``bootstrap`` role has been applied, the host should now be ready for
+Ansible control. Create the host's playbook and ensure that any required
+variables are added to a more permanant inventory file. If this is anything
+beyond a basic development (i.e., ``local``) deployment, create a new
+private customization repository (this will be discussed in more detail in
+Section :ref:`localcustomization`).
 
 .. attention::
 
     Do not forget to add the host being bootstrapped to the ``all`` group in the
     inventory. While it may be accessible by simply being listed in the ``children``
-    subgroup with an ``ansible_host`` value like shown earlier, it won't have its
-    ``host_vars`` file be loaded unless it is included in the ``all`` group.
+    subgroup with an ``ansible_host`` value like shown earlier, its
+    ``host_vars`` file will not be loaded unless it is included in the
+    ``all`` group.
 
     This problem would go away if all of the variables formerly placed in
     ``host_vars`` files were moved directly into the inventory files instead.
 
 ..
+
+Set up the following to ensure that the host will be functional and
+under Ansible control for:
+
+* ``iptables`` rules specified in ``tcp_ports``, ``udp_ports``, and/or
+  ``custom_rules`` that will be templated into the rules files. These should
+  lock the host down, while allowing access to hosts on internal VLANs
+  for remote Ansible control, accessing internal repositories or source
+  archives, etc.
+
+* ``/etc/network/interfaces`` template or variables necessary to define all
+  desired network interfaces. This file should start out reflecting the
+  network settings used to install the system and provide access to
+  the internal VLAN.
+
+* Any ``custom_hosts`` that need to be defined in ``/etc/hosts`` to ensure
+  connectivity out to remote systems (e.g., to an internal Git source
+  repository host that is required to get private repositories, serve
+  internal packages, etc.)
+
+To separate these bootstrapping settings from normal settings, use
+a ``children`` sub-group named ``bootstrap`` for the host being
+set up. In this case, we are focusing on a host named
+``stirling.devops.develop``.
+
+.. code-block:: yaml
+
+    ---
+
+    # File: inventory/servers/nodes.yml
+
+    servers:
+      vars:
+        ansible_port: 8422
+      hosts:
+        'other-hosts-not-shown...':
+        'stirling.devops.develop':
+          #ansible_host: '10.142.29.182'
+          #ansible_host: '140.142.29.161'
+          ansible_user: 'ansible'
+          zone_iface:
+            'public': 'em2'
+            'prisem': 'em1'
+            'develop': 'em2'
+            'swarm': 'vboxnet1'
+            'consul': 'vboxnet1'
+            'yellow_bridge': 'em1'
+            'purple_bridge': 'em1'
+          zones:
+            - develop
+          net:
+            iface:
+              'em1':
+                #ip: '140.142.29.161'
+                #ip: '140.142.13.171'
+                #cidr_bits: 27
+                ip: '0.0.0.0'
+              'em2':
+                ip: '10.142.29.161'
+                netmask: '255.255.255.0'
+                cidr_bits: 24
+              'em3':
+                ip: '10.3.0.1'
+                netmask: '255.255.255.0'
+                cidr_bits: 24
+              'em4':
+                ip: '10.4.0.1'
+                netmask: '255.255.255.0'
+                cidr_bits: 24
+          tcp_ports: [ 9999 ]
+          udp_ports: [ ]
+          custom_hosts:
+            - '10.142.29.98  source.devops.develop'
+            - '10.142.29.115  eclipse.devops.develop'
+      children:
+        bootstrap:
+          vars:
+            ansible_port: 22
+            http_proxy: ''
+            https_proxy: ''
+          hosts:
+            'stirling.devops.develop':
+                ansible_host: '10.142.29.161'
+                private_develop: "{{ lookup('env','GIT') }}/private-develop"
+                private_repository: "git@git.devops.develop:/var/opt/private-develop.git"
+                private_repository_hostkey: "2048 78:82:74:66:56:93:a7:9d:54:ce:05:ed:8a:0d:fa:b4  root@git.devops.develop (RSA)"
+                private_repository_hostname: "git.devops.develop"
+                ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }} {{ private_develop }}') }}"
+                install_ssh_keypair: true
+                bootstrap_private: true
+                artifacts_url: 'http://source.devops.develop/source/'
+                ssh_config_hosts:
+                  - hostname_short: 'git'
+                    hostname: git.devops.develop
+                    user: git
+                    port: 8422
+
+    # vim: ft=ansible :
+
+..
+
+As for the host playbook, here is an example of a complete playbook
+for a virtual machine manager host with development capabilities.
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 23,26,29-31,32,33
+
+    ---
+
+    # File: v2/playbooks/hosts/stirling.devops.develop.yml
+
+    - name: Configure host "stirling.devops.develop"
+      hosts: stirling.devops.develop
+
+      vars:
+        playbooks_root: "{{ lookup('env', 'PBR') }}"
+        dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+        https_proxy: 'https://127.0.0.1:8000'
+
+      vars_files:
+       - "{{ playbooks_root }}/vars/global.yml"
+       - "{{ playbooks_root }}/vars/trusty.yml"
+
+      remote_user: "ansible"
+      become: yes
+
+      roles:
+        - { role: base, packages_upgrade: true }
+        - { role: hosts }
+        - { role: dns }
+        - { role: dims-ci-utils }
+        - { role: python-virtualenv, use_sphinx: true }
+        - { role: ansible-server }
+        - { role: docker }
+        - { role: consul }
+        - { role: packer }
+        - { role: vagrant }
+        - { role: virtualbox }
+        - { role: vncserver }
+        - { role: nginx }
+        - { role: byobu }
+        - { role: apache-directory-studio }
+
+      handlers:
+       - include: "{{ handlers_path }}/restart_services.yml"
+
+    # vim: ft=ansible :
+
+..
+
+Some roles of note (highlighted above) are the following:
+
++ ``ansible-server`` will set the host up for serving as an Ansible control
+  host. This includes installing shared public roles that are being used for
+  installing certain services, cloning the ``ansible-dims-playbooks``
+  repository (``master`` branch by default), and installing the ``ansible``
+  user SSH key pair.
+
++ ``dns`` will set up "split-horizon" DNS service, serving an internal
+  domain used by virtual machines and the hypervisor host for looking
+  up IP addresses on internal interfaces connected to private VLANs
+  and/or virtual networks. The zone(s) that will be served by this
+  host are defined by the ``zones`` array, which uses mappings
+  to dictionaries holding interface information in order to derive
+  the name-to-IP mappings for each zone.
+
++ The roles ``vagrant``, ``packer``, and ``virtualbox`` set the host up
+  for serving as a Virtualbox hypervisor that can use DIMS helper scripts
+  for automated creation of Vagrant boxes. (This capability is useful for
+  development and testing, but is not recommended for "production" use.)
+
++ ``vncserver`` will configure the host for remotely running graphical user
+  interface programs (e.g., the ``virtualbox`` management interface) using
+  VNC tunneled over SSH. (It also creates a helper script on the control
+  host running this playbook to facilitate setting up the SSH tunnel
+  that we will use to manually create virtual machines in the following
+  section).
+
++ ``nginx`` sets up a reverse proxy web server that can be used to
+  serve box files, operating system installation ISO image files,
+  and packaged artifacts cached from public sources or non-public
+  sources (e.g., from an internal Jenkins build server).
+
+
+.. note::
+
+    As a ballpark estimate of time-to-deploy for an initial virtual machine host
+    server, using a Dell R710 with a 1 Gbps ethernet connection, the initial
+    Ubuntu Kickstart operating system installation took approximately 30 minutes.
+    The ``bootstrap`` playbook to get the system to password-less Ansible control
+    took about another 5 minutes. The first complete run of the host playbook
+    (which, including the lengthy ``python-virtualenv`` build task) adds over a
+    thousand new packages, took about 45 minutes to complete.  This is a total
+    time of just under 1.5 hours (and these steps could be done in
+    parallel with multiple hosts with just a small additional overhead for
+    setting variables for each host.)
+
+..
+
+.. _normal_playbook:
+
+Normal Playbook Operations
+--------------------------
+
+Now run the host's playbook to fully configure it and update packages. This can
+be done from the Ansible control host being used to remotely bootstrap the
+new server, or from within the server itself. If the desire is to hand the
+newly bootstrapped system off to a production operations group, the normal
+means of administering the system may be for them to log in to it using
+SSH and run the host's playbook locally. To make this easier (or for developers
+to keep their own systems up to date), a helper command ``run.playbook`` is
+set up. Running just this command will execute the full playbook.
+To only execute part of the playbook, use the ``--tags`` option to
+select the set of tags you wish to apply as described in Section
+:ref:`tags_on_tasks`. For example, to just apply any updated packages,
+use ``run.playbook --tags updates``, or to just apply changes to
+``iptables`` rules files and reload them, use ``run.playbook --tags iptables``.
+
+To run the playbook using Ansible directly, performing both of the
+example tasks just listed at once, the command would look like this:
+
+.. code-block::
+
+    $ ansible-playbook $DIMS_PRIVATE/playbooks/hosts/dellr510.devops.develop --tags updates,iptables
+
+..
+
+.. _validating_vnc:
+
+Validating VNC over SSH Tunnelling
+----------------------------------
+
+The last thing we will do to validate our VM hypervisor and Ansible
+control host is ready to use for managing virtual machines is to
+establish an SSH tunnelled VNC connection using Remmina. Run the
+helper script to establish the tunnel:
+
+.. code-block:: none
+
+    $ vnc.dellr510.devops.develop
+    [+] X11 forwarding connection to dellr510.devops.develop established.
+    [+] Remote X11 DISPLAY is :1
+    [+] Configure your VNC client to use 127.0.0.1:5901
+    [+] Use CTRL-C or ENTER to break tunnel connection...
+
+..
+
+Now run the following command in a shell window, or use the task bar to
+run the Remmina application:
+
+.. code-block:: none
+
+    $ remmina &
+
+..
+
+.. note::
+
+    The ``&`` at the end of the command line puts the application into the background. Remmina,
+    like other X11 or Gnome applications, does not use the command line for keyboard input. Instead,
+    it uses the X11 graphical user interface features. Leaving the ``&`` off will make the terminal
+    window appear to "hang" as the prompt will not be returned until the Remmina graphical application
+    quits. For more details, see `How to clean launch a GUI app via the Terminal (so it doesn't wait
+    for termination)?`_
+
+..
+
+.. _How to clean launch a GUI app via the Terminal (so it doesn't wait for termination)?: https://askubuntu.com/questions/10547/how-to-clean-launch-a-gui-app-via-the-terminal-so-it-doesnt-wait-for-terminati
+
+.. _remmina_main:
+
+.. figure:: images/remmina_main.png
+   :alt: Remmina Main Screen
+   :width: 60%
+   :align: center
+
+   Remmina Main Screen
+
+..
+
+Select **Create a new remote desktop file** (the sheet of paper with a green
+``+`` sign) if this is the first time you are running Remmina. In this case, a
+connection was already created so we will instead select **Edit** (the pencil
+icon) to edit the settings. Save them when you are done to get back to the
+main menu.
+
+.. note::
+
+   The password to use here is one set by the variable ``vnc_server_default``
+   in the ``roles/vncserver/defaults/main.yml`` file.  As long as the VNC
+   server is bound to ``localhost``, the risk is limited to the local system.
+   For improved security, set this password to something strong by over-riding
+   the default password with this variable in a private customization
+   repository and/or Ansible Vault file using the techniques described in
+   Section :ref:`localcustomization`.
+
+..
+
+.. _remmina_edit:
+
+.. figure:: images/remmina_edit.png
+   :alt: Remmina Edit Screen
+   :width: 60%
+   :align: center
+
+   Remmina Edit Screen
+
+..
+
+When you then select the item (``dellr510`` in this case) and press **Open the
+connection to the selecetd remote desktop file** (the icon that looks like a
+light switch on the far left of the icon bar), you should now have a graphical
+desktop with a terminal window open on the remote host as seen here:
+
+.. _vnc_connected_initial:
+
+.. figure:: images/remmina_vnc_connected_initial.png
+   :alt: Initial Remmina VNC Connection
+   :width: 60%
+   :align: center
+
+   Initial Remmina VNC Connection
+
+..
+
+The next chapter will go over the steps for running the Virtualbox mangement GUI
+and manually creating VMs.
