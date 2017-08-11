@@ -22,7 +22,7 @@
 #    name: consul
 #    image: consul
 #    state: started
-#    command: "agent -bind={{ consul_inet_interface }} -retry-join={{ consul_retry_join }}"
+#    command: "agent -bind={{ consul_bind_interface }} -retry-join={{ consul_retry_join }}"
 #  when: consul_mode == "client"
 
 - name: Copy script template to target

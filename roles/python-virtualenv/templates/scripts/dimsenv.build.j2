@@ -36,12 +36,13 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.8.0
+DIMS_VERSION=2.9.3
 
 DIMS_ETC=${DIMS_ETC:-{{ dims_etc }}}
 DIMS_BIN=${DIMS_BIN:-{{ dims_bin }}}
 DIMS_SRC=${DIMS_SRC:-{{ dims_src }}}
 PYTHONVER="{{ python_version }}"
+PYTHONVERSHORT=$(echo $PYTHONVER | sed 's/\.[0-9][0-9]*$//')
 PYTHONBASE="Python-{{ python_version }}"
 PRISEM_ARTIFACT="{{ prisem_rpc_archive }}"
 # Force this to be system directory, in case user already has it set.
@@ -83,21 +84,37 @@ EOD
     exit 0
 }
 
+# needs_rebuild ${WORKON_HOME}/${VENV}
+function needs_rebuild()
+{
+    local _libdir=${1}/lib/python${PYTHONVERSHORT}
+    local _dimsenv_req_mtime=$(stat --format=%Y ${DIMS_ETC}/${VENV}-requirements.txt)
+    local _base_req_mtime=$(stat --format=%Y ${DIMS_ETC}/base-requirements.txt)
+    # Just for clarity
+    local _yes=0
+    local _no=1
+
+    if [[ ! -d ${_libdir} ]]; then
+        # Needs rebuild if lib does not even exist
+        return $_yes
+    else
+        local _libdir_mtime=$(stat --format=%Y $_libdir)
+        if [[ $_dimsenv_req_mtime -gt $_libdir_mtime ||
+              $_base_req_mtime -gt $_libdir_mtime ]]; then
+            # Needs rebuild if requirements files are newer than lib.
+            return $_yes
+        else
+            return $_no
+        fi
+    fi
+}
+
 function main()
 {
     dims_main_init
 
     verbose "Starting ${PROGRAM}"
     retval=0
-
-    # If this is not being run by Ansible (in a temporary
-    # deploy directory), then create/use a temp directory.
-    if [[ "$(pwd)" != "{{ deploy_dir }}/{{ role_name }}" ]]; then
-        TMPDIR=$(get_temp_dir)
-        cd ${TMPDIR} ||
-            error_exit $? "Could not cd to ${TMPDIR}"
-        add_on_exit rm -rf ${TMPDIR}
-    fi
 
     if [[ ! -z "${FLAGS_proxy}" ]]; then
         # Make sure proxy environment variables are set correctly
@@ -111,15 +128,23 @@ function main()
     # Ensure WORKON_HOME is defined in environment
     export WORKON_HOME="${FLAGS_workon_home}"
 
-    if [[ ! -x ${DIMS_BIN}/python ]]; then
-        verbose "${DIMS_BIN}/python does not exist"
-        INSTPYTHONVER=""
+    INSTPYTHONVER=""
+    if [[ -x ${DIMS_BIN}/python ]]; then
+        INSTPYTHONVER="$(${DIMS_BIN}/python --version 2>&1)"
     else 
-        INSTPYTHONVER="$(${DIMS_BIN}/python --version 2>/dev/null)"
+        verbose "${DIMS_BIN}/python does not exist"
     fi
-    if [ "${INSTPYTHONVER}" == "Python ${PYTHONVER}" ]; then
+    if [[ "$INSTPYTHONVER" == "Python ${PYTHONVER}" ]]; then
         verbose "Python ${PYTHONVER} already installed in ${DIMS_BIN}: skipping installation"
     else
+        # If this is not being run by Ansible (in a temporary
+        # deploy directory), then create/use a temp directory.
+        if [[ "$(pwd)" != "{{ deploy_dir }}/{{ role_name }}" ]]; then
+            TMPDIR=$(get_temp_dir)
+            cd ${TMPDIR} ||
+                error_exit $? "Could not cd to ${TMPDIR}"
+            add_on_exit rm -rf ${TMPDIR}
+        fi
         OS=$(uname -s)
         if [ "${OS}" == "Darwin" ]; then
             CXX="CXX=/usr/bin/gcc"
@@ -164,6 +189,11 @@ function main()
                 fi
             fi
         fi
+    fi
+
+    if ! needs_rebuild ${WORKON_HOME}/${VENV}; then
+        verbose "Python virtual environment in ${WORKON_HOME}/${VENV} does not need rebuilding."
+        return 0
     fi
 
     [[ -f ${DIMS_SRC}/get-pip/get-pip.py ]] ||

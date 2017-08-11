@@ -623,7 +623,7 @@
   become: yes
   ignore_errors: true
   when: ansible_os_family == "Debian"
-  tags: [ base, config ]
+  tags: [ base, config, interfaces ]
 
 # http://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/
 # nmcli con add type ethernet con-name static2 ifname eth1 ip4 192.168.29.13/24 gw4 192.168.29.1

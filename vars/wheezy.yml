@@ -2,6 +2,8 @@
 
 # File: vars/wheezy.yml
 
+# AKA Debian 7
+
 dist_tag: u'{{ ansible_distribution_version }}'
 
 packages_install:
