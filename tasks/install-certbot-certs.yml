@@ -105,7 +105,7 @@
 
   # endblock
 
-- fail: msg="Failed to set _backup_dir and _backup_file"
+- debug: msg="Failed to set _backup_dir and _backup_file"
   when: certbot_backup_restorefrom is defined and
         not (_backup_dir is defined and _backup_file is defined)
 
@@ -124,11 +124,20 @@
   - name: Note success in restoring
     set_fact:
       _restored: true
+    when: certbot_backup_restorefrom is defined and
+          (_backup_dir is defined and _backup_file is defined)
 
   rescue:
   - name: Note failure in restoring
     set_fact:
       _restored: false
+
+  always:
+  - name: Note failure in restoring
+    set_fact:
+      _restored: false
+    when: not (certbot_backup_restorefrom is defined and
+          (_backup_dir is defined and _backup_file is defined))
 
   # endblock
 
