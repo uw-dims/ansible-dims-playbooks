@@ -251,8 +251,8 @@
   when: ansible_distribution == "Ubuntu"
   tags: [ base, packages, updates ]
 
-  - name: Check to see if gpk-update-viewer is running on Ubuntu
-    shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
+- name: Check to see if gpk-update-viewer is running on Ubuntu
+  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
   register: _ps
   ignore_errors: yes
   when: ansible_distribution == "Debian"
