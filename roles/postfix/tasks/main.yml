@@ -98,8 +98,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
         - aliases/
   notify:
-    - reload postfix
     - rebuild postfix aliases
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/virtual file present
@@ -122,8 +122,8 @@
         - virtual/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
-    - reload postfix
     - rebuild postfix virtual
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/transport file present
@@ -144,8 +144,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
         - transport/
   notify:
-    - reload postfix
     - rebuild postfix transport
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/generic file present
@@ -167,8 +167,8 @@
         - generic/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
-    - reload postfix
     - rebuild postfix generic
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/access file present
@@ -191,8 +191,8 @@
         - access/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
-    - reload postfix
     - rebuild postfix access
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/helo_access file present
@@ -215,8 +215,8 @@
         - helo_access/
   when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
-    - reload postfix
     - rebuild postfix helo_access
+    - reload postfix
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/relay_recipients file present
