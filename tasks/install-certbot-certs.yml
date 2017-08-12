@@ -43,7 +43,7 @@
     set_fact:
       _backup_dir: '{{ _backup_stat.stat.path|dirname }}'
     when: certbot_backup_restorefrom is defined and
-          certbot_backup_restorefrom != "latest" and
+          certbot_backup_restorefrom != "latest"
 
   - name: Set certbot_backup_file
     set_fact:
