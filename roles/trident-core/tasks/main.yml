@@ -63,6 +63,7 @@
    - libdatetime-format-pg-perl
    - libgnupg-interface-perl
    - libmail-sendeasy-perl
+   - libossp-uuid-perl
   become: yes
   tags: [ trident-core, packages ]
 
