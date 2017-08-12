@@ -74,7 +74,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/master.cf/'
         - master.cf/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - restart postfix
   tags: [ postfix, config ]
@@ -120,7 +119,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/virtual/'
         - virtual/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - rebuild postfix virtual
     - reload postfix
@@ -165,7 +163,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
         - generic/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - rebuild postfix generic
     - reload postfix
@@ -189,7 +186,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
         - access/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - rebuild postfix access
     - reload postfix
@@ -213,7 +209,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
         - helo_access/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - rebuild postfix helo_access
     - reload postfix
@@ -236,7 +231,6 @@
         - relay_recipients.j2
       paths:
         - relay_recipients/
-  when: inventory_hostname.startswith(('smtp')) or smtp_relayhost == true
   notify:
     - rebuild postfix relay_recipients
     - restart postfix
