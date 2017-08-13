@@ -1,13 +1,9 @@
 ---
 
-# This playbook supports stand-alone use of the
-# postgresql_restore.yml task file to restore the
-# database of a Trident portal installed using
-# DIMS Ansible playbooks and inventory. The tasks
-# have been separated to allow their use from
-# within roles.
-#
-# See the tasks/postgresql_restore.yml file for usage.
+# This playbook supports stand-alone use of the postgresql_restore.yml
+# task file to restore the database of a Trident portal installed
+# using DIMS Ansible playbooks and inventory. The tasks have been
+# separated to allow their use from within roles.
 
 - name: Restore trident postgresql database
   hosts: '{{ host }}'
