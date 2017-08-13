@@ -363,6 +363,23 @@ operate on the two VMs in question.
 
 ..
 
-This completes the installation of the two VMs.
+This completes the installation of the two VMs. At this point, it
+would be a good idea to create snapshots of the VMs in this
+initial working state to have something to fall back on in
+case of mistakes at a later date.  See `How to use snapshots in VirtualBox`_
+and the Virtualbox document, `Chapter 1. First steps`_.
+
+.. _remmina_snapshots:
+
+.. figure:: images/remmina_snapshots.png
+   :alt: Creating Snapshots in Virtualbox
+   :width: 60%
+   :align: center
+
+   Creating Snapshots in Virtualbox
+
+..
 
 .. _Letsencrypt: https://letsencrypt.org/
+.. _How to use snapshots in VirtualBox: http://www.techrepublic.com/article/how-to-use-snapshots-in-virtualbox/
+.. _Chapter 1. First steps: https://www.virtualbox.org/manual/ch01.html
