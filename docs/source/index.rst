@@ -23,6 +23,7 @@ for short) repository contents.
    tests
    debugging
    upgrading
+   backups
    license
    appendices
 
