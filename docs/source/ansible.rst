@@ -211,7 +211,7 @@ rest of this document.
    by the system (to avoid breaking the system), this means by definition
    there are multiple Python interpreters on DIMS hosts. This requires
    that pay **very close attention** to configuration settings that affect
-   the Python interpreter used by Ansible and consiciously do things (and
+   the Python interpreter used by Ansible and consciously do things (and
    test the results of changes carefully to know when a change breaks
    something in Ansible.) The result of changes the Python interpreter used by
    Ansible can be random failures with cryptic error messages like these:
@@ -698,6 +698,25 @@ by using a DIMS wrapper script (``dims.ansible-playbook``) which allows
 you to run playbooks, tasks, or roles by name, or via the
 ``dimscli`` Python CLI program.
 
+.. caution::
+
+   As a general rule, interrupting ``ansible-playbook`` with CTRL-C in the
+   middle of a playbook run is a Bad Idea. The reason for this is that
+   some playbooks will disable a service temporarily and notify a handler
+   to restart the service at the end of the playbook run, or may successfully
+   change only some configuration files (leaving the ones that would have
+   been changed had the CTRL-C not been issued), either of which can leave
+   the system in an inconsistent and/or potentially inoperable state.
+
+   It is best to test playbooks on Vagrant hosts that are not critical if
+   they are accidentally rendered inoperable rather than getting into an
+   emergency debugging situation with a "production" server. If testing
+   with a "live" system, having an active SSH terminal session as a
+   fallback for local access helps, but not always. Be aware of this
+   risk and act accordingly!
+
+..
+
 .. _ansibleconfiguration:
 
 Configuration and Customization of ``ansible`` and ``ansible-playbook``
@@ -864,7 +883,7 @@ currently logged in to using ``run.playbook --tags base``.)
 | ``packages`` | Ensures package cache is updated and necessary packages (at specific    |
 |              | pinned versions in some cases) are installed and/or held.               |
 +--------------+-------------------------------------------------------------------------+
-| ``rsyslogd`` | Applies any ``rsyslogd`` related configruation and log handling tasks.  |
+| ``rsyslogd`` | Applies any ``rsyslogd`` related configuration and log handling tasks.  |
 +--------------+-------------------------------------------------------------------------+
 | ``tests``    | Installs/updates ``dims_functions.sh`` and generates ``bats`` tests for |
 |              | applicable roles, etc.                                                  |
@@ -924,7 +943,7 @@ include:
 + Alternate "Best Practices" (possibly conflicting, but helpful to consider none the less)
     + `Laying out roles, inventories and playbooks`_, by Michel Blanc, July 2, 2015
     + `Best practices to build great Ansible playbooks`_, by Maxime Thoonsen, October 12, 2015
-    + `Ansible (Real Life) Good Practices`_, by Raphael Campardou,  March 19, 2014 (has pre-commit Git hook for ``ansbile-vault``)
+    + `Ansible (Real Life) Good Practices`_, by Raphael Campardou,  March 19, 2014 (has pre-commit Git hook for ``ansible-vault``)
     + `Lessons from using Ansible exclusively for 2 years`_, by Corban Raun, March 24, 2015
     + `6 practices for super smooth Ansible experience`_, by Maxim Chernyak, June 18, 2014
     + GitHub `enginyoyen/ansible-best-practises`_ ("A project structure that outlines some best practices of how to use ansible")
