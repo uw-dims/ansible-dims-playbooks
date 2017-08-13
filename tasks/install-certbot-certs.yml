@@ -92,7 +92,8 @@
   - name: Set _backup_file from latest backup file
     set_fact:
       _backup_file: '{{ backups_files.0|basename }}'
-    when: certbot_backup_restorefrom is defined and
+    when: backups_files.0 is defined and
+          certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
   - name: Note success in locating backup
