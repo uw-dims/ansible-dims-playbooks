@@ -157,9 +157,23 @@ systems.  Use the ``test.runner`` script to execute just the ``reboot`` test:
 
 ..
 
-.. todo::
+We can verify which hosts require a reboot after upgrading packages using
+Ansible ad-hoc mode:
 
-   Show how to use ad-hoc mode to run this test on all systems at once...
+.. code-block:: none
+
+    $ ansible -m shell -a 'test.runner --match reboot' trident
+    yellow.devops.develop | SUCCESS | rc=0 >>
+    # [+] Running test system/reboot
+    1..1
+    ok 1 [S][EV] System does not require a reboot (Debian)
+    #
+
+    purple.devops.develop | SUCCESS | rc=0 >>
+    # [+] Running test system/reboot
+    1..1
+    ok 1 [S][EV] System does not require a reboot (Debian)
+    #
 
 ..
 
