@@ -14,7 +14,7 @@ host system intended to serve as an *Ansible control host*,
 with a series of virtual machines to provide services.
 
 Installation Steps
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Before diving into the details, it is helpful to understand the
 high level tasks that must be performed to bootstrap a functional

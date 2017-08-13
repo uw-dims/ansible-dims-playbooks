@@ -16,12 +16,12 @@
 
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
+    certbot_sitename: '{{ tridentFQDN|default("{{ inventory_hostname }}") }}' # For now, use this variable
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: '{{ trident_site_adminemail }}'
+    certbot_adminemail: '{{ trident_site_adminemail|default("admin@{{ inventory_hostname }}") }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
@@ -43,13 +43,13 @@
     set_fact:
       _backup_dir: '{{ _backup_stat.stat.path|dirname }}'
     when: certbot_backup_restorefrom is defined and
-          certbot_backup_restorefrom != "latest" and
+          certbot_backup_restorefrom != "latest"
 
   - name: Set certbot_backup_file
     set_fact:
       _backup_file: '{{ _backup_stat.stat.path|basename }}'
     when: certbot_backup_restorefrom is defined and
-          certbot_backup_restorefrom != "latest" and
+          certbot_backup_restorefrom != "latest"
 
   - name: Note success in locating backup
     set_fact:
@@ -85,13 +85,15 @@
   - name: Set _backup_dir from latest backup file
     set_fact:
       _backup_dir: '{{ backups_files.0|dirname }}'
-    when: certbot_backup_restorefrom is defined and
+    when: backups_files.0 is defined and
+          certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
   - name: Set _backup_file from latest backup file
     set_fact:
       _backup_file: '{{ backups_files.0|basename }}'
-    when: certbot_backup_restorefrom is defined and
+    when: backups_files.0 is defined and
+          certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
   - name: Note success in locating backup
@@ -105,7 +107,7 @@
 
   # endblock
 
-- fail: msg="Failed to set _backup_dir and _backup_file"
+- debug: msg="Failed to set _backup_dir and _backup_file"
   when: certbot_backup_restorefrom is defined and
         not (_backup_dir is defined and _backup_file is defined)
 
@@ -124,11 +126,20 @@
   - name: Note success in restoring
     set_fact:
       _restored: true
+    when: certbot_backup_restorefrom is defined and
+          (_backup_dir is defined and _backup_file is defined)
 
   rescue:
   - name: Note failure in restoring
     set_fact:
       _restored: false
+
+  always:
+  - name: Note failure in restoring
+    set_fact:
+      _restored: false
+    when: not (certbot_backup_restorefrom is defined and
+          (_backup_dir is defined and _backup_file is defined))
 
   # endblock
 

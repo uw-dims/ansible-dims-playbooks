@@ -248,13 +248,28 @@
   shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
   register: _ps
   ignore_errors: yes
-  when: ansible_os_family == "Debian"
+  when: '"Ubuntu" in ansible_lsb.id'
   tags: [ base, packages, updates ]
 
-- name: Kill update-manager to avoid dpkg lock contention
+- name: Kill update_manager to avoid dpkg lock contention
   shell: "kill {{ _ps.stdout }}"
   become: yes
-  when: _ps is defined and _ps.stdout|int != 0
+  when: '"Ubuntu" in ansible_lsb.id
+        and _ps.stdout is defined and _ps.stdout|int != 0'
+  tags: [ base, packages, updates ]
+
+- name: Check to see if gpk-update-viewer is running on Ubuntu
+  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
+  register: _ps
+  ignore_errors: yes
+  when: '"Debian" in ansible_lsb.id'
+  tags: [ base, packages, updates ]
+
+- name: Kill gpk-update-viewer to avoid dpkg lock contention
+  shell: "kill {{ _ps.stdout }}"
+  become: yes
+  when: '"Debian" in ansible_lsb.id
+        and _ps.stdout is defined and _ps.stdout|int != 0'
   tags: [ base, packages, updates ]
 
 - name: Make sure blacklisted packages are absent (Debian)

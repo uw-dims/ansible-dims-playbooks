@@ -571,6 +571,11 @@ shown here:
 
 ..
 
+.. _dims_private:
+
+The ``dims-private`` Cookiecutter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If the repo is supposed to be non-public, use the same configuration file
 to overlay files from the ``dims-private`` Cookiecutter onto the same output
 directory as the main repo directory. It uses a symbolic link for the
@@ -628,11 +633,10 @@ in the Git output:
 Populating the Private Configuration Repository
 -----------------------------------------------
 
-Start creating your local customization repository using the ``cookiecutter`` template
-discussed in the :ref:`dimscookiecutters` section. We will call this private
-deployment ``devtest``, thus creating a repository in a the directory
-named ``$GIT/private-devtest``. Here is the configuration file
-we will use:
+Start creating your local customization repository using the ``cookiecutter``
+template discussed in the previous section. We will call this private
+deployment ``devtest``, thus creating a repository in a the directory named
+``$GIT/private-devtest``. Here is the configuration file we will use:
 
 .. code-block:: none
 
@@ -966,21 +970,21 @@ step so they match as well.
     blue16.devops.devtest.yml  hub.devops.devtest.yml    node02.devops.devtest.yml
     orange.devops.devtest.yml  red.devops.devtest.yml    yellow.devops.devtest.yml
     $ grep local *
-    blue14.devops.sectf.yml:# File: host_vars/blue14.devops.local.yml
-    blue16.devops.sectf.yml:# File: host_vars/blue16.devops.local.yml
-    green.devops.sectf.yml:# File: host_vars/green.devops.local.yml
-    hub.devops.sectf.yml:# File: host_vars/hub.devops.local.yml
-    node01.devops.sectf.yml:# File: host_vars/node01.devops.local.yml
-    node02.devops.sectf.yml:# File: host_vars/node02.devops.local.yml
-    node03.devops.sectf.yml:# File: host_vars/node03.devops.local.yml
-    orange.devops.sectf.yml:# file: host_vars/orange.devops.local
-    orange.devops.sectf.yml:jenkins_url_external: 'http://orange.devops.local:8080'
-    purple.devops.sectf.yml:# File: host_vars/purple.devops.local.yml
-    red.devops.sectf.yml:# File: host_vars/red.devops.local.yml
-    vmhost.devops.sectf.yml:  'local': 'vboxnet3'
-    yellow.devops.sectf.yml:# File: host_vars/yellow.devops.local.yml
+    blue14.devops.devtest.yml:# File: host_vars/blue14.devops.local.yml
+    blue16.devops.devtest.yml:# File: host_vars/blue16.devops.local.yml
+    green.devops.devtest.yml:# File: host_vars/green.devops.local.yml
+    hub.devops.devtest.yml:# File: host_vars/hub.devops.local.yml
+    node01.devops.devtest.yml:# File: host_vars/node01.devops.local.yml
+    node02.devops.devtest.yml:# File: host_vars/node02.devops.local.yml
+    node03.devops.devtest.yml:# File: host_vars/node03.devops.local.yml
+    orange.devops.devtest.yml:# file: host_vars/orange.devops.local
+    orange.devops.devtest.yml:jenkins_url_external: 'http://orange.devops.local:8080'
+    purple.devops.devtest.yml:# File: host_vars/purple.devops.local.yml
+    red.devops.devtest.yml:# File: host_vars/red.devops.local.yml
+    vmhost.devops.devtest.yml:  'local': 'vboxnet3'
+    yellow.devops.devtest.yml:# File: host_vars/yellow.devops.local.yml
     $ grep -l local *.yml > /tmp/files
-    $ for F in $(cat /tmp/files); do perl -pi -e 's/local/sectf/' $F; done
+    $ for F in $(cat /tmp/files); do perl -pi -e 's/local/devtest/' $F; done
     $ cd -
     /home/dittrich/dims/git
 

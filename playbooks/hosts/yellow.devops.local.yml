@@ -21,7 +21,7 @@
     - { role: base }
     - { role: hosts }
     - { role: dims-ci-utils }
-    - { role: postfix, postfix_group: 'trident-local', smtp_relayhost: true }
+    - { role: postfix, postfix_group: 'trident-local' }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: docker }
     - { role: consul }

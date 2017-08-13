@@ -815,6 +815,7 @@ a non-zero return value).
     Using ``test.runner`` in Vagrant Provisioning
 ..
 
+.. _using_dims_functions_in_bats:
 
 Using DIMS Bash functions in Bats tests
 ---------------------------------------
@@ -1039,4 +1040,4 @@ To find out what the problem is, run the build again and add at least one ``-v``
 
 The highlighted lines show the problem, which is a proxy failure. This is typically due to
 the Docker container used as a local ``squid-deb-proxy`` to optimize Vagrant installations
-being hung and non-responsive.
+being hung and non-responsive.  (To resolve this, see :ref:`restartProxy` in the Appendix.)

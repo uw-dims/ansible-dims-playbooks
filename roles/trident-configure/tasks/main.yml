@@ -201,6 +201,15 @@
   no_log: '{{ nolog }}'
   tags: [ trident-configure, config ]
 
+- name: Ensure cron emails go to the right person
+  replace:
+    path: /etc/cron.d/trident-perl
+    regexp: '^(MAILTO=hostmaster@)(\S+)$'
+    replace: '\1{{ tridentFQDN }}'
+    backup: yes
+  ignore_errors: yes
+  tags: [ trident-configure, config ]
+
 - name: Run unit test for trident-configure
   command: '{{ dims_bin }}/test.runner --tap --level unit --match "trident-configure"'
   environment:
