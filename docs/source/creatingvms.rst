@@ -257,9 +257,9 @@ Initial Provisioning of the New VMs
 -----------------------------------
 
 Lastly, we will run the initial provisioning steps to install and configure
-our two new VMs. For the purposes of this example, we will only perform the
-``base`` role tasks to make sure the fundamentals of our customized
-configuration will work. The command we use is:
+the two new VMs. For the purposes of this example, we will start by only
+applying the ``base`` role tasks to make sure the fundamentals of our
+customized configuration will work. The command we use is:
 
 .. code-block:: none
 
@@ -267,3 +267,102 @@ configuration will work. The command we use is:
 
 ..
 
+.. _remmina_base_role:
+
+.. figure:: images/remmina_base_role.png
+   :alt: Applying ``base`` role to ``trident`` group
+   :width: 60%
+   :align: center
+
+   Applying ``base`` role to ``trident`` group
+
+..
+
+Having applied the ``base`` role, network interfaces are set up,
+``iptables`` rules are in place, ``/etc/hosts`` file and DNS
+resolution are configured, and packages have been updated. This would
+be a good time to reboot both systems to ensure everything is applied
+and functions. You can use Ansible ad-hoc mode to do this with
+the command:
+
+.. code-block:: none
+
+    $ ansible -m shell --become -a 'shutdown -r now' trident`
+
+..
+
+After a minute or two, you can test connectivity again with the
+command:
+
+.. code-block:: none
+
+    $ ansible -m shell -a 'uptime' trident`
+    purple.devops.develop | SUCCESS | rc=0 >>
+     14:22:33 up 0 min,  1 user,  load average: 0.86, 0.22, 0.07
+
+    yellow.devops.develop | SUCCESS | rc=0 >>
+     14:22:33 up 0 min,  1 user,  load average: 0.79, 0.25, 0.09
+
+..
+
+At this point, the hosts are ready for application of their full playbooks.
+Use ``--limit trident`` when running the ``master.yml`` playbook to only
+operate on the two VMs in question.
+
+.. note::
+
+   If Ansible Vault is being used to encrypt any secrets on disk, you will
+   need to either provide the password using the ``--ask-vault-pass``
+   command line option or provide a path to the Vault password file
+   using the ``--vault-password-file`` command line option. We will use
+   the latter in this example:
+
+.. _remmina_trident_fullplaybook_start:
+
+.. figure:: images/remmina_trident_fullplaybook_start.png
+   :alt: Applying full playbook to ``trident`` group
+   :width: 60%
+   :align: center
+
+   Applying full playbook to ``trident`` group
+
+..
+
+.. attention::
+
+    The ``nginx`` role is designed to support use of Letsencrypt for SSL
+    certificate generation. Because Letsencrypt imposes a limit on the number of
+    certificates that can be generated for a given DNS domain name per week,
+    the default is to use the "staging" facility (i.e., the default is
+    ``certbot_staging: yes`` globally.) It may take a few full playbook
+    runs to ensure that all variables are defined and set properly, which
+    could exhaust the limit of certificates if the default was to generate
+    real certificates each time the ``nginx`` role gets applied.
+
+    After you are sure things are working properly, edit the
+    ``inventory/trident/nodes.yml`` file and change the setting to
+    ``certbot_staging: no`` and apply the ``nginx`` role one more time to get
+    valid certificates.
+
+    Once valid certificates have been generated once, you can create a backup
+    that can be restored later for development testing purposes in case you
+    have to destroy the ``/etc/letsencrypt`` directory and start again (as
+    occurs when using Vagrants and doing ``vagrant destroy``, or terminating
+    virtual machines in cloud service providers.)
+
+..
+
+.. _remmina_trident_fullplaybook_summary:
+
+.. figure:: images/remmina_trident_fullplaybook_summary.png
+   :alt: Summary of full playbook run
+   :width: 60%
+   :align: center
+
+   Summary of full playbook run
+
+..
+
+This completes the installation of the two VMs.
+
+.. _Letsencrypt: https://letsencrypt.org/
