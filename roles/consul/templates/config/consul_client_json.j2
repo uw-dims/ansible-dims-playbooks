@@ -1,5 +1,5 @@
 {
-    "server": {{ consul_server|default('no')|to_json }},
+    "server": {{ consul_server|default(false)|to_json }},
     "datacenter": "{{ consul_data_center }}",
     "data_dir": "{{ consul_data_dir }}",
     "ui_dir": "{{ consul_ui_dir }}",
