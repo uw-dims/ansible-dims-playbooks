@@ -1,15 +1,13 @@
 ---
 
-# This playbook supports stand-alone use of the
-# letsencrypt_backup.yml task file to backup the
-# letsencrypt certificate store directory.
-# The tasks have been separated to allow their
-# use from within roles.
+# This playbook supports stand-alone use of the letsencrypt_backup.yml
+# task file to backup the letsencrypt certificate store directory.
+# The tasks have been separated to allow their use from within roles.
 #
 # See the tasks/letsencrypt_backup.yml file for usage.
 
 - name: Backup letsencrypt certificate store
-  hosts: '{{ host | default("nginx") }}'
+  hosts: '{{ host|default("nginx") }}'
   gather_facts: true
   user: root
   vars_files:
