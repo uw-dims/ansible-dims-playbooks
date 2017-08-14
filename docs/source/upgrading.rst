@@ -3,9 +3,67 @@
 Upgrading and Updating Components
 =================================
 
-This chapter covers upgrading operating system packages, updating the
-``ansible-dims-playbooks`` repo and related private customization repository,
-and generally keeping system components up to date.
+This chapter covers updating the ``ansible-dims-playbooks`` repo and related
+private customization repository, upgrading operating system packages, and
+generally keeping system components up to date.
+
+.. _renewing_letsencrypt_certs:
+
+Renewing Letsencrypt Certificates
+---------------------------------
+
+The imported role `ansible-role-certbot`_ that is being used
+for `Letsencrypt`_ support creates a ``crontab`` entry in the ``ansible``
+account to automatically renew the certificate when it is about to expire. You
+can see the ``crontab`` entry using Ansible ad-hoc mode:
+
+.. code-block:: none
+
+    $ ansible -m shell -a 'crontab -l' trident
+    yellow.devops.develop | SUCCESS | rc=0 >>
+    #Ansible: Certbot automatic renewal.
+    20 5 * * * /opt/certbot/certbot-auto renew --quiet --no-self-upgrade
+
+    purple.devops.develop | SUCCESS | rc=0 >>
+    #Ansible: Certbot automatic renewal.
+    20 5 * * * /opt/certbot/certbot-auto renew --quiet --no-self-upgrade
+
+..
+
+You can always run this command whenever you want, again using
+Ansible ad-hoc mode:
+
+.. code-block:: none
+
+    $ ansible -m shell -a '/opt/certbot/certbot-auto renew --no-self-upgrade' trident
+    purple.devops.develop | SUCCESS | rc=0 >>
+    Requesting root privileges to run certbot...
+      /home/ansible/.local/share/letsencrypt/bin/letsencrypt renew --no-self-upgrade
+
+    -------------------------------------------------------------------------------
+    Processing /etc/letsencrypt/renewal/breathe.prisem.washington.edu.conf
+    -------------------------------------------------------------------------------
+
+    The following certs are not due for renewal yet:
+      /etc/letsencrypt/live/breathe.prisem.washington.edu/fullchain.pem (skipped)
+    No renewals were attempted.Saving debug log to /var/log/letsencrypt/letsencrypt.log
+    Cert not yet due for renewal
+
+    yellow.devops.develop | SUCCESS | rc=0 >>
+    Requesting root privileges to run certbot...
+      /home/ansible/.local/share/letsencrypt/bin/letsencrypt renew --no-self-upgrade
+
+    -------------------------------------------------------------------------------
+    Processing /etc/letsencrypt/renewal/echoes.prisem.washington.edu.conf
+    -------------------------------------------------------------------------------
+
+    The following certs are not due for renewal yet:
+      /etc/letsencrypt/live/echoes.prisem.washington.edu/fullchain.pem (skipped)
+    No renewals were attempted.Saving debug log to /var/log/letsencrypt/letsencrypt.log
+    Cert not yet due for renewal
+
+..
+
 
 .. _updatingpycharm:
 
@@ -99,9 +157,25 @@ systems.  Use the ``test.runner`` script to execute just the ``reboot`` test:
 
 ..
 
-.. todo::
+We can verify which hosts require a reboot after upgrading packages using
+Ansible ad-hoc mode:
 
-   Show how to use ad-hoc mode to run this test on all systems at once...
+.. code-block:: none
+
+    $ ansible -m shell -a 'test.runner --match reboot' trident
+    yellow.devops.develop | SUCCESS | rc=0 >>
+    # [+] Running test system/reboot
+    1..1
+    ok 1 [S][EV] System does not require a reboot (Debian)
+    #
+
+    purple.devops.develop | SUCCESS | rc=0 >>
+    # [+] Running test system/reboot
+    1..1
+    ok 1 [S][EV] System does not require a reboot (Debian)
+    #
 
 ..
 
+.. _Letsencrypt: https://letsencrypt.org/
+.. _ansible-role-certbot: https://github.com/geerlingguy/ansible-role-certbot

@@ -348,7 +348,8 @@ operate on the two VMs in question.
     that can be restored later for development testing purposes in case you
     have to destroy the ``/etc/letsencrypt`` directory and start again (as
     occurs when using Vagrants and doing ``vagrant destroy``, or terminating
-    virtual machines in cloud service providers.)
+    virtual machines in cloud service providers.) This process is described
+    in Chapter :ref:`creating_a_backup`.
 
 ..
 
@@ -365,4 +366,46 @@ operate on the two VMs in question.
 
 This completes the installation of the two VMs.
 
+.. attention::
+
+    As these VMs were created using a NAT interface, but are meant to normally
+    operate using a bridged adapter for Internet facing access to the portal
+    and for email processing, one last configuration change is to disable the
+    ``eth0`` NAT interface so its DHCP assigned default route does not conflict with
+    the default gateway setting of the ``eth2`` interface. To do this, you will
+    need to go the **Settings** tab, then unselect **Cable connected** for
+    **Adapter 1** on each VM as shown in Figure :ref:`remmina_disconnect_eth0_cable`.
+
+..
+
+.. _remmina_disconnect_eth0_cable:
+
+.. figure:: images/remmina_disconnect_eth0_cable.png
+   :alt: Disconecting cable to NAT interface
+   :width: 60%
+   :align: center
+
+   Disconecting cable to NAT interface
+
+..
+
+At this point, it would be a good idea to create snapshots of the VMs in this
+initial working state to have something to fall back on in case of mistakes at
+a later date.  This is shown in Figure :ref:`remmina_snapshots` and the steps
+to perform are described in `How to use snapshots in VirtualBox`_ and the
+Virtualbox document, `Chapter 1. First steps`_.
+
+.. _remmina_snapshots:
+
+.. figure:: images/remmina_snapshots.png
+   :alt: Creating Snapshots in Virtualbox
+   :width: 60%
+   :align: center
+
+   Creating Snapshots in Virtualbox
+
+..
+
 .. _Letsencrypt: https://letsencrypt.org/
+.. _How to use snapshots in VirtualBox: http://www.techrepublic.com/article/how-to-use-snapshots-in-virtualbox/
+.. _Chapter 1. First steps: https://www.virtualbox.org/manual/ch01.html
