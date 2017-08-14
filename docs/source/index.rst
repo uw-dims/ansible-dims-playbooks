@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _ansible_dims_playbooks:
+
 DIMS Ansible playbooks v |release|
 ==================================
 
