@@ -348,7 +348,8 @@ operate on the two VMs in question.
     that can be restored later for development testing purposes in case you
     have to destroy the ``/etc/letsencrypt`` directory and start again (as
     occurs when using Vagrants and doing ``vagrant destroy``, or terminating
-    virtual machines in cloud service providers.)
+    virtual machines in cloud service providers.) This process is described
+    in Chapter :ref:`creating_a_backup`.
 
 ..
 
