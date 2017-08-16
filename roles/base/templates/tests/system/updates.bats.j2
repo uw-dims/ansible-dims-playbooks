@@ -3,17 +3,20 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 #
 # vim: set ts=4 sw=4 tw=0 et :
-#
 
-{% if ansible_os_family == 'ubuntu' %}
-@test "[S][EV] All APT packages are up to date ({{ ansible_os_familty }})" {
+load helpers
+
+{% if ansible_distribution == 'Ubuntu' %}
+@test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
+    bash -c "(/usr/lib/update-notifier/apt-check -p && echo '')" 1>&2
     assert "0 packages can be updated. 0 updates are security updates." bash -c "/usr/lib/update-notifier/apt-check --human-readable"
 }
-{% endif %}
-
-{% if ansible_os_family == 'debian' %}
-@test "[S][EV] All APT packages are up to date ({{ ansible_os_family }})" {
+{% elif ansible_distribution == 'Debian' %}
+@test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
     assert "0 packages can be updated." bash -c "apt list --upgradable"
 }
+{% else %}
+@test "[S][EV] All packages are up to date ({{ ansible_distribution }})" {
+    skip "No check '{{ ansible_distribution }}'"
+}
 {% endif %}
-
