@@ -24,7 +24,7 @@ for short) repository contents.
    localcustomization
    tests
    debugging
-   upgrading
+   maintenance
    backups
    license
    appendices

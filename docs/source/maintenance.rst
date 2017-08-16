@@ -1,11 +1,12 @@
-.. _upgrading:
+.. _maintenance:
 
-Upgrading and Updating Components
-=================================
+Regular System Maintenance
+==========================
 
-This chapter covers updating the ``ansible-dims-playbooks`` repo and related
-private customization repository, upgrading operating system packages, and
-generally keeping system components up to date.
+This chapter covers regular system maintenance tasks, such as updating the
+``ansible-dims-playbooks`` repo and related private customization repository,
+upgrading operating system packages, and generally keeping system components
+clean and up to date.
 
 .. _updating_packages:
 
