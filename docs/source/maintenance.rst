@@ -66,54 +66,69 @@ Now apply the ``updates`` tag to update and install upgrades.
 
 .. code-block:: none
 
-    $ run.playbook --tags updates
+    $ run.playbook --tags updates -e packages_upgrade=yes
 
-    PLAY [Configure host "dimsdemo1.devops.develop"] *************************************************************************************************************************************************
+    PLAY [Configure host "dimsdemo1.devops.develop"] ******************************
     . . .
-    TASK [base : Check to see if update-manager is running on Ubuntu] ********************************************************************************************************************************
+    TASK [base : Check to see if update-manager is running on Ubuntu] *************
     Wednesday 16 August 2017  13:06:29 -0700 (0:00:01.049)       0:00:05.392 ******
     changed: [dimsdemo1.devops.develop]
 
-    TASK [base : Kill update_manager to avoid dpkg lock contention] **********************************************************************************************************************************
+    TASK [base : Kill update_manager to avoid dpkg lock contention] ***************
     Wednesday 16 August 2017  13:06:30 -0700 (0:00:01.239)       0:00:06.631 ******
     skipping: [dimsdemo1.devops.develop]
 
-    TASK [base : Check to see if gpk-update-viewer is running on Ubuntu] *****************************************************************************************************************************
+    TASK [base : Check to see if gpk-update-viewer is running on Ubuntu] **********
     Wednesday 16 August 2017  13:06:31 -0700 (0:00:01.049)       0:00:07.681 ******
     skipping: [dimsdemo1.devops.develop]
 
-    TASK [base : Kill gpk-update-viewer to avoid dpkg lock contention] *******************************************************************************************************************************
+    TASK [base : Kill gpk-update-viewer to avoid dpkg lock contention] ************
     Wednesday 16 August 2017  13:06:32 -0700 (0:00:01.048)       0:00:08.729 ******
     skipping: [dimsdemo1.devops.develop]
 
-    TASK [base : Make sure blacklisted packages are absent (Debian)] *********************************************************************************************************************************
+    TASK [base : Make sure blacklisted packages are absent (Debian)] **************
     Wednesday 16 August 2017  13:06:33 -0700 (0:00:01.084)       0:00:09.814 ******
-    ok: [dimsdemo1.devops.develop] => (item=[u'modemmanager', u'resolvconf', u'sendmail', u'whoopsie', u'libwhoopsie0'])
+    ok: [dimsdemo1.devops.develop] => (item=[u'modemmanager', u'resolvconf',
+    u'sendmail', u'whoopsie', u'libwhoopsie0'])
 
-    TASK [base : Only "update_cache=yes" if >3600s since last update (Debian)] ***********************************************************************************************************************
+    TASK [base : Only "update_cache=yes" if >3600s since last update (Debian)] ****
     Wednesday 16 August 2017  13:06:35 -0700 (0:00:02.015)       0:00:11.829 ******
     ok: [dimsdemo1.devops.develop]
 
-    TASK [base : Make sure required APT packages are present (Debian)] *******************************************************************************************************************************
+    TASK [base : Make sure required APT packages are present (Debian)] ************
     Wednesday 16 August 2017  13:06:37 -0700 (0:00:01.610)       0:00:13.440 ******
-    ok: [dimsdemo1.devops.develop] => (item=[u'apt-transport-https', u'bash-completion', u'ca-certificates', u'cpanminus', u'curl', u'dconf-tools', u'git-core', u'default-jdk', u'gitk', u'gnupg2', u
-    'htop', u'hunspell', u'iptables-persistent', u'ifstat', u'make', u'myrepos', u'netcat', u'nfs-common', u'chrony', u'ntpdate', u'openssh-server', u'patch', u'perl', u'postfix', u'python', u'pytho
-    n-apt', u'remake', u'rsync', u'rsyslog', u'sshfs', u'sshpass', u'strace', u'tree', u'vim', u'xsltproc', u'chrony', u'nfs-kernel-server', u'smartmontools', u'unzip'])
+    ok: [dimsdemo1.devops.develop] => (item=[u'apt-transport-https', u'bash-completion',
+    u'ca-certificates', u'cpanminus', u'curl', u'dconf-tools', u'git-core',
+    u'default-jdk', u'gitk', u'gnupg2', u'htop', u'hunspell', u'iptables-persistent',
+    u'ifstat', u'make', u'myrepos', u'netcat', u'nfs-common', u'chrony', u'ntpdate',
+    u'openssh-server', u'patch', u'perl', u'postfix', u'python', u'python-apt',
+    u'remake', u'rsync', u'rsyslog', u'sshfs', u'sshpass', u'strace', u'tree', u'vim',
+    u'xsltproc', u'chrony', u'nfs-kernel-server', u'smartmontools', u'unzip'])
 
-    TASK [base : Make upgraded packages present if we are explicitly upgrading] **********************************************************************************************************************
+    TASK [base : Make upgraded packages present if we are explicitly upgrading] ***
     Wednesday 16 August 2017  13:06:38 -0700 (0:00:01.750)       0:00:15.190 ******
     changed: [dimsdemo1.devops.develop]
 
-    TASK [base : Check proxy availability] ***********************************************************************************************************************************************************
+    TASK [base : Check proxy availability] ****************************************
     Wednesday 16 August 2017  13:09:12 -0700 (0:02:33.389)       0:02:48.580 ******
     . . .
-    PLAY RECAP ***************************************************************************************************************************************************************************************
+    PLAY RECAP ********************************************************************
     dimsdemo1.devops.develop   : ok=72   changed=4    unreachable=0    failed=0
 
     Wednesday 16 August 2017  13:10:28 -0700 (0:00:01.069)       0:04:04.737 ******
     ===============================================================================
     base : Make upgraded packages present if we are explicitly upgrading -- 153.39s
     . . .
+
+..
+
+.. note::
+
+   The flag ``-e packages_upgrade=yes`` sets the variable ``packages_upgrade`` that
+   must evaluate to true in order for packages to be updated in the role. This is
+   to ensure that package updates are done in a controlled manner. Set this
+   variable to something that Ansible evaluates as true on the command line, or
+   somewhere in the host vars section of the inventory.
 
 ..
 
