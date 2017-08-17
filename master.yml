@@ -9,18 +9,27 @@
 # (This playbook is based on master.yml in the Fedora Project
 # Ansible playbook Git repository.)
 #
-# -t packages   fedmsgconfig -> runs fedmsg/base config over all playbooks
-# -t apache -> run when tasks/apache.yml changes. 
-#
-#
+# -t updates -e packages_upgrade=yes  -> upgrades packages
+
 # group playbooks
 #
 #- include: /opt/dims/ansible/playbooks/groups/dns.yml
 #- include: /opt/dims/ansible/playbooks/groups/packages.yml
 #- include: /opt/dims/ansible/playbooks/groups/virthost.yml
-- include: playbooks/swarm.yml
+#- include: /opt/dims/ansible/playbooks/swarm.yml
 
 #
 # host playbooks
 #
-#- include: /opt/dims/ansible/playbooks/hosts/dnsmaq.local.yml
+
+- include: playbooks/hosts/vmhost.devops.local.yml
+- include: playbooks/hosts/black.devops.local.yml
+- include: playbooks/hosts/blue14.devops.local.yml
+- include: playbooks/hosts/blue16.devops.local.yml
+- include: playbooks/hosts/node01.devops.local.yml
+- include: playbooks/hosts/node02.devops.local.yml
+- include: playbooks/hosts/node03.devops.local.yml
+- include: playbooks/hosts/orange.devops.local.yml
+- include: playbooks/hosts/purple.devops.local.yml
+- include: playbooks/hosts/red.devops.local.yml
+- include: playbooks/hosts/yellow.devops.local.yml
