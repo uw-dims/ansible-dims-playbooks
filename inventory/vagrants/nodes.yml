@@ -99,19 +99,6 @@ vagrants:
     'node02.devops.local':
     'node03.devops.local':
   children:
-    production:
-      hosts:
-        'red.devops.local':
-        'node01.devops.local':
-        'node02.devops.local':
-        'node03.devops.local':
-        'yellow.devops.local':
-        'orange.devops.local':
-    development:
-      hosts:
-        'purple.devops.local':
-        'blue14.devops.local':
-        'black.devops.local':
     coreos:
       vars:
         #ansible_python_interpreter: '/opt/bin/python'

@@ -14,5 +14,25 @@ all:
     'red.devops.local':
     'vmhost.devops.local':
     'yellow.devops.local':
+  children:
+    production:
+      hosts:
+        'red.devops.local':
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+        'yellow.devops.local':
+        'orange.devops.local':
+    development:
+      hosts:
+        'black.devops.local':
+        'blue14.devops.local':
+        'purple.devops.local':
+    devtest:
+      hosts:
+        'red.devops.local':
+        'orange.devops.local':
+        'purple.devops.local':
+        'yellow.devops.local':
 
 # vim: ft=ansible:
