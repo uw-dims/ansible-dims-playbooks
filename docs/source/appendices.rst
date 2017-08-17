@@ -32,7 +32,7 @@ A ``bats`` test exists to test the proxy:
 
 .. code-block:: none
 
-    $ test.runner --level '*' --match proxy
+    $ test.runner integration/proxy
     [+] Running test integration/proxy
      ✗ [S][EV] HTTP download test (using wget, w/proxy if configured)
        (in test file integration/proxy.bats, line 16)
@@ -42,6 +42,44 @@ A ``bats`` test exists to test the proxy:
          `[ ! -z "$(wget -q -O - https://packages.debian.org/jessie/amd64/0install/filelist | grep 0install 2>/dev/null)" ]' failed
 
     2 tests, 2 failures
+
+..
+
+This error will manifest itself sometimes when doing development
+work on Vagrants, as can be seen here:
+
+.. code-block:: none
+   :emphasize-lines: 5-10,14
+
+    $ cd /vm/run/purple
+    $ make up && make DIMS_ANSIBLE_ARGS="--tags base" reprovision-local
+    [+] Creating Vagrantfile
+    . . .
+    TASK [base : Only "update_cache=yes" if >3600s since last update (Debian)] ****
+    Wednesday 16 August 2017  16:55:35 -0700 (0:00:01.968)       0:00:48.823 ******
+    fatal: [purple.devops.local]: FAILED! => {
+        "changed": false,
+        "failed": true
+    }
+
+    MSG:
+
+    Failed to update apt cache.
+
+
+    RUNNING HANDLER [base : update timezone] **************************************
+    Wednesday 16 August 2017  16:56:18 -0700 (0:00:43.205)       0:01:32.028 ******
+
+    PLAY RECAP ********************************************************************
+    purple.devops.local        : ok=15   changed=7    unreachable=0    failed=1
+
+    Wednesday 16 August 2017  16:56:18 -0700 (0:00:00.000)       0:01:32.029 ******
+    ===============================================================================
+    base : Only "update_cache=yes" if >3600s since last update (Debian) ---- 43.21s
+    . . .
+    make[1]: *** [provision] Error 2
+    make[1]: Leaving directory `/vm/run/purple'
+    make: *** [reprovision-local] Error 2
 
 ..
 
