@@ -296,12 +296,18 @@
   when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
   tags: [ base, packages, updates ]
 
+- name: Clean APT cache to avoid Make upgraded packages present if we are explicitly upgrading
+  command: apt-get clean
+  become: yes
+  when: packages_upgrade|bool and ansible_os_family == "Debian"
+  tags: [ base, packages, updates ]
+
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
     upgrade: safe
     autoremove: yes
   become: yes
-  when: packages_upgrade and ansible_os_family == "Debian"
+  when: packages_upgrade|bool and ansible_os_family == "Debian"
   tags: [ base, packages, updates ]
 
 # Using "meta: flush_handlers" will run any handlers that have
