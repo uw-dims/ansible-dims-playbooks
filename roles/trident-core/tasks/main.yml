@@ -162,9 +162,19 @@
   tags: [ trident-core, packages ]
 
 - name: Ensure trident is enabled
-  service: name=trident enabled=yes
+  service:
+    name: trident
+    enabled: yes
   become: yes
   tags: [ trident-core, packages ]
+
+- name: Ensure trident is running and enabled
+  systemd:
+    name: trident
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: [ trident-core ]
 
 # Attempting to install trident-perl without any written instructions.
 # Hackety, hackety...
@@ -449,14 +459,6 @@
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
-
-- name: Ensure trident is running and enabled
-  systemd:
-    name: trident
-    state: restarted
-    enabled: yes
-  become: yes
-  tags: [ trident-core ]
 
   # "trident" in pg_roles.  The value "1" means the roles
   # exists (which implies that the setup tasks below
