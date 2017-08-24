@@ -22,8 +22,8 @@ server {
   server_name {{ tridentFQDN }};
 
 {% if use_letsencrypt is not defined or not use_letsencrypt %}
-  ssl_certificate   {{ sslCertDir }}/trident.crt;
-  ssl_certificate_key {{ sslCertDir}}/trident.key;
+  ssl_certificate   {{ sslCertDir }}/self_signed_cert.crt;
+  ssl_certificate_key {{ sslCertDir}}/self_signed_cert.key;
   ssl_prefer_server_ciphers on;
 
   # And other SSL options, recommended:

@@ -10,6 +10,10 @@
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
+- include: '{{ tasks_path }}/install-self-signed-certs.yml'
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
+  tags: [ nginx, packages ]
+
 # Following instructions from http://nginx.org/en/linux_packages.html
 - name: Import repository signing key
   apt_key:

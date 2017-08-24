@@ -19,6 +19,7 @@
     - { role: debug }
     - { role: base }
     - { role: hosts }
+    - { role: nginx }
     - { role: dims-ci-utils }
     - { role: dns, zones: ['local', 'consul'] }
     - { role: python-virtualenv, use_sphinx: false, https_proxy: "https://10.0.2.2:8000" }

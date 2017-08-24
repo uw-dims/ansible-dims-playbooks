@@ -345,31 +345,6 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-- name: Ensure SSL file directory exists
-  file:
-    path: '{{ sslCertDir }}'
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    state: directory
-    mode: '{{ mode_0755 }}'
-  become: yes
-  when: use_letsencrypt is not defined or not use_letsencrypt|bool
-  tags: [ trident-core, config ]
-
-- name: Copy SSL secret files
-  copy:
-    dest: '{{ item.key }}'
-    content: '{{ item.value.content }}'
-    owner: '{{ item.value.owner }}'
-    group: '{{ item.value.group }}'
-    mode: '{{ item.value.mode }}'
-  with_dict: '{{ ssl_secret_files }}'
-  no_log: '{{ nolog }}'
-  when: use_letsencrypt is not defined or not use_letsencrypt|bool
-  notify: restart nginx
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
 - name: Ensure 'logo.png' is present
   copy:
     src: '{{ item }}'
