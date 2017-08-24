@@ -1,0 +1,32 @@
+[
+  {rabbit, [
+{% if rabbitmq_listen_address != '' %}
+    {tcp_listeners, [{"{{ rabbitmq_listen_address }}", {{ rabbitmq_port }}}]}
+{% else %}
+    {tcp_listeners, [{{ rabbitmq_port }}]}
+{% endif %}
+{% if rabbitmq_mgmt_port is defined %}
+    ,
+    {rabbitmq_management, [{listener, [{port, {{ rabbitmq_mgmt_port }}}]}]}
+{% endif %}
+{% if rabbitmq_ssl_certfile is defined and rabbitmq_ssl_certfile != '' %}
+    ,
+    {ssl_listeners, [{"{{ rabbitmq_ssl_listen_address }}", {{ rabbitmq_conf_ssl_listen_port }}}]},
+    {ssl, [
+      {cacertfile, "{{rabbitmq_ssl_cacertfile}}"},
+      {certfile, "{{rabbitmq_ssl_certfile}}"},
+      {keyfile, "{{rabbitmq_ssl_keyfile}}"},
+      {verify, verify_peer},
+      {fail_if_no_peer_cert,{{rabbitmq_ssl_fail_if_no_peer_cert}}}
+      ]}
+{% endif %}
+{% if groups['rabbitmq']|length > 1 %}
+      ,
+    {cluster_nodes, {[
+{% for host in ansible_play_hosts %}
+                      'rabbit@{{ hostvars[host]['ansible_hostname'] }}'{% if not loop.last %},{% endif %} 
+{% endfor %}
+                     ],disc}}
+{% endif %}
+  ]}
+].

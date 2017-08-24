@@ -1,0 +1,23 @@
+---
+
+# File: inventory/amqp/nodes.yml
+
+rabbitmq:
+  vars:
+    rabbitmq_ssl_listen_address: '192.168.56.11'
+    rabbitmq_ssl_listen_port: 5671
+    rabbitmq_ssl_cacertfile:
+    rabbitmq_ssl_certfile: '{{ sslCertDir }}/self_signed_cert.crt'
+    rabbitmq_ssl_keyfile: '{{ sslCertDir }}/self_signed_cert.key'
+    rabbitmq_ssl_fail_if_no_peer_cert: false
+    rabbitmq_environment: |
+      RABBITMQ_NODE_IP_ADDRESS=192.168.56.11
+      RABBITMQ_NODENAME=rabbit@{{ inventory_hostname }}
+      RABBITMQ_DEFAULT_USER={{ rabbitmq_default_user }}
+      RABBITMQ_DEFAULT_USER_PASS={{ rabbitmq_default_user_pass }}
+      RABBITMQ_ADMIN_USER={{ rabbitmq_admin_user }}
+      RABBITMQ_ADMIN_USER_PASS={{ rabbitmq_admin_user_pass }}
+  hosts:
+    'red.devops.local':
+
+# vim: ft=ansible :

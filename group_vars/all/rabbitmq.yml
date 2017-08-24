@@ -1,0 +1,23 @@
+---
+
+# File: group_vars/all/rabbitmq.yml
+
+# These variables are in the groups/all directory to make
+# them available to any potential clients. Other server-side
+# only variables are handled by role vars (including the
+# roles/rabbitmq/defaults/main.yml and inventory/rabbitmq/nodes.yml
+# files).
+
+rabbitmq_port: 5672
+rabbitmq_mgmt_port: 55672
+rabbitmq_server: '{{ groups.rabbitmq.0 }}'
+rabbitmq_vhost: '/'
+rabbitmq_default_user: 'rpc_user'
+rabbitmq_default_user_pass: 'rpcm3pwd'
+rabbitmq_admin_user: 'hutchman'
+rabbitmq_admin_user_pass: 'admin'
+rabbitmq_exchange: ''
+rabbitmq_logexchange: 'logs'
+rabbitmq_queuebase: 'rpc'
+
+# vim: ft=ansible :

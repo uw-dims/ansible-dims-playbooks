@@ -1,0 +1,15 @@
+---
+
+# File: group_vars/all/amqp.yml
+
+# The following variables only exist for compatibility with
+# the original PRISEM Project RPC scripts.  They reflect
+# the settings from group_vars/all/rabbitmq.yml and will
+# be removed when the PRISEM RPC code can be updated.
+
+amqp_port: '{{ rabbitmq_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_program: 'rabbitmq'
+amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
+
+# vim: ft=ansible :

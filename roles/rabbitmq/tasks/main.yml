@@ -1,0 +1,205 @@
+---
+
+# File: roles/rabbitmq/tasks/main.yml
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ rabbitmq ]
+
+- fail: msg="Installation on {{ ansible_os_family }} is not supported"
+  when: ansible_os_family != "Debian"
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_plugins
+  set_fact:
+    rabbitmq_plugins: '{{ _rabbitmq_plugins }}'
+  when: rabbitmq_plugins is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_apt_key
+  set_fact:
+    rabbitmq_apt_key: '{{ _rabbitmq_apt_key }}'
+  when: rabbitmq_apt_key is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_apt_repo
+  set_fact:
+    rabbitmq_apt_repo: '{{ _rabbitmq_apt_repo }}'
+  when: rabbitmq_apt_repo is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_rabbitmq_password
+  set_fact:
+    rabbitmq_rabbitmq_password: '{{ vault_rabbitmq_password }}'
+  when: rabbitmq_rabbitmq_password is not defined
+  no_log: '{{ nolog }}'
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_listen_address
+  set_fact:
+    rabbitmq_listen_address: '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
+  when: rabbitmq_listen_address is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_etc_default
+  set_fact:
+    rabbitmq_etc_default: '{{ _rabbitmq_etc_default }}'
+  when: rabbitmq_etc_default is not defined
+  tags: [ rabbitmq ]
+
+#- name: Define rabbitmq_mgmt_stats_interval
+#  set_fact:
+#    rabbitmq_mgmt_stats_interval: '{{ _rabbitmq_mgmt_stats_interval }}'
+#  when: rabbitmq_mgmt_stats_interval is not defined
+#  tags: [ rabbitmq ]
+
+- name: Add repo signing key
+  apt_key:
+    url: '{{ rabbitmq_apt_key }}'
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Add rabbitmq APT repo
+  apt_repository:
+    repo: '{{ rabbitmq_apt_repo }}'
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ rabbitmq ]
+
+- name: Stop rabbitmq-server
+  service:
+    name: rabbitmq-server
+    state: stopped
+  become: yes
+  notify:
+  - restart rabbitmq-server
+  tags: [ rabbitmq ]
+
+- name: Install rabbitmq-server package
+  apt:
+    name: 'rabbitmq-server'
+    state: installed
+    force: yes
+  when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Enable rabbitmq-server
+  service:
+    name: rabbitmq-server
+    enabled: yes
+  tags: [ rabbitmq ]
+
+- name: Ensure rabbitmq-server defaults present
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/rabbitmq-server
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rabbitmq_server_default }}'
+        - rabbitmq-server.{{ inventory_hostname }}.j2
+        - rabbitmq-server.category-{{ category }}.j2
+        - rabbitmq-server.deployment-{{ deployment }}.j2
+        - rabbitmq-server.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
+        - default/
+  when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ rabbitmq, config ]
+
+- name: Ensure rabbitmq.config is present
+  template:
+    src: '{{ item }}'
+    dest: '/etc/rabbitmq/rabbitmq.config'
+    owner: 'rabbitmq'
+    group: 'rabbitmq'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rabbitmq_server_default }}'
+        - rabbitmq.config.{{ inventory_hostname }}.j2
+        - rabbitmq.config.category-{{ category }}.j2
+        - rabbitmq.config.deployment-{{ deployment }}.j2
+        - rabbitmq.config.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmq.config/'
+        - default/
+  notify:
+  - restart rabbitmq-server
+  tags: [ rabbitmq ]
+
+- name: RabbitMQ Environment-specific configuration
+  template:
+    src: '{{ item }}'
+    dest: '/etc/rabbitmq/rabbitmq-env.conf'
+    group: 'rabbitmq'
+    owner: 'rabbitmq'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ rabbitmq_server_default }}'
+        - rabbitmq-env.conf.{{ inventory_hostname }}.j2
+        - rabbitmq-env.conf.category-{{ category }}.j2
+        - rabbitmq-env.conf.deployment-{{ deployment }}.j2
+        - rabbitmq-env.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmq-env.conf/'
+        - default/
+  notify: restart rabbitmq-server
+  when: rabbitmq_environment is defined
+  tags: [ rabbitmq ]
+
+- name: Remove default guest user
+  rabbitmq_user:
+    user: guest
+    state: absent
+  tags: [ rabbitmq ]
+
+- name: Add users
+  rabbitmq_user:
+    user: '{{item}}'
+    password: '{{ vault_rabbitmq_password }}'
+    tags: administrator,{{item}}
+    vhost: '/'
+    configure_priv: '.*'
+    write_priv: '.*'
+    read_priv: '.*'
+    state: present
+  with_items:
+    - dims
+  no_log: '{{ nolog }}'
+  tags: [ rabbitmq ]
+
+- name: Enable rabbitmq plugins
+  rabbitmq_plugin:
+    names: '{{ item }}'
+    state: enabled
+  with_items: '{{ rabbitmq_plugins }}'
+  notify:
+  - restart rabbitmq-server
+  tags: [ rabbitmq ]
+
+- name: Ensure vhost /test is present
+  rabbitmq_vhost:
+    name: /test
+    state: present
+  tags: [ rabbitmq ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  tags: [ rabbitmq ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ rabbitmq ]
+
+# vim: ft=ansible :

@@ -1,0 +1,16 @@
+#
+# {{ ansible_managed }}
+#
+# This file is sourced by /etc/init.d/rabbitmq-server. Its primary
+# reason for existing is to allow adjustment of system limits for the
+# rabbitmq-server process.
+#
+# Maximum number of open file handles. This will need to be increased
+# to handle many simultaneous connections. Refer to the system
+# documentation for ulimit (in man bash) for more information.
+#
+{% if rabbitmq_etc_default is defined %}
+{{ rabbitmq_etc_default }}
+{% else %}
+#ulimit -n 1024
+{% endif %}
