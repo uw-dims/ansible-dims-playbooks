@@ -24,6 +24,7 @@ vagrants:
       'swarm': 'eth1'
       'docker': 'eth1'
       'consul': 'eth1'
+      'rabbitmq': 'eth1'
       'private_network': 'eth1'
     net:
       iface:
