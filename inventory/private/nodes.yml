@@ -20,7 +20,7 @@ private:
     vault_tridentSysAdminPass: 'trident'
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
     ssl_secret_files:
-      /etc/nginx/ssl/trident.crt:
+      self_signed_cert.crt:
         owner: 'root'
         group: 'root'
         mode: 'u=r,go='
@@ -50,7 +50,7 @@ private:
           5atjWdVdi5AmpUoetvPYEsOhBmvrKYzfn8qm2iKIQNe0SSd15xcVQLWs+FCKREvM
           V4Cz51UhNGLEobTodXjZ8iSfo0YPqkO3FQckINyJaiVuBh0ytlB6
           -----END CERTIFICATE-----
-      /etc/nginx/ssl/trident.key:
+      self_signed_cert.key:
         owner: 'root'
         group: 'root'
         mode: 'u=r,go='
