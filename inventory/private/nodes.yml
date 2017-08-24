@@ -19,6 +19,7 @@ private:
     vault_tridentDBPass: 'trident'
     vault_tridentSysAdminPass: 'trident'
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
+    vault_rabbitmq_password: 'uncool+midscale~legmen'
     ssl_secret_files:
       /etc/nginx/ssl/trident.crt:
         owner: 'root'
