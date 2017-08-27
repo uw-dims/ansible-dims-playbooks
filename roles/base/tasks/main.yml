@@ -919,6 +919,31 @@
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
 
+- name: Set recipient for root/posmaster emails
+  template:
+    src: '{{ item }}'
+    dest: /etc/aliases
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0644 }}'
+  with_first_found:
+    - files:
+        - '{{ postfix_aliases }}'
+        - aliases.{{ inventory_hostname }}.j2
+        - aliases.{{ host_group }}.j2
+        - aliases.{{ postfix_group }}.j2
+        - aliases.deployment-{{ deployment }}.j2
+        - aliases.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
+        - aliases/
+  when: not ( ( groups.postfix is defined and inventory_hostname in groups.postfix )
+           or ( groups.trident is defined and inventory_hostname in groups.trident ) )
+  notify:
+    - rebuild postfix aliases
+    - reload postfix
+  tags: [ base, config ]
+
   # This is not DRY, but base role does not use post_tasks.yml
 - name: Log end of 'base' role
   shell: >
