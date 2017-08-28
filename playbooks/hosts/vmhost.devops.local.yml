@@ -30,13 +30,14 @@
   # Use the real host's playbook.
   roles:
     - { role: ansible-server }
+    - { role: ansible-role-ca }
     - { role: dns, zones: ['local']}
     - { role: postfix, postfix_group: 'local_vagrant_host' }
     - { role: nginx }
 
   tasks:
     - include: '{{ tasks_path }}/synchronize_vm.yml'
-      when: host not in [ 'localhost', 'vmhost.devops.local' ]
+      when: host is defined and host not in [ 'localhost', 'vmhost.devops.local' ]
       tags: [ 'always' ]
 
   handlers:

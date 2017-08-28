@@ -5,4 +5,12 @@
 _ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
 _ansible_dims_playbooks_version: 'master'
 
+_dims_ansible_imported_roles:
+  - https://github.com/nextrevision/ansible-swarm-playbook
+  - https://github.com/uw-dims/ansible-role-jenkins
+  - https://github.com/geerlingguy/ansible-role-certbot
+  - https://github.com/geerlingguy/ansible-role-nginx
+  - https://github.com/jdauphant/ansible-role-ssl-certs
+  - https://github.com/uw-dims/ansible-role-ca
+
 # vim: ft=ansible :
