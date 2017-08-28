@@ -31,7 +31,7 @@ rabbitmq:
     # Variables to control ansible-role-ssl-certs
     # (No longer using this role.)
     #ssl_certs_common_name: '{{ inventory_hostname }}'
-    #ssl_certs_path: '{{ ssl_cert_dir }}'
+    #ssl_certs_path: '{{ ssl_certs_dir }}'
     #ssl_certs_path_owner: rabbitmq
     #ssl_certs_path_group: rabbitmq
     #ssl_certs_mode: "0600"
