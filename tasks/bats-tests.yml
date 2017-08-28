@@ -19,9 +19,19 @@
 # multiple lines, so they are left as big long lines
 # despite possible readability problems.
 
+- name: Determine if tests may exist
+  stat: path='{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
+  register: _tests_dir
+
 - name: Set fact with list of test directories
   set_fact:
     test_directories="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests && find * -type d').split() }}"
+  when: _tests_dir is defined and _tests_dir.stat.exists
+
+- name: Set fact when no tests exist
+  set_fact:
+    test_directories=[]
+  when: _tests_dir is defined and _tests_dir.stat.exists
 
 - name: Make subdirectories for test categories present
   file:
