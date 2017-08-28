@@ -1,23 +1,35 @@
 [
   {rabbit, [
-{% if rabbitmq_listen_address != '' %}
-    {tcp_listeners, [{"{{ rabbitmq_listen_address }}", {{ rabbitmq_port }}}]}
+{% if rabbitmq_tcp_listen_address != '' %}
+    {tcp_listeners, [{"{{ rabbitmq_tcp_listen_address }}", {{ rabbitmq_tcp_listen_port }}}]}
 {% else %}
-    {tcp_listeners, [{{ rabbitmq_port }}]}
+    {tcp_listeners, [{{ rabbitmq_tcp_listen_port }}]}
 {% endif %}
 {% if rabbitmq_mgmt_port is defined %}
     ,
-    {rabbitmq_management, [{listener, [{port, {{ rabbitmq_mgmt_port }}}]}]}
+    {rabbitmq_management, [
+      {listener, [{port, {{ rabbitmq_mgmt_port }}}]}
+{% if rabbitmq_ssl_listen_address is defined and rabbitmq_ssl_listen_address != '' %}
+      ,
+      {ssl, true},
+      {ssl_opts, [
+        {cacertfile, "{{ rabbitmq_ssl_cacertfile }}"},
+        {certfile, "{{ rabbitmq_ssl_certfile }}"},
+        {keyfile, "{{ rabbitmq_ssl_keyfile }}"}
+      ]}
 {% endif %}
-{% if rabbitmq_ssl_certfile is defined and rabbitmq_ssl_certfile != '' %}
+    ]}
+{% endif %}
+{% if rabbitmq_ssl_listen_address is defined and rabbitmq_ssl_listen_address != '' and rabbitmq_ssl_listen_port is defined and rabbitmq_ssl_listen_port != '' %}
     ,
-    {ssl_listeners, [{"{{ rabbitmq_ssl_listen_address }}", {{ rabbitmq_conf_ssl_listen_port }}}]},
-    {ssl, [
-      {cacertfile, "{{rabbitmq_ssl_cacertfile}}"},
-      {certfile, "{{rabbitmq_ssl_certfile}}"},
-      {keyfile, "{{rabbitmq_ssl_keyfile}}"},
+    {ssl_listeners, [{"{{ rabbitmq_ssl_listen_address }}", {{ rabbitmq_ssl_listen_port }}}]},
+    {ssl_options, [
+      {versions, ['tlsv1.2', 'tlsv1.1']},
+      {cacertfile, "{{ rabbitmq_ssl_cacertfile }}"},
+      {certfile, "{{ rabbitmq_ssl_certfile }}"},
+      {keyfile, "{{ rabbitmq_ssl_keyfile }}"},
       {verify, verify_peer},
-      {fail_if_no_peer_cert,{{rabbitmq_ssl_fail_if_no_peer_cert}}}
+      {fail_if_no_peer_cert, {{ rabbitmq_ssl_fail_if_no_peer_cert }}}
       ]}
 {% endif %}
 {% if groups['rabbitmq']|length > 1 %}
@@ -28,5 +40,7 @@
 {% endfor %}
                      ],disc}}
 {% endif %}
-  ]}
+  ]},
+  {kernel, [{inet_dist_listen_min, 9100}, 
+            {inet_dist_listen_max, 9105}]}
 ].

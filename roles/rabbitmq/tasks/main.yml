@@ -27,13 +27,6 @@
   when: rabbitmq_apt_repo is not defined
   tags: [ rabbitmq ]
 
-- name: Define rabbitmq_rabbitmq_password
-  set_fact:
-    rabbitmq_rabbitmq_password: '{{ vault_rabbitmq_password }}'
-  when: rabbitmq_rabbitmq_password is not defined
-  no_log: '{{ nolog }}'
-  tags: [ rabbitmq ]
-
 - name: Define rabbitmq_listen_address
   set_fact:
     rabbitmq_listen_address: '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
@@ -46,13 +39,25 @@
   when: rabbitmq_etc_default is not defined
   tags: [ rabbitmq ]
 
+- name: Define erlang_apt_key
+  set_fact:
+    erlang_apt_key: '{{ _erlang_apt_key }}'
+  when: erlang_apt_key is not defined
+  tags: [ rabbitmq ]
+
+- name: Define erlang_apt_repo
+  set_fact:
+    erlang_apt_repo: '{{ _erlang_apt_repo }}'
+  when: erlang_apt_repo is not defined
+  tags: [ rabbitmq ]
+
 #- name: Define rabbitmq_mgmt_stats_interval
 #  set_fact:
 #    rabbitmq_mgmt_stats_interval: '{{ _rabbitmq_mgmt_stats_interval }}'
 #  when: rabbitmq_mgmt_stats_interval is not defined
 #  tags: [ rabbitmq ]
 
-- name: Add repo signing key
+- name: Add rabbitmq repo signing key
   apt_key:
     url: '{{ rabbitmq_apt_key }}'
     state: present
@@ -67,10 +72,29 @@
   when: ansible_os_family == "Debian"
   tags: [ rabbitmq ]
 
-- name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
+- name: Add erlang repo signing key
+  apt_key:
+    url: '{{ erlang_apt_key }}'
+    state: present
   become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Add erlang APT repo
+  apt_repository:
+    repo: '{{ erlang_apt_repo }}'
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Install erlang package
+  apt:
+    name: 'erlang'
+    state: installed
+    force: yes
+  when: ansible_os_family == "Debian"
   tags: [ rabbitmq ]
 
 - name: Stop rabbitmq-server
@@ -78,6 +102,7 @@
     name: rabbitmq-server
     state: stopped
   become: yes
+  ignore_errors: yes
   notify:
   - restart rabbitmq-server
   tags: [ rabbitmq ]
@@ -88,6 +113,19 @@
     state: installed
     force: yes
   when: ansible_os_family == "Debian"
+  tags: [ rabbitmq ]
+
+- name: Make rabbitmq user present in required groups
+  user:
+    name: rabbitmq
+    groups: '{{ dims_user }}'
+    state: present
+    append: yes
+    createhome: no
+  with_items:
+    - '{{ dims_user }}'
+    - ssl-cert
+  become: yes
   tags: [ rabbitmq ]
 
 - name: Enable rabbitmq-server
@@ -113,7 +151,6 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/default/'
         - default/
-  when: ansible_os_family == "Debian"
   become: yes
   tags: [ rabbitmq, config ]
 
@@ -134,11 +171,12 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmq.config/'
         - default/
+  become: yes
   notify:
   - restart rabbitmq-server
   tags: [ rabbitmq ]
 
-- name: RabbitMQ Environment-specific configuration
+- name: Ensure rabbitmq environment config is present
   template:
     src: '{{ item }}'
     dest: '/etc/rabbitmq/rabbitmq-env.conf'
@@ -155,28 +193,39 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmq-env.conf/'
         - default/
+  become: yes
   notify: restart rabbitmq-server
   when: rabbitmq_environment is defined
+  tags: [ rabbitmq ]
+
+- name: Ensure rabbitmq-server is started
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: true
+  become: yes
   tags: [ rabbitmq ]
 
 - name: Remove default guest user
   rabbitmq_user:
     user: guest
     state: absent
+  become: yes
   tags: [ rabbitmq ]
 
 - name: Add users
   rabbitmq_user:
-    user: '{{item}}'
-    password: '{{ vault_rabbitmq_password }}'
-    tags: administrator,{{item}}
+    user: '{{ item.name }}'
+    password: '{{ item.password }}'
+    tags: administrator,{{ item.name }}
     vhost: '/'
     configure_priv: '.*'
     write_priv: '.*'
     read_priv: '.*'
     state: present
   with_items:
-    - dims
+    - '{{ rabbitmq_users }}'
+  become: yes
   no_log: '{{ nolog }}'
   tags: [ rabbitmq ]
 
@@ -184,16 +233,73 @@
   rabbitmq_plugin:
     names: '{{ item }}'
     state: enabled
-  with_items: '{{ rabbitmq_plugins }}'
+    new_only: yes
+  with_items:
+      - '{{ rabbitmq_plugins }}'
+  become: yes
   notify:
   - restart rabbitmq-server
   tags: [ rabbitmq ]
 
-- name: Ensure vhost /test is present
-  rabbitmq_vhost:
-    name: /test
-    state: present
+- name: "Wait for mgmt port ({{ rabbitmq_mgmt_port }})"
+  wait_for:
+    port: '{{ rabbitmq_mgmt_port }}'
+    delay: 5
   tags: [ rabbitmq ]
+
+- name: Ensure rabbitmqadmin script is available
+  shell: >
+    curl -s
+    http://127.0.0.1:{{ rabbitmq_mgmt_port }}/cli/rabbitmqadmin
+    > /usr/local/bin/rabbitmqadmin &&
+    chmod +x /usr/local/bin/rabbitmqadmin
+  become: yes
+  tags: [ rabbitmq ]
+
+- name: Ensure ~/.rabbitmqadmin.conf is in root account
+  template:
+    src: '{{ item }}'
+    dest: /root/.rabbitmqadmin.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: '{{ mode_0640 }}'
+  with_first_found:
+    - files:
+        - '{{ rabbitmqadmin_conf }}'
+        - rabbitmqadmin.conf.{{ inventory_hostname }}.j2
+        - rabbitmqadmin.conf.category-{{ category }}.j2
+        - rabbitmqadmin.conf.deployment-{{ deployment }}.j2
+        - rabbitmqadmin.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmqadmin.conf/'
+        - rabbitmqadmin.conf/
+  become: yes
+  tags: [ rabbitmq, config ]
+
+- name: Create broker_objects.json file
+  copy:
+    src: '{{ item }}'
+    dest: /etc/rabbitmq/broker_objects.json
+    owner: rabbitmq
+    group: rabbitmq
+    mode: '{{ mode_0640 }}'
+  with_first_found:
+    - files:
+        - '{{ rabbitmq_broker_objects }}'
+        - broker_objects.json.{{ inventory_hostname }}
+        - broker_objects.json.category-{{ category }}
+        - broker_objects.json.deployment-{{ deployment }}
+        - broker_objects.json
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/files'
+        - files
+  become: yes
+  tags: [ rabbitmq, config ]
+
+- name: Import broker_objects.json
+  shell: "rabbitmqadmin -N localhost import /etc/rabbitmq/broker_objects.json"
+  become: yes
+  tags: [ rabbitmq, config ]
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
