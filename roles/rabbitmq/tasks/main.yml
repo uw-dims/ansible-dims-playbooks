@@ -303,7 +303,7 @@
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
-  tags: [ rabbitmq ]
+  tags: [ rabbitmq, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rabbitmq ]

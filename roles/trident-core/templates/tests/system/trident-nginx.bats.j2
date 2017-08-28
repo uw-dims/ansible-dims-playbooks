@@ -48,17 +48,14 @@ function setup() {
 	assert 644 stat --printf "%a" /etc/trident/nginx/trident-server.inc
 }
 
-# TODO(dittrich): Disabling: Not compatible with letsencrypt
-#@test "[S][EV] Directory /etc/nginx/ssl is present" {
-#	[ -d /etc/nginx/ssl ]
-#}
+{% if ssl_certfile is defined %}
+@test "[S][EV] SSL certificate {{ ssl_certfile }} exists" {
+    [ -f {{ ssl_certfile }} ]
+}
 
-# TODO(dittrich): Disabling: Not compatible with letsencrypt
-#@test "[S][EV] Assert ownerships root:root for /etc/nginx/ssl" {
-#	assert "root:root" stat --printf "%U:%G" /etc/nginx/ssl
-#}
-
-# TODO(dittrich): Disabling: Not compatible with letsencrypt
-#@test "[S][EV] Assert permisions 755 for /etc/nginx/ssl" {
-#	assert 755 stat --printf "%a" /etc/nginx/ssl
-#}
+{% endif %}
+{% if ssl_keyfile is defined %}
+@test "[S][EV] SSL private key {{ ssl_keyfile }} exists" {
+    [ -f {{ ssl_keyfile }} ]
+}
+{% endif %}
