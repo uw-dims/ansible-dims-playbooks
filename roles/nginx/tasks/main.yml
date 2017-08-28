@@ -192,12 +192,6 @@
         and nginx_source_bootstrap_dir is defined'
   tags: [ nginx ]
 
-# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
-- name: Generate Strong Diffie-Hellman Group
-  shell: "openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048"
-  become: yes
-  tags: [ nginx, config ]
-
 - name: Make defined bats tests present
   include: '{{ tasks_path }}/bats-tests.yml'
   tags: [ nginx, tests ]
