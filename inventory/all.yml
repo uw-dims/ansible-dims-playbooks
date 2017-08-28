@@ -1,17 +1,20 @@
 ---
 
 all:
+  vars:
+    dist_tag: "u'{{ ansible_distribution_version }}'"
+    os_version: '?'
   hosts:
     'black.devops.local':
     'blue14.devops.local':
     'blue16.devops.local':
-    'hub.devops.local':
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
     'orange.devops.local':
     'purple.devops.local':
     'red.devops.local':
+    'gray.devops.local':
     'vmhost.devops.local':
     'yellow.devops.local':
   children:
@@ -34,5 +37,144 @@ all:
         'orange.devops.local':
         'purple.devops.local':
         'yellow.devops.local':
+    coreos:
+      vars:
+        ssl_certs_dir: '?'
+        ssl_key_dir: '?'
+      hosts:
+        'node01.devops.local':
+          os_version: '?'
+        'node02.devops.local':
+          os_version: '?'
+        'node03.devops.local':
+          os_version: '?'
+    ubuntu:
+      vars:
+        ssl_certs_dir: '/etc/ssl/certs'
+        ssl_key_dir: '/etc/ssl/private'
+        packages_install:
+          - 'apt-transport-https'
+          - 'bash-completion'
+          - 'ca-certificates'
+          - 'cpanminus'
+          - 'curl'
+          - 'dconf-tools'
+          - 'git-core'
+          - 'default-jdk'
+          - 'gitk'
+          - 'gnupg2'
+          - 'htop'
+          - 'hunspell'
+          - 'iptables-persistent'
+          - 'ifstat'
+          - 'make'
+          - 'myrepos'
+          - 'netcat'
+          - 'nfs-common'
+          - 'chrony'
+          - 'ntpdate'
+          - 'openssh-server'
+          - 'patch'
+          - 'perl'
+          - 'postfix'
+          - 'python'
+          - 'python-apt'
+          - 'remake'
+          - 'rsync'
+          - 'rsyslog'
+          - 'sshfs'
+          - 'sshpass'
+          - 'strace'
+          - 'tree'
+          - 'vim'
+          - 'xsltproc'
+          - 'chrony'
+          - 'nfs-kernel-server'
+          - 'smartmontools'
+          - 'unzip'
+        packages_remove:
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: [ ]
+        services_enabled:
+          - 'auditd'
+        root_user: 'root'
+        root_group: 'root'
+      hosts:
+        'black.devops.local':
+          os_version: '14.04.5'
+        'blue14.devops.local':
+          os_version: '14.04.5'
+        'blue16.devops.local':
+          os_version: '16.04.1'
+        'red.devops.local':
+          os_version: '14.04.5'
+        'orange.devops.local':
+          os_version: '14.04.5'
+    debian:
+      vars:
+        ssl_certs_dir: '/etc/ssl/certs'
+        ssl_key_dir: '/etc/ssl/private'
+        packages_install:
+         -  'apt-transport-https'
+         -  'bash-completion'
+         -  'ca-certificates'
+         -  'chrony'
+         -  'cpanminus'
+         -  'curl'
+         -  'dconf-tools'
+         -  'git-core'
+         -  'gitk'
+         -  'gnupg2'
+         -  'htop'
+         -  'hunspell'
+         -  'ifstat'
+         -  'iptables-persistent'
+         -  'make'
+         -  'myrepos'
+         -  'netcat'
+         -  'nfs-common'
+         -  'ntpdate'
+         -  'openssh-server'
+         -  'patch'
+         -  'perl'
+         -  'postfix'
+         -  'python'
+         -  'python-apt'
+         -  'remake'
+         -  'rsync'
+         -  'rsyslog'
+         -  'smartmontools'
+         -  'sshfs'
+         -  'strace'
+         -  'tree'
+         -  'vim'
+         -  'xsltproc'
+        packages_remove:
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: [ ]
+        services_enabled:
+          - 'auditd'
+      hosts:
+        'gray.devops.local':
+          os_version: '8.5.0'
+        'green.devops.local':
+          os_version: '7.11.0'
+        'purple.devops.local':
+          os_version: '8.5.0'
+        'yellow.devops.local':
+          os_version: '8.5.0'
+    darwin:
+      vars:
+        syslog_user: 'root'
+        root_user: 'root'
+        root_group: 'wheel'
+    centos:
+      vars:
+        ssl_certs_dir: '/etc/pki/ca-trust/source/anchors/'
+        ssl_key_dir: '/etc/ssl/private'
 
 # vim: ft=ansible:
