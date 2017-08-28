@@ -275,9 +275,9 @@
 - name: Make sure blacklisted packages are absent (Debian)
   apt: state=absent name={{ item }} force=yes
   with_items:
-    - '{{ packages_remove[ansible_lsb.id] }}'
+    - '{{ packages_remove }}'
   become: yes
-  when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"
   ignore_errors: yes
   tags: [ base, packages, updates ]
 
@@ -290,10 +290,10 @@
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
   with_items:
-   - "{{ packages_install[ansible_lsb.id] }}"
+   - "{{ packages_install }}"
   become: yes
   ignore_errors: yes
-  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"
   tags: [ base, packages, updates ]
 
 - name: Clean APT cache to avoid Make upgraded packages present if we are explicitly upgrading

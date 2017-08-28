@@ -10,7 +10,6 @@
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/coreos.yml"
 
   remote_user: "ansible"
   become: yes

@@ -9,9 +9,9 @@
     update_cache: yes
     force: yes
   with_items:
-   - "{{ packages_install[ansible_lsb.id] }}"
+   - "{{ packages_install }}"
   ignore_errors: yes
-  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"
 
 - name: Make sure required APT packages are present (RedHat)
   yum:
@@ -20,9 +20,9 @@
     update_cache: yes
     force: yes
   with_items:
-   - "{{ packages_install[ansible_lsb.id] }}"
+   - "{{ packages_install }}"
   ignore_errors: yes
-  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "RedHat"
+  when: ansible_os_family == "RedHat"
 
   # TODO(dittrich): Implement CoreOS preparation from $GIT/dims-packer/
   #
