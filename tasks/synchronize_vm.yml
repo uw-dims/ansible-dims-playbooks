@@ -6,7 +6,7 @@
 # (except 'run/' contents and 'cache/apt/' directory used by
 # squid-deb-proxy, which will be re-populated as needed.)
 
-- name: Verify existence of {{ vm_dir }}
+- name: "Verify existence of {{ vm_dir }}"
   stat:
     path: '{{ vm_dir }}'
   register: _vmdir_stat
@@ -19,7 +19,7 @@
         or not _vmdir_stat.stat.exists
 
   # Note: http://cheat.readthedocs.io/en/latest/ansible/synchronize.html
-- name: Synchronize {{ vm_dir }} contents
+- name: "Synchronize {{ vm_dir }} contents"
   synchronize:
     src: '{{ vm_dir }}/'
     dest: '{{ vm_dir }}'
