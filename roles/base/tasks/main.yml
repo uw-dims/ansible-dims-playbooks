@@ -13,7 +13,7 @@
   shell: >
     {{ dims_bin }}/dims.logger
     --logger-tag ansible-playbook
-    --logmon-exchange devops
+    --logmon-exchange {{ dims_logmon_exchange|default('devops') }}
     'Starting role: base'
   when: _logger_stat is defined and _logger_stat.stat.exists
   ignore_errors: yes

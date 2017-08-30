@@ -30,7 +30,7 @@
     [ -f {{ dims_bin }}/dims.logger ] &&
     {{ dims_bin }}/dims.logger
     --logger-tag ansible-playbook
-    --logmon-exchange devops
+    --logmon-exchange {{ dims_logmon_exchange|default('devops') }}
     'Ending role: {{ role_name | quote }}'
   ignore_errors: yes
 
