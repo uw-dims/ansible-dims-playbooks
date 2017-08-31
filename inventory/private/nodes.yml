@@ -19,8 +19,13 @@ private:
     vault_tridentDBPass: 'trident'
     vault_tridentSysAdminPass: 'trident'
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
+    vault_rabbitmq_default_user_pass: 'rpcm3pwd'
+    vault_rabbitmq_admin_user_pass: 'uncool+midscale~legmen'
+    # For ansible-role-ca
+    ca_rootca_password: 'tempted@ignobly+fugal'
+    #
     ssl_secret_files:
-      /etc/nginx/ssl/trident.crt:
+      self_signed_cert.crt:
         owner: 'root'
         group: 'root'
         mode: 'u=r,go='
@@ -50,7 +55,7 @@ private:
           5atjWdVdi5AmpUoetvPYEsOhBmvrKYzfn8qm2iKIQNe0SSd15xcVQLWs+FCKREvM
           V4Cz51UhNGLEobTodXjZ8iSfo0YPqkO3FQckINyJaiVuBh0ytlB6
           -----END CERTIFICATE-----
-      /etc/nginx/ssl/trident.key:
+      self_signed_cert.key:
         owner: 'root'
         group: 'root'
         mode: 'u=r,go='
@@ -86,12 +91,12 @@ private:
   hosts:
     'vmhost.devops.local':
     'red.devops.local':
+    'gray.devops.local':
     'orange.devops.local':
     'blue14.devops.local':
     'blue16.devops.local':
     'yellow.devops.local':
     'purple.devops.local':
-    'hub.devops.local':
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':

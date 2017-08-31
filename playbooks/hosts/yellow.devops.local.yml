@@ -11,7 +11,6 @@
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/jessie.yml"
 
   remote_user: "ansible"
   become: yes
@@ -20,6 +19,7 @@
     - { role: debug }
     - { role: base }
     - { role: hosts }
+    - { role: ansible-role-ca, ca_distribute_keys: true }
     - { role: dims-ci-utils }
     - { role: postfix, postfix_group: 'trident-local' }
     - { role: python-virtualenv, use_sphinx: false }

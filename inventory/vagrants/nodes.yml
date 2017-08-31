@@ -24,6 +24,7 @@ vagrants:
       'swarm': 'eth1'
       'docker': 'eth1'
       'consul': 'eth1'
+      'rabbitmq': 'eth1'
       'private_network': 'eth1'
     net:
       iface:
@@ -55,6 +56,11 @@ vagrants:
         #   vagrant_net: "public_network"
         #   vagrant_bridge: "[ 'eth0', 'wlan0' ]"
   hosts:
+    'gray.devops.local':
+      box_baseos: "debian"
+      box_osnick: "jessie"
+      box_osversion: "8.5.0"
+      box_type: "server"
     'red.devops.local':
       #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"

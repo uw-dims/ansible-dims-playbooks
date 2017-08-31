@@ -10,6 +10,10 @@
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
+- include: '{{ tasks_path }}/install-self-signed-certs.yml'
+  when: use_letsencrypt is not defined or not use_letsencrypt|bool
+  tags: [ nginx, packages ]
+
 # Following instructions from http://nginx.org/en/linux_packages.html
 - name: Import repository signing key
   apt_key:
@@ -187,12 +191,6 @@
   when: '"source" in nginx_sites_available
         and nginx_source_bootstrap_dir is defined'
   tags: [ nginx ]
-
-# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
-- name: Generate Strong Diffie-Hellman Group
-  shell: "openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048"
-  become: yes
-  tags: [ nginx, config ]
 
 - name: Make defined bats tests present
   include: '{{ tasks_path }}/bats-tests.yml'

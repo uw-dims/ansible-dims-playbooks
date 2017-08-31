@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+
+[localhost]
+hostname = localhost
+port = {{ rabbitmq_mgmt_port }}
+username = {{ rabbitmq_default_user }}
+password = {{ rabbitmq_default_user_pass }}
+vhost = /
+
+[localhost_ssl]
+hostname = localhost
+port = {{ rabbitmq_mgmt_port }}
+username = {{ rabbitmq_default_user }}
+password = {{ rabbitmq_default_user_pass }}
+ssl = True
+ssl_key_file = {{ rabbitmq_ssl_keyfile }}
+ssl_cert_file = {{ rabbitmq_ssl_certfile }}

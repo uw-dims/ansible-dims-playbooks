@@ -28,6 +28,12 @@
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ python-virtualenv, packages, config ]
 
+- name: Define dims_ansible_version
+  set_fact:
+    dims_ansible_version: '{{ _dims_ansible_version }}'
+  when: dims_ansible_version is not defined
+  tags: [ always ]
+
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"

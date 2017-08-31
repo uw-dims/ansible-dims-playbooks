@@ -13,7 +13,7 @@
   shell: >
     {{ dims_bin }}/dims.logger
     --logger-tag ansible-playbook
-    --logmon-exchange devops
+    --logmon-exchange {{ dims_logmon_exchange|default('devops') }}
     'Starting role: base'
   when: _logger_stat is defined and _logger_stat.stat.exists
   ignore_errors: yes
@@ -275,9 +275,9 @@
 - name: Make sure blacklisted packages are absent (Debian)
   apt: state=absent name={{ item }} force=yes
   with_items:
-    - '{{ packages_remove[ansible_lsb.id] }}'
+    - '{{ packages_remove }}'
   become: yes
-  when: packages_remove[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"
   ignore_errors: yes
   tags: [ base, packages, updates ]
 
@@ -290,10 +290,10 @@
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
   with_items:
-   - "{{ packages_install[ansible_lsb.id] }}"
+   - "{{ packages_install }}"
   become: yes
   ignore_errors: yes
-  when: packages_install[ansible_lsb.id] is defined and ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"
   tags: [ base, packages, updates ]
 
 - name: Clean APT cache to avoid Make upgraded packages present if we are explicitly upgrading
@@ -939,9 +939,21 @@
         - aliases/
   when: not ( ( groups.postfix is defined and inventory_hostname in groups.postfix )
            or ( groups.trident is defined and inventory_hostname in groups.trident ) )
-  notify:
-    - rebuild postfix aliases
-    - reload postfix
+  register: _aliases
+  tags: [ base, config ]
+
+- name: Reload aliases
+  shell: newaliases
+  become: yes
+  when: _aliases.changed
+  tags: [ base, config ]
+
+- name: Restart postfix
+  service:
+    name: postfix
+    state: restarted
+  become: yes
+  when: _aliases.changed
   tags: [ base, config ]
 
   # This is not DRY, but base role does not use post_tasks.yml

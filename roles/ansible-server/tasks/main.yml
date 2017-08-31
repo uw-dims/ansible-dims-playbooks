@@ -19,6 +19,12 @@
   when: ansible_dims_playbooks_version is not defined
   tags: [ ansible-server ]
 
+- name: Define dims_ansible_imported_roles
+  set_fact:
+    dims_ansible_imported_roles: '{{ _dims_ansible_imported_roles }}'
+  when: dims_ansible_imported_roles is not defined
+  tags: [ ansible-server ]
+
 - name: Make sure directory exists for ansible configurations
   file:
     path: /etc/ansible

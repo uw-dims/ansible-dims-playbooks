@@ -17,6 +17,8 @@ git_version: 'v2.8.4'
 # gpg:          There is no indication that the signature belongs to the owner.
 # Primary key fingerprint: C01E 1CAD 5EA2 C4F0 B8E3  5715 04C3 67C2 18AD D4FF
 
+_dims_ansible_version: 2.3.1.0
+
 python_version: '2.7.13'
 python_archive: 'Python-{{ python_version }}.tgz'
 python_dist_url: 'https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz'

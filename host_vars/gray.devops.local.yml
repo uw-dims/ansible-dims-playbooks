@@ -1,0 +1,18 @@
+# File: host_vars/gray.devops.local.yml
+
+eth1:
+  ip: "192.168.56.26"
+  auto_config: "true"
+eth2:
+  ip: "10.168.56.26"
+  auto_config: "false"
+
+iso_source: "file:///vm/cache/isos"
+iso_arch: "amd64"
+iso_checksum_type: "sha256"
+iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
+ssh_pass: "{{ vault_ssh_pass }}"
+installDesktop: ""
+headless: false
+
+# vim: ft=ansible :

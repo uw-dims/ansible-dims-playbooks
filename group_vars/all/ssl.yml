@@ -1,0 +1,21 @@
+---
+
+# File: group_vars/all/ssl.yml
+
+# The following are defined in relation to the ansible-role-ca
+# self-signed certificate generation role. These are set to
+# the standard general directories for Debian and RedHat. This
+# allows one cert per host to be used for any service(s) that
+# use SSL, as well as adding local CA and host certs to the
+# SSL trust database. (Used for development.)
+
+# ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
+
+ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
+ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
+ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
+
+#sslCertDir: '/etc/nginx/ssl'
+#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+
+# vim: ft=ansible :

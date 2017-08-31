@@ -68,8 +68,8 @@
 #  tags: [ base, packages ]
 
 #- name: Make sure required packages are present (CoreOS)
-#  shell: "echo dnf -y install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
-#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS"
+#  shell: "echo dnf -y install {{ packages_install | list_to_args }} | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS"
 #  tags: [ base, packages ]
 
 # TODO(dittrich): Debug and fix proxy problem?
@@ -86,19 +86,19 @@
 
 # TODO(dittrich): Debug and fix proxy problem?
 #- name: Make sure required packages are present (CoreOS) (no proxy)
-#  shell: "echo dnf -y install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
-#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS" and https_proxy is not defined
+#  shell: "echo dnf -y install {{ packages_install | list_to_args }} | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS" and https_proxy is not defined
 #  tags: [ base, packages ]
 
 # TODO(dittrich): Debug and fix proxy problem?
 #- name: Make sure required packages are present (CoreOS) (with proxy)
-#  shell: "echo dnf -y --setopt proxy={{ https_proxy }} install {{ packages_install[ansible_os_family] | list_to_args }} | toolbox -q"
-#  when: packages_install[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS" and https_proxy is defined
+#  shell: "echo dnf -y --setopt proxy={{ https_proxy }} install {{ packages_install | list_to_args }} | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS" and https_proxy is defined
 #  tags: [ base, packages ]
 
 #- name: Make sure blacklisted packages are absent (CoreOS)
-#  shell: "echo dnf -y remove {{ packages_remove[ansible_os_family] | list_to_args }} | toolbox -q"
-#  when: packages_remove[ansible_os_family] is defined and ansible_os_family == "Container Linux by CoreOS"
+#  shell: "echo dnf -y remove {{ packages_remove | list_to_args }} | toolbox -q"
+#  when: ansible_os_family == "Container Linux by CoreOS"
 #  tags: [ base, packages ]
 
 # vim: ft=ansible :

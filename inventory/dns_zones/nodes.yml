@@ -28,6 +28,7 @@ dns_zones:
       hosts:
         'vmhost.devops.local':
         'red.devops.local':
+        'gray.devops.local':
         'black.devops.local':
         'orange.devops.local':
         'blue14.devops.local':

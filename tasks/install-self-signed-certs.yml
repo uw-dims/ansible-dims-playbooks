@@ -1,0 +1,41 @@
+---
+
+# File: tasks/install-self-signed-certs.yml
+
+# This task installs a self-signed cert for using SSL in a
+# development environment. It assumes that you WILL NOT be
+# making any SSL endpoint open to the Internet or to an insecure
+# LAN. For added security, use the "private" facility employed
+# by ansible-dims-playbooks to install a non-public self-signed
+# cert that you have generated specifically for a non-public
+# local deployment.
+
+- fail: msg="use_letsencrypt is enabled"
+  when: use_letsencrypt is defined and use_letsencrypt|bool
+
+- name: Load deployment secret variables file
+  include_vars: '{{ dims_private }}/group_vars/vault.yml'
+  no_log: '{{ nolog }}'
+  when: ssl_secret_files is not defined
+
+- name: Ensure SSL file directory exists
+  file:
+    path: '{{ ssl_certs_dir }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    state: directory
+    mode: '{{ mode_0755 }}'
+  become: yes
+
+- name: Copy SSL secret files
+  copy:
+    dest: '{{ ssl_certs_dir }}/{{ item.key }}'
+    content: '{{ item.value.content }}'
+    owner: '{{ item.value.owner }}'
+    group: '{{ item.value.group }}'
+    mode: '{{ item.value.mode }}'
+  with_dict: '{{ ssl_secret_files }}'
+  no_log: '{{ nolog }}'
+  notify: restart nginx
+
+# ft=ansible :

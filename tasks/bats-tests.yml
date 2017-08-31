@@ -19,9 +19,33 @@
 # multiple lines, so they are left as big long lines
 # despite possible readability problems.
 
+- name: Set _base_path
+  set_fact:
+    _base_path: '{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
+
+- name: Determine if tests may exist
+  find:
+    path: '{{ _base_path }}'
+    file_type: directory
+    recurse: true
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+  register: _tests_find
+
+- name: Initialize test_directories list
+  set_fact:
+    test_directories: []
+
 - name: Set fact with list of test directories
   set_fact:
-    test_directories="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests && find * -type d').split() }}"
+    test_directories: '{{ test_directories|default([]) + [item|regex_replace(_base_path,"")|regex_replace("^/","")] }}'
+  with_items: "{{ _tests_find.files|map(attribute='path')|list }}"
+  when: _tests_find.files is defined
+
+- name: Verify no nested tests
+  fail: msg="Nested tests are not allowed ({{ item }})"
+  with_items: '{{ test_directories }}'
+  when: '"/" in item'
 
 - name: Make subdirectories for test categories present
   file:
@@ -42,40 +66,103 @@
 - name: Make bats functions present
   template:
     src: '{{ item }}'
-    dest: '{{ dims_tests }}/{{ item | basename | regex_replace("\.j2","") }}'
+    dest: '{{ dims_tests }}/{{ item|basename|regex_replace("\.j2","") }}'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     mode: '{{ mode_0755 }}'
   with_fileglob:
    - ../templates/tests/*.bash.j2
+  when: test_directories is defined
 
 - name: Set fact with list of .bash scripts in top level tests directory
-  shell: "cd {{ dims_tests }} && find * -maxdepth 1 -type f -name '*.bash'"
-  register: scripts
+  find:
+    path: '{{ dims_tests }}'
+    recurse: false
+    file_type: file
+    patterns: '*.bash'
+    use_regex: false
+  register: _scripts
 
 - name: Make links to helper functions present
   file:
     state: link
-    src: '{{ dims_tests }}/{{ item[1] }}'
-    path: '{{ dims_tests }}/{{ item[0] }}/{{ item[1] }}'
+    src: '{{ item[1] }}'
+    path: '{{ dims_tests }}/{{ item[0] }}/{{ item[1]|basename }}'
   with_nested:
     - '{{ test_directories }}'
-    - '{{ scripts.stdout_lines }}'
-  when: test_directories is defined and scripts.stdout_lines is defined
+    - '{{ _scripts.files|map(attribute="path")|list }}'
+  when: test_directories is defined and _scripts.matched|int > 0
 
 # The Jinja templates don't seem to be easily split over
 # multiple lines, so they are left as big long lines
 # despite possible readability problems.
 
+#- name: Identify bats test templates
+#  set_fact:
+#    bats_test_templates="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests 2>/dev/null && find * -type f -name \"*.bats.j2\"').split() }}"
+#  ignore_errors: yes
+
 - name: Identify bats test templates
+  find:
+    path: '{{ _base_path }}'
+    recurse: true
+    file_type: file
+    patterns: "*.bats.j2"
+    use_regex: false
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+  register: _templates_find
+
+# TASK [docker : Set fact with list of test templates] **************************
+# task path: /vm/run/gray/ansible-dims-playbooks/tasks/bats-tests.yml:111
+# Wednesday 30 August 2017  13:31:10 -0700 (0:00:01.126)       0:01:39.242 ******
+# ok: [gray.devops.local] => (item=/vm/run/gray/ansible-dims-playbooks/roles/docker/templates/tests/system/docker-network.bats.j2) => {
+#     "ansible_facts": {
+#         "bats_test_templates": [
+#             "system/docker-network.bats.j2"
+#         ]
+#     },
+#     "changed": false,
+#     "item": "/vm/run/gray/ansible-dims-playbooks/roles/docker/templates/tests/system/docker-network.bats.j2"
+# }
+# ok: [gray.devops.local] => (item=/vm/run/gray/ansible-dims-playbooks/roles/docker/templates/tests/system/docker-core.bats.j2) => {
+#     "ansible_facts": {
+#         "bats_test_templates": [
+#             "system/docker-network.bats.j2",
+#             "system/docker-core.bats.j2"
+#         ]
+#     },
+#     "changed": false,
+#     "item": "/vm/run/gray/ansible-dims-playbooks/roles/docker/templates/tests/system/docker-core.bats.j2"
+# }
+
+- name: Initialize bats_test_templates list
   set_fact:
-    bats_test_templates="{{ lookup('pipe','cd {{ playbooks_root }}/roles/{{ role_name }}/templates/tests 2>/dev/null && find . -type f -name \"*.bats.j2\"').split() }}"
-  ignore_errors: yes
+    bats_test_templates: []
+
+- name: Set fact with list of test templates
+  set_fact:
+    bats_test_templates: '{{ bats_test_templates + [item|regex_replace(_base_path,"")|regex_replace("^/","")] }}'
+  with_items: "{{ _templates_find.files|map(attribute='path')|list }}"
+  when: _templates_find.files is defined
+
+- debug: 'var=bats_test_templates'
+
+#- debug: msg='{{ dims_tests }}/{{ bats_test_templates.0|regex_replace("\.j2","") }}'
+#
+# TASK [docker : debug] *********************************************************
+# task path: /vm/run/gray/ansible-dims-playbooks/tasks/bats-tests.yml:122
+# Wednesday 30 August 2017  13:31:13 -0700 (0:00:01.048)       0:01:42.371 ******
+# ok: [gray.devops.local] => {}
+#
+# MSG:
+#
+# /opt/dims/tests.d/system/docker-network.bats
 
 - name: Make defined bats tests present
   template:
-    src: ../templates/tests/{{ item }}
-    dest: '{{ dims_tests }}/{{ item | dirname }}/{{ item | basename | regex_replace("\.j2","") }}'
+    src: '{{ _base_path }}/{{ item }}'
+    dest: '{{ dims_tests }}/{{ item|regex_replace("\.j2","") }}'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     mode: '{{ mode_0755 }}'

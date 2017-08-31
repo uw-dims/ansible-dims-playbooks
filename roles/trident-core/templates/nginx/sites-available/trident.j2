@@ -22,8 +22,8 @@ server {
   server_name {{ tridentFQDN }};
 
 {% if use_letsencrypt is not defined or not use_letsencrypt %}
-  ssl_certificate   {{ sslCertDir }}/trident.crt;
-  ssl_certificate_key {{ sslCertDir}}/trident.key;
+  ssl_certificate   {{ ssl_certfile }};
+  ssl_certificate_key {{ ssl_keyfile }};
   ssl_prefer_server_ciphers on;
 
   # And other SSL options, recommended:
@@ -35,14 +35,16 @@ server {
   # STS header
   add_header Strict-Transport-Security "max-age=31536001";
 
+{% if sslSPKIFingerprint is defined %}
   # HTTP Key Pinning
   add_header Public-Key-Pins 'max-age=5184000; pin-sha256"={{ sslSPKIFingerprint }}"';
+{% endif %}
 
 {% else %}
   # Letsencrypt certificate
   # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
-  ssl_certificate     {{ sslCertDir }}/fullchain.pem;
-  ssl_certificate_key {{ sslCertDir }}/privkey.pem;
+  ssl_certificate     /etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/{{ tridentFQDN }}/privkey.pem;
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
   ssl_prefer_server_ciphers on;
   ssl_dhparam /etc/ssl/certs/dhparam.pem;
