@@ -18,6 +18,7 @@
     - { role: debug }
     - { role: base, packages_upgrade: true }
     - { role: python-virtualenv, use_sphinx: true }
+    - { role: ansible-role-ca, ca_distribute_keys: true }
     - { role: nginx }
     - { role: java8 }
     - { role: ansible-role-jenkins, tags: jenkins2 }

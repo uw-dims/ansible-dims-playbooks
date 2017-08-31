@@ -18,6 +18,7 @@
     - { role: debug }
     - { role: base }
     - { role: hosts }
+    - { role: ansible-role-ca, ca_distribute_keys: true }
     - { role: nginx }
     - { role: dims-ci-utils }
     - { role: dns, zones: ['local', 'consul'] }
