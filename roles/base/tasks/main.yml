@@ -939,9 +939,21 @@
         - aliases/
   when: not ( ( groups.postfix is defined and inventory_hostname in groups.postfix )
            or ( groups.trident is defined and inventory_hostname in groups.trident ) )
-  notify:
-    - rebuild postfix aliases
-    - reload postfix
+  register: _aliases
+  tags: [ base, config ]
+
+- name: Reload aliases
+  shell: newaliases
+  become: yes
+  when: _aliases.changed
+  tags: [ base, config ]
+
+- name: Restart postfix
+  service:
+    name: postfix
+    state: restarted
+  become: yes
+  when: _aliases.changed
   tags: [ base, config ]
 
   # This is not DRY, but base role does not use post_tasks.yml
