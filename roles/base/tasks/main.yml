@@ -956,6 +956,21 @@
   when: _aliases.changed
   tags: [ base, config ]
 
+- name: Ensure DIMS cron jobs are present
+  cron:
+    cron_file: 'dims'
+    name: '{{ item.name|default("") }}'
+    weekday: '{{ item.weekday|default("*") }}'
+    hour: '{{ item.hour|default("0") }}'
+    minute: '{{ item.minute|default("0") }}'
+    user: '{{ item.user|default("ansible") }}'
+    job: '{{ item.job }}'
+  with_items:
+    - "{{ cronjobs }}"
+  become: yes
+  when: cronjobs is defined
+  tags: [ base, config ]
+
   # This is not DRY, but base role does not use post_tasks.yml
 - name: Log end of 'base' role
   shell: >

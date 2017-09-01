@@ -5,6 +5,14 @@
 # This file is intended to serve as the principle site
 # configuration file.
 
+cronjobs:
+  - name: 'dims.updatecheck'
+    weekday: '*'
+    hour: '6'
+    minute: '0'
+    user: 'ansible'
+    job: '{{ dims_bin }}/dims.updatecheck'
+
 dims_kibana_port: 8480
 dims_ssh_port: 8422
 dims_ssl_port: 8443
