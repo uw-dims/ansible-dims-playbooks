@@ -33,7 +33,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.11.1
+DIMS_VERSION=2.11.2
 
 FLAGS_HELP="usage: $BASE [options]"
 
