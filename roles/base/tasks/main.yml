@@ -2,6 +2,11 @@
 
 # File: roles/base/tasks/main.yml
 
+- fail: msg="Variable 'packages_install' is not defined.
+    Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
+  when: packages_install is not defined
+  tags: [ base, packages, updates ]
+
   # This is not DRY, but base role does not use pre_tasks.yml
 - name: Check to see if dims.logger exists yet
   stat:
@@ -286,6 +291,7 @@
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ base, packages, updates ]
+
 
 - name: Make sure required APT packages are present (Debian)
   apt: state=present name={{ item }} force=yes
