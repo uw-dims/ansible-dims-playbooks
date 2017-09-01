@@ -68,7 +68,7 @@ main()
     local _tmpout=$(get_temp_file)
     add_on_exit rm -f ${_tmpout}
 
-    if ! test.runner -t --match "updates|reboot" > ${_tmpout}; then
+    if ! test.runner --tap --match "updates|reboot" > ${_tmpout}; then
         cat << EOD | mail -s "$BASE results from ${_hostname} (${_now})" ${FLAGS_mailto}
 -----------------------------------------------------------------------
 
@@ -89,15 +89,17 @@ is prepared for the reboot:
   o Ensure that all users of external services are aware of any
     potential outage of services provided by this host (or its
     (VMs).
+
   o Halt or suspend any VMs if this is a VM host (and be prepared
     to ensure they are restart after rebooting is complete.)
     (Use the "dims.shutdown" script to facilitate this. See
     documentation and/or "dims.shutdown --usage".)
+
   o Notify any active users to ensure no active development work
     is lost.
 
 -----------------------------------------------------------------------
-test.runner -t --match "updates|reboot"
+test.runner --tap --match "updates|reboot"
 
 $(cat ${_tmpout})
 
