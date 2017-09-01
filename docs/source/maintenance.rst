@@ -203,6 +203,40 @@ hosts at once:
 
 ..
 
+As a convenience for the system administrator, a ``cron`` job
+is managed by the ``base`` role that runs a script named
+``dims.updatecheck`` on a daily basis.  The variables
+that control the ``cron`` job are defined in the
+``group_vars/all/dims.yml`` file:
+
+.. code-block:: yaml
+
+    cronjobs:
+      - name: 'dims.updatecheck'
+        weekday: '*'
+        hour: '6'
+        minute: '0'
+        user: 'ansible'
+        job: '{{ dims_bin }}/dims.updatecheck'
+
+..
+
+The ``base`` role creates the following file:
+
+.. code-block:: none
+
+    $ cat /etc/cron.d/dims
+    #Ansible: dims.updatecheck
+    0 6 * * * ansible /opt/dims/bin/dims.updatecheck
+
+..
+
+When updates are available, or a reboot is required, email is
+sent to the ``root`` account. Make sure that email to this
+account is forwarded by setting the ``postmaster`` variable
+to a valid email address.
+
+
 .. _renewing_letsencrypt_certs:
 
 Renewing Letsencrypt Certificates
