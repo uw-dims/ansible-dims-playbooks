@@ -83,12 +83,14 @@ the Ansible playbook for ${_hostname} with the following options:
 
    --tags updates -e packages_update=true
 
-If a reboot is necessary, ensure that the host (and anyone using it)
-is prepared for the reboot:
+If a reboot is necessary, ensure that the reboot is handled in
+a controlled manner:
 
   o Ensure that all users of external services are aware of any
     potential outage of services provided by this host (or its
-    (VMs).
+    (VMs). Keep in mind that the disruption may occur to system
+    that are not being rebooted, but rely on services on those
+    that are being rebooted.
 
   o Halt or suspend any VMs if this is a VM host (and be prepared
     to ensure they are restart after rebooting is complete.)
