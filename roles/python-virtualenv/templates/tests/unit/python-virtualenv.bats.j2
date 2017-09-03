@@ -18,7 +18,7 @@ load helpers
     ls -1d {{ ansible_python_virtualenv }}/{bin,lib,share} 2>/dev/null >/dev/null
 }
 
-{% for item in [ 'python', 'pip', 'easy_install', 'wheel', 'python-config' ] %}
+{% for item in [ 'python', 'pip', 'wheel', 'python-config' ] %}
 @test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/{{ item }} exists" {
     [[ -x {{ ansible_python_virtualenv }}/bin/{{ item }} ]]
 }
