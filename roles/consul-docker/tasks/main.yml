@@ -15,12 +15,12 @@
   template:
     src=start_consul.sh.j2
     dest={{ dims_bin }}/start_consul.sh
-    mode={{ mode_0770 }}
+    mode=0o770
   become: yes
   tags: [ consul-docker ]
 
 - name: Make Consul data dir on host (for persistence)
-  file: path=/consul/data state=directory mode={{ mode_0644 }}
+  file: path=/consul/data state=directory mode=0o644
   become: yes
   tags: [ consul-docker ]
 
@@ -28,7 +28,7 @@
   template:
     src=consul.json.j2
     dest=/etc/consul.d/client/consul.json
-    mode={{ mode_0644 }}
+    mode=0o644
   become: yes
   tags: [ consul-docker, config ]
 

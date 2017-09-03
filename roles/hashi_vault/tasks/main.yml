@@ -23,7 +23,7 @@
     dest: "{{ dims_bin }}"
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
-    mode: 0755
+    mode: 0o755
     remote_src: True
   become: yes
   when: ansible_system == "Linux"
@@ -35,7 +35,7 @@
     dest: '{{ dims_etc }}/{{ item | basename | regex_replace("\.j2$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ hashi_vault_conf }}'

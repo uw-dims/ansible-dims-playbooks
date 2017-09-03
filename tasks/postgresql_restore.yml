@@ -85,7 +85,7 @@
       dest: '{{ _tmpdir }}/{{ postgresql_backup_file|basename }}'
       owner: postgres
       group: postgres
-      mode: 0770
+      mode: 0o770
     no_log: '{{ nolog|default(true) }}'
     become: yes
 

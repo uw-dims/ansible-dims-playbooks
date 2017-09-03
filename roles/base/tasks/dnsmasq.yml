@@ -24,7 +24,7 @@
     dest=/etc/dnsmasq.conf
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_first_found:
     - files:
         - '{{ dnsmasq_conf }}'
@@ -55,7 +55,7 @@
     dest: /etc/nsswitch.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ nsswitch_conf }}'
@@ -86,7 +86,7 @@
     dest: /etc/resolvconf/resolv.conf.d/head
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ resolvconf_head }}'
@@ -108,7 +108,7 @@
     dest: /etc/resolvconf/resolv.conf.d/base
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ resolv_base }}'

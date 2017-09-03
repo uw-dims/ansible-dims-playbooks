@@ -48,7 +48,7 @@
     dest: /etc/rundeck/realm.properties
     owner: rundeck
     group: rundeck
-    mode: '{{ mode_0640 }}'
+    mode: 0o640
   with_first_found:
     - files:
         - '{{ realm_properties }}'

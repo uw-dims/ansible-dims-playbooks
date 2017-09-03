@@ -46,7 +46,7 @@
       file:
         path: "{{ dims_etc }}/stack/viz"
         state: directory
-        mode: "{{ mode_0755 }}"
+        mode: 0o755
       run_once: true
       delegate_to: "{{ random_manager }}"
       when: results.rc == 1
@@ -57,7 +57,7 @@
         dest: "{{ dims_etc }}/stack/viz/docker-compose.yml"
         owner: "{{ dims_user }}"
         group: "{{ dims_group }}"
-        mode: "{{ mode_0755 }}"
+        mode: 0o755
       run_once: true
       delegate_to: "{{ random_manager }}"
       when: results.rc == 1

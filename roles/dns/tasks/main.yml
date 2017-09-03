@@ -28,7 +28,7 @@
     path: "/etc/dnsmasq.d"
     owner: "{{ root_user }}"
     group: "{{ root_group }}"
-    mode: "{{ mode_0755 }}"
+    mode: 0o755
   become: yes
   tags: [ dns, dnsfiles, packages, config ]
 
@@ -38,7 +38,7 @@
     dest: /etc/default/dnsmasq
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ dnsmasq_defaults }}'
@@ -61,7 +61,7 @@
     dest: /etc/dnsmasq.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ dnsmasq_conf }}'
@@ -84,7 +84,7 @@
     dest: /etc/default/dnsmasq
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ dnsmasq_default }}'
@@ -107,7 +107,7 @@
     dest: /etc/init.d/dnsmasq
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
         - '{{ dnsmasq_init }}'
@@ -144,7 +144,7 @@
     dest: /etc/dnsmasq.d/{{ item.stat.path|basename|regex_replace("\.j2$","") }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   when: item.stat.exists
   with_items:
     - '{{ configs_list.results }}'
@@ -172,7 +172,7 @@
     dest: /etc/{{ item.stat.path|basename|regex_replace("\.j2$","") }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   when: item.stat.exists
   with_items:
     - '{{ maps_list.results }}'

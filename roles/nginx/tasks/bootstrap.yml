@@ -44,7 +44,7 @@
     dest: '{{ dims }}/source/'
     owner: '{{ dims_user }}'
     group: 'www-data'
-    mode: 0644
+    mode: 0o644
     remote_src: '{{ _remote_source|bool }}'
   become: yes
 

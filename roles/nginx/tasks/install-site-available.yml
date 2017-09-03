@@ -8,7 +8,7 @@
     dest: '/etc/nginx/sites-available/{{ item|basename|regex_replace(".j2","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ _sitename }}.{{ inventory_hostname }}.j2'

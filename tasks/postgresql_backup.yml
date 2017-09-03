@@ -37,7 +37,7 @@
     state: directory
     owner: dims
     group: dims
-    mode: 0770
+    mode: 0o770
   delegate_to: 127.0.0.1
   become: yes
 
@@ -82,7 +82,7 @@
     path: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
     owner: dims
     group: dims
-    mode: 0660
+    mode: 0o660
   delegate_to: 127.0.0.1
   become: yes
 

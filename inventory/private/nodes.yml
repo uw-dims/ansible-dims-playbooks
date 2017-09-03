@@ -28,7 +28,7 @@ private:
       self_signed_cert.crt:
         owner: 'root'
         group: 'root'
-        mode: 'u=r,go='
+        mode: 0o400
         content: |
           -----BEGIN CERTIFICATE-----
           MIIEQzCCAyugAwIBAgIJAIEVOlnPWfPvMA0GCSqGSIb3DQEBCwUAMIG3MQswCQYD
@@ -58,7 +58,7 @@ private:
       self_signed_cert.key:
         owner: 'root'
         group: 'root'
-        mode: 'u=r,go='
+        mode: 0o400
         content: |
           -----BEGIN PRIVATE KEY-----
           MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDLbhHduZopxuWF

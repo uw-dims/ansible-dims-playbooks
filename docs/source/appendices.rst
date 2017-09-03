@@ -148,7 +148,7 @@ container.
             dest: /etc/iptables/rules.v4
             owner: '{{ root_user }}'
             group: '{{ root_group }}'
-            mode: '{{ mode_0600 }}'
+            mode: 0o600
             validate: '/sbin/iptables-restore --test %s'
           with_first_found:
             - files:

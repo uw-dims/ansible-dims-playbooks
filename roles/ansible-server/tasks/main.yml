@@ -31,7 +31,7 @@
     state: directory
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0775 }}'
+    mode: 0o775
   become: yes
   tags: [ ansible-server, config ]
 
@@ -41,7 +41,7 @@
     state: directory
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
-    mode: '{{ mode_0770 }}'
+    mode: 0o770
   become: yes
   tags: [ ansible-server, config ]
 
@@ -57,7 +57,7 @@
     dest: /etc/ansible/ansible.cfg
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ ansible_config }}'
@@ -82,7 +82,7 @@
     dest: /etc/ansible/hosts
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ ansible_hosts_file }}'
@@ -102,7 +102,7 @@
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     state: directory
-    mode: '{{ mode_0775 }}'
+    mode: 0o775
   with_items:
     - '{{ imported_plugins }}'
     - '{{ imported_roles }}'
@@ -147,7 +147,7 @@
     dest: '/home/{{ ansible_user }}/.ssh/{{ item|basename }}'
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
-    mode: 0600
+    mode: 0o600
   with_items:
     - '{{ _private_key_file }}'
     - '{{ _private_key_file }}.pub'

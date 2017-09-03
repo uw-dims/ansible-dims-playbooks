@@ -120,7 +120,7 @@
   get_url:
     url=https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}
     dest={{ dims_bin }}/docker-compose
-    mode={{ mode_0775 }}
+    mode=0o775
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -136,7 +136,7 @@
   get_url:
     url=https://github.com/docker/machine/releases/download/v{{ docker_machine_version }}/docker-machine-{{ ansible_system }}-{{ ansible_architecture }}
     dest={{ dims_bin }}/docker-machine
-    mode={{ mode_0775 }}
+    mode=0o775
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -148,7 +148,7 @@
     dest: /etc/default/docker
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ docker_default }}'
@@ -182,7 +182,7 @@
   get_url:
     url=https://raw.githubusercontent.com/docker/compose/{{ docker_compose_version }}/contrib/completion/bash/docker-compose
     dest={{ dims_etc_bashrc }}
-    mode={{ mode_0664 }}
+    mode=0o664
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -192,7 +192,7 @@
   get_url:
     url=https://raw.githubusercontent.com/ZZROTDesign/docker-clean/v2.0.4/docker-clean
     dest={{ dims_bin }}/docker-clean
-    mode={{ mode_0755 }}
+    mode=0o755
     use_proxy=yes
   become: yes
   tags: [ docker, config ]
