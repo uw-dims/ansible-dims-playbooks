@@ -306,27 +306,35 @@ subdirectories for each of the defined test levels from Section
 
 .. code-block:: none
 
-    $ tree base/templates/tests
-    base/templates/tests
+    $ tree roles/base/templates/tests
+    roles/base/templates/tests
     ├── component
     ├── helpers.bash.j2
     ├── integration
+    │   ├── dims-coreos.bats.j2
+    │   └── proxy.bats.j2
     ├── README.txt
+    ├── rsyslog.bats
     ├── system
     │   ├── deprecated.bats.j2
     │   ├── dims-accounts.bats.j2
     │   ├── dims-accounts-sudo.bats.j2
     │   ├── dims-base.bats.j2
+    │   ├── dims-coreos.bats.j2
     │   ├── dns.bats.j2
-    │   ├── proxy.bats.j2
-    │   ├── sudo
-    │   │   └── sudo-iptables.bats.j2
-    │   └── user
-    │       └── vpn.bats.j2
-    └── unit
-        └── dims-filters.bats.j2
+    │   ├── iptables-sudo.bats.j2
+    │   ├── reboot.bats.j2
+    │   └── updates.bats.j2
+    ├── unit
+    │   ├── ansible-yaml.bats.j2
+    │   ├── bats-helpers.bats.j2
+    │   ├── dims-filters.bats.j2
+    │   └── dims_functions.bats.j2
+    └── user
+        ├── user-account.bats.j2
+        └── user-deprecated.bats.j2
 
-    6 directories, 11 files
+    5 directories, 20 files
 
 ..
 
@@ -335,35 +343,41 @@ correspond to each of the test levels are now present in the
 ``/opt/dims/tests.d/`` directory:
 
 .. code-block:: none
-   :emphasize-lines: 3,6,8,21
+   :emphasize-lines: 3,6,10,22,28
 
     $ tree /opt/dims/tests.d/
-    /opt/dims/tests.d/
+    /opt/dims/tests.d
     ├── component
     │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
     ├── helpers.bash
     ├── integration
-    │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   ├── dims-coreos.bats
+    │   ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   └── proxy.bats
     ├── system
     │   ├── deprecated.bats
     │   ├── dims-accounts.bats
     │   ├── dims-accounts-sudo.bats
     │   ├── dims-base.bats
     │   ├── dims-ci-utils.bats
+    │   ├── dims-coreos.bats
     │   ├── dns.bats
     │   ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
     │   ├── iptables-sudo.bats
-    │   ├── proxy.bats
-    │   └── user
-    │       ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
-    │       └── vpn.bats
-    └── unit
-        ├── bats-helpers.bats
-        ├── dims-filters.bats
-        ├── dims-functions.bats
-        └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   ├── reboot.bats
+    │   └── updates.bats
+    ├── unit
+    │   ├── ansible-yaml.bats
+    │   ├── bats-helpers.bats
+    │   ├── dims-filters.bats
+    │   ├── dims_functions.bats
+    │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    └── user
+        ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
+        ├── user-account.bats
+        └── user-deprecated.bats
 
-    5 directories, 18 files
+    5 directories, 24 files
 
 ..
 
@@ -373,11 +387,10 @@ Here is the directory structure for tests in the ``docker`` role:
 
     /docker/templates/tests
     └── system
-        ├── docker-consul.bats.j2
         ├── docker-core.bats.j2
         └── docker-network.bats.j2
 
-    1 directories, 3 files
+    1 directories, 2 files
 
 ..
 
@@ -386,7 +399,7 @@ the ``system`` subdirectory.  There are now 3 additional files (see emphasized
 lines for the new additions):
 
 .. code-block:: none
-   :emphasize-lines: 15,16,17
+   :emphasize-lines: 18,19
 
     $ tree /opt/dims/tests.d
     /opt/dims/tests.d
@@ -394,30 +407,35 @@ lines for the new additions):
     │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
     ├── helpers.bash
     ├── integration
-    │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   ├── dims-coreos.bats
+    │   ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   └── proxy.bats
     ├── system
     │   ├── deprecated.bats
     │   ├── dims-accounts.bats
     │   ├── dims-accounts-sudo.bats
     │   ├── dims-base.bats
     │   ├── dims-ci-utils.bats
+    │   ├── dims-coreos.bats
     │   ├── dns.bats
-    │   ├── docker-consul.bats
     │   ├── docker-core.bats
     │   ├── docker-network.bats
     │   ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
     │   ├── iptables-sudo.bats
-    │   ├── proxy.bats
-    │   └── user
-    │       ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
-    │       └── vpn.bats
-    └── unit
-        ├── bats-helpers.bats
-        ├── dims-filters.bats
-        ├── dims-functions.bats
-        └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    │   ├── reboot.bats
+    │   └── updates.bats
+    ├── unit
+    │   ├── ansible-yaml.bats
+    │   ├── bats-helpers.bats
+    │   ├── dims-filters.bats
+    │   ├── dims_functions.bats
+    │   └── helpers.bash -> /opt/dims/tests.d/helpers.bash
+    └── user
+        ├── helpers.bash -> /opt/dims/tests.d/helpers.bash
+        ├── user-account.bats
+        └── user-deprecated.bats
 
-    5 directories, 21 files
+    5 directories, 26 files
 
 ..
 
@@ -426,38 +444,81 @@ example (from the ``base`` role):
 
 .. code-block:: none
 
-    TASK [base : Make links to helper functions present] ***************************
-    Wednesday 21 December 2016  20:04:15 -0800 (0:00:00.811)       0:02:55.421 ****
-    ok: [red.devops.local] => (item=[u'component', u'helpers.bash'])
-    ok: [red.devops.local] => (item=[u'integration', u'helpers.bash'])
-    ok: [red.devops.local] => (item=[u'system', u'helpers.bash'])
-    ok: [red.devops.local] => (item=[u'system/user', u'helpers.bash'])
-    ok: [red.devops.local] => (item=[u'unit', u'helpers.bash'])
+    . . .
 
-    msg: All items completed
-    ok: [red.devops.local] => (item=[u'user', u'helpers.bash'])
+    TASK [base : Identify bats test templates] ************************************
+    Sunday 03 September 2017  13:05:45 -0700 (0:00:05.496)       0:03:48.846 ******
+    ok: [dimsdemo1.devops.develop -> 127.0.0.1]
 
-    TASK [base : Identify bats test templates] *************************************
-    Wednesday 21 December 2016  20:04:19 -0800 (0:00:04.511)       0:02:59.933 ****
-    ok: [red.devops.local]
+    TASK [base : Initialize bats_test_templates list] *****************************
+    Sunday 03 September 2017  13:05:46 -0700 (0:00:01.152)       0:03:49.998 ******
+    ok: [dimsdemo1.devops.develop]
 
-    TASK [base : Make defined bats tests present] **********************************
-    Wednesday 21 December 2016  20:04:19 -0800 (0:00:00.054)       0:02:59.987 ****
-    changed: [red.devops.local] => (item=./system/dims-base.bats.j2)
-    changed: [red.devops.local] => (item=./system/dims-accounts-sudo.bats.j2)
-    changed: [red.devops.local] => (item=./system/dns.bats.j2)
-    changed: [red.devops.local] => (item=./system/deprecated.bats.j2)
-    changed: [red.devops.local] => (item=./system/proxy.bats.j2)
-    changed: [red.devops.local] => (item=./system/dims-accounts.bats.j2)
-    changed: [red.devops.local] => (item=./system/iptables-sudo.bats.j2)
-    changed: [red.devops.local] => (item=./system/user/vpn.bats.j2)
-    changed: [red.devops.local] => (item=./user/user-account.bats.j2)
-    changed: [red.devops.local] => (item=./user/user-deprecated.bats.j2)
-    changed: [red.devops.local] => (item=./unit/bats-helpers.bats.j2)
-    changed: [red.devops.local] => (item=./unit/dims-filters.bats.j2)
-    changed: [red.devops.local] => (item=./unit/dims_functions.bats.j2)
+    TASK [base : Set fact with list of test templates] ****************************
+    Sunday 03 September 2017  13:05:47 -0700 (0:00:01.047)       0:03:51.046 ******
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/dims-coreos.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/dims-base.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/dims-accounts-sudo.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/updates.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/reboot.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/dns.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/deprecated.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/dims-accounts.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/system/iptables-sudo.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/integration/dims-coreos.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/integration/proxy.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/user/user-account.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/user/user-deprecated.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/unit/bats-helpers.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/unit/dims-filters.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/unit/ansible-yaml.bats.j2)
+    ok: [dimsdemo1.devops.develop] => (item=/home/dittrich/dims/git/ansible-dims-playbooks/roles/base/templates/tests/unit/dims_functions.bats.j2)
 
-    msg: All items completed
+    TASK [base : debug] ***********************************************************
+    Sunday 03 September 2017  13:06:04 -0700 (0:00:17.532)       0:04:08.578 ******
+    ok: [dimsdemo1.devops.develop] => {
+        "bats_test_templates": [
+            "system/dims-coreos.bats.j2",
+            "system/dims-base.bats.j2",
+            "system/dims-accounts-sudo.bats.j2",
+            "system/updates.bats.j2",
+            "system/reboot.bats.j2",
+            "system/dns.bats.j2",
+            "system/deprecated.bats.j2",
+            "system/dims-accounts.bats.j2",
+            "system/iptables-sudo.bats.j2",
+            "integration/dims-coreos.bats.j2",
+            "integration/proxy.bats.j2",
+            "user/user-account.bats.j2",
+            "user/user-deprecated.bats.j2",
+            "unit/bats-helpers.bats.j2",
+            "unit/dims-filters.bats.j2",
+            "unit/ansible-yaml.bats.j2",
+            "unit/dims_functions.bats.j2"
+        ]
+    }
+
+    TASK [base : Make defined bats tests present] *********************************
+    Sunday 03 September 2017  13:06:05 -0700 (0:00:01.053)       0:04:09.631 ******
+    changed: [dimsdemo1.devops.develop] => (item=system/dims-coreos.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/dims-base.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/dims-accounts-sudo.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/updates.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/reboot.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/dns.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/deprecated.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/dims-accounts.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=system/iptables-sudo.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=integration/dims-coreos.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=integration/proxy.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=user/user-account.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=user/user-deprecated.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=unit/bats-helpers.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=unit/dims-filters.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=unit/ansible-yaml.bats.j2)
+    changed: [dimsdemo1.devops.develop] => (item=unit/dims_functions.bats.j2)
+
+    . . .
 
 ..
 
@@ -589,6 +650,7 @@ then excluded like this:
 
 ..
 
+.. _controlling_bats_output:
 
 Controlling the Amount and Type of Output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -885,7 +947,7 @@ Here is the output when a failure occurs without verbosity:
 
     $ run.playbook --tags python-virtualenv
     . . .
-    TASK [python-virtualenv : Run dimsenv.build script] ********************************************************************************************************************************************
+    TASK [python-virtualenv : Run dimsenv.build script] ***************************
     Tuesday 01 August 2017  19:00:10 -0700 (0:00:02.416)       0:01:13.310 ********
     changed: [dimsdemo1.devops.develop]
 
@@ -1041,3 +1103,95 @@ To find out what the problem is, run the build again and add at least one ``-v``
 The highlighted lines show the problem, which is a proxy failure. This is typically due to
 the Docker container used as a local ``squid-deb-proxy`` to optimize Vagrant installations
 being hung and non-responsive.  (To resolve this, see :ref:`restartProxy` in the Appendix.)
+
+A final example here of a ``bats`` unit test being used to avoid hidden problems
+resulting from subtle errors in Ansible playbooks is the unit test
+``ansible-yaml``. This test is intended to perform validations checks of
+YAML syntax and Ansible module requirements.
+
+Perhaps the most important test (and the only shown here) has to do
+with avoiding the way ``mode`` attributes to modules like ``copy``
+and ``template`` are used.  Ansible is very powerful, but it has some
+pedantic quirks related to the use of YAML to create Python data
+structures that are used to run Unix command line programs. This is
+perhaps nowhere more problematic than file permissions (which can
+horribly break things on a Unix system).  The problem has to do
+with the way Unix modes (i.e., file permissions) were historically
+defined using bit-maps expressed in numeric form using **octal**
+(i.e., base-8) form, not decimal (i.e., base-10) form
+that is more universally used for expressing numbers.  An octal
+value is expressed using the digits ``0`` through ``7``. Many
+programming languages assume that if a given string representing a
+numeric value starts with an alpha-numeric character in the range
+``[1..9]``, that string represents a decimal value, while a
+string starting with a ``0`` instead represents an octal value.
+Since YAML and JSON are text representations of data structures
+that are interpretted to create binary data structures used
+internally to Python
+
+.. note::
+
+   Two other numeric bases used commonly in programming are
+   binary (base-2) and hexadecimal (base-16). Binary is used
+   so rarely that we can ignore it here. Because hexadecimal
+   goes beyond ``9``, using the letters in the range ``[A..F]``,
+   it doesn't have the same conflict in being recognized as
+   decimal vs. octal, so its values typically start with ``0x``
+   followed by the number (e.g., ``0x123ABCD``).
+
+..
+
+You can find issues describing this decimal vs. octal/string vs. number
+problem and related discussion of ways to deal with it in many places:
+
+  + `4-digit octal mode works incorrectly unless quoted #9196`_
+  + `Why am I getting this error from Ansible when trying to change the permissions on a file?`_
+  + `Setting the setuid / setgid Bit with Ansible`_
+
+.. _4-digit octal mode works incorrectly unless quoted #9196: https://github.com/ansible/ansible/issues/9196
+.. _Why am I getting this error from Ansible when trying to change the permissions on a file?: https://serverfault.com/questions/811915/why-am-i-getting-this-error-from-ansible-when-trying-to-change-the-permissions-o
+.. _Setting the setuid / setgid Bit with Ansible: https://blog.dbrgn.ch/2014/6/17/setting-setuid-setgid-bit-with-ansible/
+
+The ``ansible-dims-playbooks`` repository uses the convention of expressing
+modes using the ``0o`` format to explicitly ensure proper octal modes, e.g.:
+
+.. code-block:: yaml
+
+    - name: Ensure /etc/rsyslog.d present
+      file:
+        path: /etc/rsyslog.d
+        state: directory
+        mode: 0o644
+      become: yes
+      when: ansible_os_family != "Container Linux by CoreOS"
+      tags: [ base, config, rsyslogd ]
+
+..
+
+Running the ``ansible-yaml`` unit test will detect when modes deviate from this
+standard policy, as seen here:
+
+.. code-block:: none
+
+    $ test.runner unit/ansible-yaml
+    [+] Running test unit/ansible-yaml
+     ✓ [U][EV] Modes in tasks under $PBR use valid '0o' notation
+     ✗ [U][EV] Modes in tasks under $DIMS_PRIVATE use valid '0o' notation
+       (in test file unit/ansible-yaml.bats, line 30)
+         `[ -z "$DIMS_PRIVATE" ] && skip 'DIMS_PRIVATE is not defined'' failed
+       /home/dittrich/dims/git/private-develop/inventory/all.yml:    mode: 755
+
+    2 tests, 1 failure
+
+..
+
+.. note::
+
+    Exceptions to this check will likely need to be made, since the test
+    is for strings of the form ``mode: 0o`` or ``mode=0o`` (followed by
+    a few more numbers).  These exceptions are put into a whitelist file
+    that the test uses to ignore them. To update the whitelist, add
+    any false positive failure strings to the variable
+    ``yaml_mode_whitelist`` in ``group_vars/all/dims.yml``.
+
+..

@@ -13,6 +13,10 @@ cronjobs:
     user: 'ansible'
     job: '{{ dims_bin }}/dims.updatecheck'
 
+yaml_mode_whitelist:
+  - 'mode: push'
+  - "{% raw %}mode: '{{ item.value.mode }}'{% endraw %}"
+
 dims_kibana_port: 8480
 dims_ssh_port: 8422
 dims_ssl_port: 8443
