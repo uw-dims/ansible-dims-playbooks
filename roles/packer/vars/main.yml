@@ -1,8 +1,11 @@
 ---
 
-packer_version: '1.0.2'
+packer_version: '1.0.4'
 packer_archive: 'packer_{{ packer_version }}_linux_amd64'
 packer_dist_url: 'https://releases.hashicorp.com/packer/{{ packer_version }}/packer_{{ packer_version }}_linux_amd64.zip'
-packer_sha256_sum: '13774108d10e26b1b26cc5a0a28e26c934b4e2c66bc3e6c33ea04c2f248aad7f'
+packer_sha256_sum: '646da085cbcb8c666474d500a44d933df533cf4f1ff286193d67b51372c3c59e'
+
+#TODO(dittrich): Add GPG signature checking like in other roles
+# https://www.packer.io/downloads.html
 
 # vim: ft=ansible :
