@@ -962,6 +962,17 @@
   when: _aliases.changed
   tags: [ base, config ]
 
+- name: Ensure cron environment is present
+  cronvar:
+    cron_file: 'dims'
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+  with_items:
+    - "{{ cronvars }}"
+  become: yes
+  when: cronvars is defined
+  tags: [ base, config ]
+
 - name: Ensure DIMS cron jobs are present
   cron:
     cron_file: 'dims'

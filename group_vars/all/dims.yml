@@ -5,6 +5,14 @@
 # This file is intended to serve as the principle site
 # configuration file.
 
+cronvars:
+  - name: 'MAILTO'
+    value: '{{ postmaster|default("postmaster") }}'
+    user: 'ansible'
+  - name: 'PATH'
+    value: '{{ dims_global_path }}'
+    user: 'ansible'
+
 cronjobs:
   - name: 'dims.updatecheck'
     weekday: '*'
