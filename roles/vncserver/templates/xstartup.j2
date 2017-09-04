@@ -11,7 +11,7 @@ export XKL_XMODMAP_DISABLE=1
 
 unset DBUS_SESSION_BUS_ADDRESS
 
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PATH={{ dims_global_path }}
 
 OS=`uname -s`
 if [ $OS = 'Linux' ]; then
