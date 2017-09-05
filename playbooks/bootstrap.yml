@@ -35,16 +35,6 @@
       when: _debug is defined and _debug|bool
       tags: [ debug ]
 
-    - name: Include codename-specific variables
-      include_vars:
-        file: '{{ item }}'
-      with_first_found:
-        - files:
-          - "{{ ansible_lsb.codename }}.yml"
-          paths:
-          - '{{ dims_private }}/vars'
-          - ../vars
-
   roles:
   - { role: bootstrap }
 
