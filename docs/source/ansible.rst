@@ -813,22 +813,488 @@ SSH port to ``8422`` and the transport mechanism to ``smart``:
 
 ..
 
+.. _fedoraproject:
+
+Lessons from the Fedora Project Ansible Playbooks
+-------------------------------------------------
+
+One of the better models identified during the second year
+of the DIMS Project was the Fedora Project's public
+`ansible.git repo`_. The layout of their repo is described
+in a `README`_ file.
+
+The Fedora Project puts very little in individual `host_vars files`_
+to store minimal host-specific settings for use in playbooks.
+This will be examined here in the context of generating ``iptables`` rules
+files from Jinja templates.
+
+.. note::
+
+   You can view all of the files in sequence using a Bash ``for`` loop,
+   as follows:
+
+   .. code-block:: bash
+
+      $ cd ~/git/fedora-ansible/
+      $ for f in inventory/host_vars/*
+      > do
+      > echo $f
+      > echo "===================="
+      > cat $f
+      > echo "===================="
+      > echo ""
+      > done | less
+
+   ..
+
+   The output looks like this:
+
+   .. code-block:: none
+
+      inventory/host_vars/aarch64-02a.arm.fedoraproject.org
+      ====================
+      fas_client_groups: sysadmin-noc,sysadmin-releng
+
+      kojipkgs_url: armpkgs.fedoraproject.org
+      kojihub_url: arm.koji.fedoraproject.org/kojihub
+      kojihub_scheme: https
+      eth0_ip: 10.5.78.75
+      gw: 10.5.78.254
+
+      koji_server_url: "http://arm.koji.fedoraproject.org/kojihub"
+      koji_weburl: "http://arm.koji.fedoraproject.org/koji"
+      koji_topurl: "http://armpkgs.fedoraproject.org/"
+
+      nfs_mount_opts: rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3,rsize=32768,wsize=32768
+
+      fedmsg_certs:
+      - service: releng
+        owner: root
+        group: sysadmin-releng
+        can_send:
+        # pungi-koji stuff (ask dgilmore)
+        - pungi.compose.phase.start
+        - pungi.compose.phase.stop
+        - pungi.compose.status.change
+        - pungi.compose.createiso.targets
+        - pungi.compose.createiso.imagefail
+        - pungi.compose.createiso.imagedone
+
+      ====================
+
+      inventory/host_vars/aarch64-03a.arm.fedoraproject.org
+      ====================
+      ---
+      eth0_ip: 10.5.78.80
+      ====================
+
+      inventory/host_vars/aarch64-04a.arm.fedoraproject.org
+      ====================
+      ---
+      eth0_ip: 10.5.78.85
+      ====================
+
+      ...
+
+    ..
+
+..
+
+Let's look at the file `noc01.phx2.fedoraproject.org`_, specifically
+the blocks at lines 12-18.
+
+.. note::
+
+    The ``custom_rules`` array in this example was split into separate lines
+    here for better readability, as is found in other files such as
+    `db-fas01.phx2.fedoraproject.org`_. It is a single line in the original
+    file (which is perfectly acceptable, though more difficult to read
+    in a limited-column environment such as this documenation. The desire here
+    was to show a file with all three of ``tcp_ports``, ``udp_ports``, and
+    ``custom_rules`` variables, hence the cosmetic alteration.
+
+..
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 12-18
+
+    ---
+    nm: 255.255.255.0
+    gw: 10.5.126.254
+    dns: 10.5.126.21
+
+    ks_url: http://10.5.126.23/repo/rhel/ks/kvm-rhel-7
+    ks_repo: http://10.5.126.23/repo/rhel/RHEL7-x86_64/
+    volgroup: /dev/vg_virthost
+    vmhost: virthost17.phx2.fedoraproject.org
+    datacenter: phx2
+
+    tcp_ports: ['22', '80', '443', '67', '68']
+    udp_ports: ['67','68','69']
+    custom_rules: [
+        '-A INPUT -p tcp -m tcp -s 192.168.1.20 --dport 5666 -j ACCEPT',
+        '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+        '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT'
+    ]
+
+    eth0_ip: 10.5.126.41
+    csi_relationship: |
+        noc01 is the internal monitoring nagios instance to the phx datacenter.
+        it is also the dhcp server serving all computing nodes
+
+        * This host relies on:
+        - the virthost it's hosted on (virthost17.phx2.fedoraproject.org)
+        - FAS to authenticate users
+        - VPN connectivity
+
+        * Things that rely on this host:
+        - Infrastructure team to be awair of the infra status. operations control process will fail
+        - if this host is down, it will be difficult to know the status of infra and provide reactive/proactive support
+        - if this host is down, dhcp/bootp leases/renew will fail. pxe booting will fail as well
+
+..
+
+.. _generating_iptables:
+
+Generating ``iptables`` Rules from a Template
+---------------------------------------------
+
+.. note::
+
+    Ansible suggests that Jinja templates use the extension ``.j2``, though
+    Ansible will process the template regardless of whether it has an extension
+    or not. The example ``iptables`` template used by the Fedora Project has
+    no ``.j2`` extension, while the DIMS project uses the ``.j2`` extension
+    to more easily locate Jinja template files using ``find . -name '*.j2'``
+    or similar extension-based searching methods.
+
+..
+
+The template `roles/base/templates/iptables/iptables`_ (processed by
+`roles/base/tasks/main.yml`_ as part of the `base
+role`) provides a Jinja template for an ``iptables`` rule set.
+
+.. note::
+
+    The complete template file `roles/base/templates/iptables/iptables`_
+    is over 100 lines. It is edited here to remove lines that are irrelevant
+    to the discussion of Jinja templating.
+
+..
+
+.. Using "guess" successfully gets Jinja template syntax highlighting from Sphinx.
+
+.. code-block:: guess
+   :caption: Template for iptables rules
+   :emphasize-lines: 56-61, 63-68, 70-75
+
+    # {{ ansible_managed }}
+    *filter
+    :INPUT ACCEPT [0:0]
+    :FORWARD ACCEPT [0:0]
+    :OUTPUT ACCEPT [0:0]
+
+    # allow ping and traceroute
+    -A INPUT -p icmp -j ACCEPT
+
+    # localhost is fine
+    -A INPUT -i lo -j ACCEPT
+
+    # Established connections allowed
+    -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+    -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+    # allow ssh - always
+    -A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -j ACCEPT
+
+    {% if env != 'staging' and datacenter == 'phx2' and inventory_hostname not in groups['staging-friendly'] %}
+    #
+    # In the phx2 datacenter, both production and staging hosts are in the same
+    # subnet/vlan. We want production hosts to reject connectons from staging group hosts
+    # to prevent them from interfering with production. There are however a few hosts in
+    # production we have marked 'staging-friendly' that we do allow staging to talk to for
+    # mostly read-only data they need.
+    #
+    {% for host in groups['staging']|sort %}
+    {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
+    -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+    {% else %}# {{ host }} has no 'eth0_ip' listed
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {% if ansible_domain == 'qa.fedoraproject.org' and inventory_hostname not in groups['qa-isolated'] %}
+    #
+    # In the qa.fedoraproject.org network, we want machines not in the qa-isolated group
+    # to block all access from that group. This is to protect them from any possible attack
+    # vectors from qa-isolated machines.
+    #
+    {% for host in groups['qa-isolated']|sort %}
+    {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
+    -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+    {% else %}# {{ host }} has no 'eth0_ip' listed
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    # if the host declares a fedmsg-enabled wsgi app, open ports for it
+    {% if wsgi_fedmsg_service is defined %}
+    {% for i in range(wsgi_procs * wsgi_threads) %}
+    -A INPUT -p tcp -m tcp --dport 30{{ '%02d' % i }} -j ACCEPT
+    {% endfor %}
+    {% endif %}
+
+    # if the host/group defines incoming tcp_ports - allow them
+    {% if tcp_ports is defined %}
+    {% for port in tcp_ports %}
+    -A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+    {% endfor %}
+    {% endif %}
+
+    # if the host/group defines incoming udp_ports - allow them
+    {% if udp_ports is defined %}
+    {% for port in udp_ports %}
+    -A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+    {% endfor %}
+    {% endif %}
+
+    # if there are custom rules - put them in as-is
+    {% if custom_rules is defined %}
+    {% for rule in custom_rules %}
+    {{ rule }}
+    {% endfor %}
+    {% endif %}
+
+    # otherwise kick everything out
+    -A INPUT -j REJECT --reject-with icmp-host-prohibited
+    -A FORWARD -j REJECT --reject-with icmp-host-prohibited
+    COMMIT
+
+..
+
+.. _configcustomization:
+
+Customization of System and Service Configuration
+-------------------------------------------------
+
+Ansible supports variables in playbooks, allowing a generalization of
+steps to perform some task to be defined separate from the specifics
+of the content used. Rather than hard-coding a value like a port number
+into a command, a variable can be used to allow *any* port to be specified
+at run time. Where and how the variable is set is somewhat complicated
+in Ansible, as their are many places that variables can be set and
+a specific order of precedence that is followed. This can be seen
+in the Ansible documentation, `Variable Precedence: Where Should I Put A Variable?`_.
+
+.. _Variable Precedence\: Where Should I Put A Variable?: http://docs.ansible.com/ansible/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable
+
+
+The Fedora Project takes advantage of an advanced feature of Ansible
+in the form of the conditional ``with_first_found`` combined with
+the use of variables and variable precedence ordering.  Ansible's
+own web page has a note saying, "This is an advanced topic that is
+infrequently used. You can probably skip this section."
+
+(See `Selecting Files And Templates Based On Variables`_).
+
+.. _Selecting Files And Templates Based On Variables: http://docs.ansible.com/ansible/playbooks_conditionals.html#selecting-files-and-templates-based-on-variables
+
+An example of how this is used is found in `roles/base/tasks/main.yml`_
+where the DNS resolver configuration file is applied:
+
+.. _roles/base/tasks/main.yml: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/base/tasks/main.yml
+
+
+.. code-block:: yaml
+   :caption: Configuration file for DNS resolver
+   :emphasize-lines: 3-8
+
+    - name: /etc/resolv.conf
+      copy: src={{ item }} dest=/etc/resolv.conf
+      with_first_found:
+        - "{{ resolvconf }}"
+        - resolv.conf/{{ ansible_fqdn }}
+        - resolv.conf/{{ host_group }}
+        - resolv.conf/{{ datacenter }}
+        - resolv.conf/resolv.conf
+      tags: [ base, config, resolvconf ]
+
+..
+
+The first thing to notice is that the base name of file being
+installed here (``resolv.conf``) is used to name a directory
+in which all variations of that file will be stored. This keeps
+the directory for the role clean and organized.
+
+The second thing to notice is well organized hierarchy of
+precedence from most specific to least specific.
+
+.. list-table:: Search order for selecting customized file
+   :widths: 20 20 30 30
+   :header-rows: 1
+
+   * - File name
+     - Derived from
+     - Specific to
+     - Relevant Content
+
+   * - ``{{ resolvconf }}``
+     - Extra var (``-e``)
+     - A single file
+     - Useful for dev/test
+
+   * - ``{{ ansible_fqdn }}``
+     - Ansible fact
+     - A single host
+     - Host-specific customizations
+
+   * - ``{{ host_group }}``
+     - Group name
+     - Hosts of a specific class
+     - Service-specific customizations
+
+   * - ``{{ datacenter }}``
+     - Defaults, vars, extra vars
+     - Hosts in specific datacenter
+     - Datacenter-specific customizations
+
+   * - ``resolv.conf``
+     - Not derived
+     - Not specific
+     - File of last resort
+
+..
+
+Using this kind of hierarchical naming scheme, it is easy to bring
+any host under Ansible control. Say that the ``resolv.conf`` file
+on a host that is not under Ansible control was created by editing
+it with ``vi``. That file (which we will assume is working at the
+moment) can be copied into the ``resolv.conf/`` directory as-is,
+using the fully-qualified domain name of the host. Even better,
+place the ``{{ ansible_managed }}`` template into the file to
+make it clear that the file is now under Ansible control.
+If it later becomes clear that a more generic configuration is
+appropriate to make the host behave the same as other hosts in
+the same group, or same datacenter, you can simply remove the
+file with the fully-qualified domain name and the next file that
+is found (be it for host group, datacenter, or the fallback
+generic file) will be used.
+
+.. note::
+
+   If the fallback ``resolv.conf`` file is a direct copy of the
+   file installed by default from the original parent distribution
+   package, having Ansible re-install a functionally equivalent
+   version meets the objective of being *idempotent*.
+
+..
+
+
 .. _tags_on_tasks:
 
 Tags on Tasks
 -------------
 
-The ``ansible-dims-playbooks`` roles and playbooks use *tags* to allow fine-grained
-control of which actions are applied during a given run of a complete host playbook.
-This allows all roles to be defined and fewer playbooks to be used to execute tasks,
-but requires that *all tasks have tags* in order for ``--tags`` and ``--skip-tags``
-to work properly.
+Ansible has a feature known as **tags**, that provides a fine-grained mechanism
+for isolating which plays within a playbook will be executed at runtime. This
+feature is advanced, and complicated, and you will find both people
+whole-heartedly embracing the use of tags (e.g., `Ansible (Real Life) Good
+Practices`_ and `Tagging`_) and firmly shunning the use of tags (e.g., `Best
+practices to build great Ansible playbooks`_)
 
-.. todo::
+While it is true that using tags within roles adds to complexity, the
+alternative of proliferating individual playbooks has its own drawbacks in
+terms of tight coupling of logic between playbooks that share some common
+actions, as well as an increased number of individual playbooks to be managed
+and invoked.  By limiting the number of category tags to a minimum, a
+reasonable tradeoff is made between complexity within playbooks plus the need
+to write playbooks carefully vs. complexity in managing and invoking playbooks
+to perform system automation tasks.
 
-   Put in link to docs on defining tags and use of ``--tags`` and ``--skip-tags``.
+.. _tagging_methodology:
+
+DIMS Tagging Methodology
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``ansible-dims-playbooks`` roles created by the DIMS Project, like those
+from the Fedora Project, uses tags to allow fine-grained control of which
+actions are applied during a given run of a complete host playbook.  This
+allows all roles to be defined and fewer playbooks to be used to execute tasks,
+but requires that *all tasks have tags* in order for ``--tags`` and
+``--skip-tags`` to work properly.
+
+The Fedora Project also uses a monolithic playbook that include host playbooks
+for all hosts. Because tags are applied using an **OR** operation, rather than
+an **AND** operation, the selection of which tasks are to be applied is then
+made on either a per-host basis (using host tags or the ``--limit`` option), or
+a per-category basis (using category tags).
+
+Figure :ref:`ansibletags` illustrates the conceptual layering of tags for
+**roles** (vertical selection) and **categories** (horizontal selection) across
+a set of playbooks.
+
+* Using **role** tags will cause all of the plays in the playbook for the
+  specified roles to be executed (and no others).
+
+* Using **category** tags will cause all of the plays in all playbooks
+  that have that category tag to be executed (and no others).
+
+.. _ansibletags:
+
+.. figure:: images/ansible_tags.png
+   :width: 90%
+   :align: center
+
+   Ansible Tags for Vertical and Horizontal Control of Play Execution
 
 ..
+
+The concept of **vertical** application of role tags is seen in the vertical
+gray shaded boxes in Figure :ref:`ansibletags` by the presence of a tag that
+matches the name of the role in every play in each role's playbook (e.g.,
+``rolea`` in every ``tags`` array for Role A, etc.) If every play in a playbook
+is tagged with an identifier that matches the name of the role, using that tag
+will limit execution to only those plays for the indicated role.
+
+The concept of **horizontal** application of category tags is seen in Figure
+:ref:`ansibletags` by the presence of a tag that matches a small set of general
+categories of actions that are common to multiple roles.  Plays that are
+related to package installation are shown in the red horizontal box with
+``package``, plays related to system configuration files in the green box
+tagged with ``config``, and service activation state plays in the blue
+horizontal box tagged with ``service``.  By changing variables that specify
+package versions and then running all plays tagged with ``package``, you can
+update specific packages on all systems at once (seen in the red box in Figure
+:ref:`ansibletags`).
+
+.. attention::
+
+   The DIMS project uses special ``pre_tasks.yml`` and ``post_tasks.yml`` task
+   playbooks that are included at the top and bottom of every role.  This
+   mechanism supports standardized actions that apply to every role, such as
+   creating and cleaning up deployment directories, printing out debugging
+   information at the start of each role to expose run-time variable contents,
+   sending log messages to the continuous integration logging channel, etc.
+
+   In order to **only** run these pre- and post-tasks when tags are specified,
+   each include line **must** include the union of all possible tags that are
+   used. This can be seen in the following tasks file for the ``vagrant`` role.
+
+   .. literalinclude:: ../../roles/vagrant/tasks/main.yml
+      :language: yaml
+      :caption: Vagrant role ``tasks/main.yml`` file
+      :lines: 1-40
+      :emphasize-lines: 8,17,23,31,39
+
+   ..
+
+..
+
+
+.. _tag_examples:
+
+Examples of DIMS Tags
+~~~~~~~~~~~~~~~~~~~~~
 
 Some of the general and specific tags that are used frequently for performing
 regular system maintenance and development tasks are listed below.  As a
@@ -914,9 +1380,6 @@ program installation and system configuration tasks in a general, repeatable,
 and scalable manner. Ansible provides recommended `Best Practices`_ guidelines
 in the the `Ansible Documentation`_, but sometimes these don't go far
 enough in guiding a new Ansible user.
-
-.. _Best Practices: http://docs.ansible.com/ansible/playbooks_best_practices.html
-.. _Ansible Documentation: http://docs.ansible.com/ansible/
 
 Two other sources of highly useful information are the following
 books and related code examples:
@@ -1027,8 +1490,21 @@ include:
     + `Ansible: A Simple Rollback Strategy for Roles and Playbooks`_, by Valentino Gagliardi, June 25, 2014
     + `Proposal for fixing playbooks with dynamic include problems`_, Ansible Development Google Group post
 
+.. _ansible.git repo: https://infrastructure.fedoraproject.org/cgit/ansible.git
+.. _README: https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/README
+.. _noc01.phx2.fedoraproject.org: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/inventory/host_vars/noc01.phx2.fedoraproject.org
+.. _db-fas01.phx2.fedoraproject.org: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/inventory/host_vars/db-fas01.phx2.fedoraproject.org
+.. _roles/base/templates/iptables/iptables: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/base/templates/iptables/iptables
+.. _roles/base/tasks/main.yml: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/base/tasks/main.yml
+.. _base role: https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/base
+.. _host_vars files: https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/inventory/host_vars
+.. _Ansible (Real Life) Good Practices: https://www.reinteractive.net/posts/167-ansible-real-life-good-practices
+.. _Tagging: http://thinkansible.com/ansible-tagging/
+
+
 .. _Ansible: http://www.ansible.com/get-started
-.. _Playbooks Best Practices: http://docs.ansible.com/ansible/playbooks_best_practices.html#use-dynamic-inventory-with-clouds
+.. _Ansible Documentation: http://docs.ansible.com/ansible/
+.. _Playbooks Best Practices: http://docs.ansible.com/ansible/playbooks_best_practices.html
 .. _docker - manage docker containers: http://docs.ansible.com/ansible/docker_module.html
 .. _ansible/ansible-examples: https://github.com/ansible/ansible-examples
 .. _Best practices to build great Ansible playbooks: https://www.theodo.fr/blog/2015/10/best-practices-to-build-great-ansible-playbooks/
