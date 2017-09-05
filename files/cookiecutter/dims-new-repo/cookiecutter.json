@@ -1,0 +1,12 @@
+{
+  "full_name": "_NAME_",
+  "email": "_EMAIL_",
+  "project_name": "_PROJECT_NAME_",
+  "project_slug": "_PROJECT_SLUG_",
+  "project_short_description": "_PROJECT_DESCRIPTION_",
+  "release_date": "{% now 'utc', '%Y-%m-%d' %}",
+  "project_version": "0.1.0",
+  "project_copyright_name": "_COPYRIGHT_NAME_",
+  "project_copyright_date": "{% now 'utc', '%Y' %}",
+   "_extensions": ["jinja2_time.TimeExtension"]
+}

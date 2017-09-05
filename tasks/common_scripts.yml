@@ -7,7 +7,7 @@
 #
 
 - name: Install common scripts
-  copy: src={{ item }} dest={{ dims_bin }} owner={{ dims_user }} group={{ dims_group }} mode={{ mode_0755 }}
+  copy: src={{ item }} dest={{ dims_bin }} owner={{ dims_user }} group={{ dims_group }} mode=0o755
   with_fileglob:
    - "{{ files }}/common-scripts/*"
   tags: [ config ]

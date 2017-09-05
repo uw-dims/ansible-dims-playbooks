@@ -34,7 +34,7 @@
      openvpn_clients
 
  - name: Set the proper permissions on all RSA keys
-   file: path={{ openvpn_path }} owner=root group=root mode=600 state=directory recurse=yes
+   file: path={{ openvpn_path }} owner=root group=root mode=0o600 state=directory recurse=yes
  
  - name: Generate CA certificate
    command: openssl req -nodes -batch -new -x509 -key {{ openvpn_ca }}.key -out {{ openvpn_ca }}.crt

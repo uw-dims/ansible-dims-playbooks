@@ -40,7 +40,7 @@
     state: directory
     owner: '{{ dims_user }}'
     group: '{{ dims_user }}'
-    mode: '{{ mode_0750 }}'
+    mode: 0o750
   become: yes
   become_user: '{{ dims_user }}'
 

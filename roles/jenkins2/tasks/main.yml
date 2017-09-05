@@ -56,7 +56,7 @@
     dest: /etc/nginx/sites-available/jenkins
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ nginx_confd_jenkins }}'
@@ -87,7 +87,7 @@
     state: directory
     owner: '{{ jenkins_process_user }}'
     group: '{{ jenkins_process_user }}'
-    mode: '{{ mode_0770 }}'
+    mode: 0o770
   become: yes
   notify: restart nginx
   tags: [ jenkins2, config ]
@@ -108,7 +108,7 @@
     state: present
     owner: '{{ jenkins_process_user }}'
     group: '{{ jenkins_process_user }}'
-    mode: "{{ mode_0640 }}"
+    mode: 0o640
   become: yes
   tags: [ jenkins2, config ]
 
@@ -127,7 +127,7 @@
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_fileglob:
     - "../templates/scripts/*.j2"
   tags: [ jenkins2, scripts ]
@@ -138,7 +138,7 @@
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_fileglob:
     - "../files/scripts/*.sh"
   tags: [ jenkins2, scripts ]

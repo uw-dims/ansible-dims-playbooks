@@ -59,7 +59,7 @@
     path=/etc/consul.d
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0775 }}
+    mode=0o775
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ consul, config ]
@@ -70,7 +70,7 @@
     path=/etc/consul.d/{{ item }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0775 }}
+    mode=0o775
   with_items:
     - bootstrap
     - server
@@ -85,7 +85,7 @@
     dest=/etc/consul.d/{{ consul_agent_type }}/consul.json
     owner={{ dims_user }}
     group={{ dims_user }}
-    mode={{ mode_0640 }}
+    mode=0o640
   when: ansible_os_family == "Debian"
   become: yes
   notify: restart consul
@@ -97,7 +97,7 @@
     path={{ consul_data_dir }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0770 }}
+    mode=0o770
     recurse=yes
   when: ansible_os_family == "Debian"
   become: yes
@@ -109,7 +109,7 @@
     path={{ consul_log_file }}
     owner={{ dims_user }}
     group={{ dims_user }}
-    mode={{ mode_0640 }}
+    mode=0o640
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ consul ]
@@ -120,7 +120,7 @@
     dest={{ dims_bin }}/consul.run
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   when: ansible_os_family == "Debian"
   become: yes
   notify: restart consul
@@ -133,7 +133,7 @@
     dest=/etc/init/consul.conf
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
@@ -153,7 +153,7 @@
     dest=/etc/default/consul
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
@@ -165,7 +165,7 @@
     dest=/etc/init.d/consul
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
@@ -192,7 +192,7 @@
     dest: /etc/systemd/system/consul.service
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ base_hosts }}'

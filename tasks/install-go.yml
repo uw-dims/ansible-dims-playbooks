@@ -11,7 +11,7 @@
   file:
     state: directory
     path: "{{ dims_deploy }}/install-go"
-    mode: "{{ mode_0775 }}"
+    mode: 0o775
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
 
@@ -61,7 +61,7 @@
     dest={{ dims_bin }}/go
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_2775 }}
+    mode=0o2775
     state=link
   become: yes
 

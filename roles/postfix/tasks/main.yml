@@ -30,7 +30,7 @@
     state=directory
     owner=root
     group=mail
-    mode={{ mode_1777 }}
+    mode=0o1777
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ postfix, packages ]
@@ -41,7 +41,7 @@
     dest: /etc/postfix/main.cf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_maincf }}'
@@ -63,7 +63,7 @@
     dest: /etc/postfix/master.cf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_mastercf }}'
@@ -84,7 +84,7 @@
     dest: /etc/aliases
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_aliases }}'
@@ -107,7 +107,7 @@
     dest: /etc/postfix/virtual
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_virtual }}'
@@ -130,7 +130,7 @@
     dest: /etc/postfix/transport
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_transport }}'
@@ -152,7 +152,7 @@
     dest: /etc/postfix/generic
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_generic }}'
@@ -174,7 +174,7 @@
     dest: /etc/postfix/access
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_access }}'
@@ -197,7 +197,7 @@
     dest: /etc/postfix/helo_access
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_helo_access }}'
@@ -220,7 +220,7 @@
     dest=/etc/postfix/relay_recipients
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_first_found:
     - files:
         - "{{ postfix_relay_recipients }}"

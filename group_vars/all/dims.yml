@@ -5,6 +5,14 @@
 # This file is intended to serve as the principle site
 # configuration file.
 
+cronvars:
+  - name: 'MAILTO'
+    value: '{{ postmaster|default("postmaster") }}'
+    user: 'ansible'
+  - name: 'PATH'
+    value: '{{ dims_global_path }}'
+    user: 'ansible'
+
 cronjobs:
   - name: 'dims.updatecheck'
     weekday: '*'
@@ -12,6 +20,15 @@ cronjobs:
     minute: '0'
     user: 'ansible'
     job: '{{ dims_bin }}/dims.updatecheck'
+
+yaml_mode_whitelist:
+  - 'mode: push'
+  - "{% raw %}mode: '{{ item.value.mode }}'{% endraw %}"
+
+# Try to use this as the PATH set at the lowest level for shells, startup scripts,
+# etc. This way there is more consistency across system components, so less chance
+# for random failures or random behavior in scripts.
+dims_global_path: '{{ dims_bin }}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 dims_kibana_port: 8480
 dims_ssh_port: 8422

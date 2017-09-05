@@ -57,7 +57,7 @@
     dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
     owner: postgres
     group: postgres
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postgresql_conf }}'
@@ -79,7 +79,7 @@
     dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
     owner: postgres
     group: postgres
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ pghba_conf }}'
@@ -101,7 +101,7 @@
     dest: /etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf
     owner: postgres
     group: postgres
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ pgident_conf }}'

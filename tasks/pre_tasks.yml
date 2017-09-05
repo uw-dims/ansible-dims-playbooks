@@ -37,7 +37,7 @@
   file:
     state: directory
     path: "{{ dims_deploy }}/{{ role_name }}"
-    mode: "{{ mode_0770 }}"
+    mode: 0o770
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
   when: role_name is defined

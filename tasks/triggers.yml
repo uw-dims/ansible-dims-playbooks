@@ -34,7 +34,7 @@
     dest={{ dims_triggers }}/{{ item }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   with_items: "{{ trigger_directories }}"
 
 # This playbook assumes that all trigger helpers and
@@ -49,7 +49,7 @@
     dest={{ dims_triggers }}/{{ item | basename | regex_replace('\.j2','') }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   with_fileglob:
    - ../templates/triggers/*.sh.j2
 
@@ -80,7 +80,7 @@
     dest={{ dims_triggers }}/{{ item | dirname }}/{{ item | basename | regex_replace('\.j2','') }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   with_items: "{{ triggers_templates }}"
 
 # vim: ft=ansible :

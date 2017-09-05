@@ -58,7 +58,7 @@
     state: directory
     owner: "{{ root_user }}"
     group: "{{ root_group }}"
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_items:
     - /etc/nginx/sites-available
     - /etc/nginx/sites-enabled
@@ -71,7 +71,7 @@
     dest: /etc/nginx/nginx.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ nginx_conf }}'
@@ -139,7 +139,7 @@
     state: directory
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   when: '"health_check" in nginx_sites_available'
   become: yes
   tags: [ nginx, config ]
@@ -150,7 +150,7 @@
     dest: /var/www/health_check/index.html
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ nginx_index }}'
@@ -172,7 +172,7 @@
     state: directory
     owner: '{{ dims_user }}'
     group: www-data
-    mode: '{{ mode_0775 }}'
+    mode: 0o775
   become: yes
   when: '"source" in nginx_sites_available'
   notify: restart nginx

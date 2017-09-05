@@ -5,7 +5,7 @@
 
 # Directory paths
 # TODO(dittrich): Fix this (was "core", switching to "ansible", but NO HARD CODING)
-PATH='{{ dims_bin }}:/home/{{ vmUser }}/pypy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+PATH='{{ dims_global_path }}:/home/{{ vmUser }}/pypy/bin'
 GIT='{{ dims_git }}'
 DIMS='{{ dims }}'
 

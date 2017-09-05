@@ -17,7 +17,7 @@
   tags: [ openvpn-server ]
 
 - name: Make sure staticclients directory exists.
-  file: "state=directory path=/etc/openvpn/staticclients owner={{ root_user }} group={{ root_group }} mode={{ mode_0770 }}"
+  file: "state=directory path=/etc/openvpn/staticclients owner={{ root_user }} group={{ root_group }} mode=0o770"
   become: yes
   tags: [ openvpn-server ]
 

@@ -26,7 +26,7 @@
   copy:
     src: "{{ patches }}/diffs.vagrant_configure_networks"
     dest: "{{ dims_deploy }}/{{ role_name }}diffs.vagrant_configure_networks"
-    mode: "{{ mode_0644 }}"
+    mode: 0o644
   when: ansible_os_family == "Debian"
   tags: [ vagrant, packages ]
 
@@ -44,7 +44,7 @@
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
     state: directory
-    mode: "{{ mode_2775 }}"
+    mode: 0o2775
   with_items:
    - 'run'
    - 'box'
@@ -64,7 +64,7 @@
     owner: "proxy"
     group: "proxy"
     state: directory
-    mode: "{{ mode_0775 }}"
+    mode: 0o775
   with_items:
    - 'cache/apt'
   become: yes

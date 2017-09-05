@@ -11,27 +11,27 @@
   become: yes
 
 - name: Make ~user/dims directory present
-  file: "path=/home/{{ item }}/dims owner={{ item }} group={{ item }} state=directory mode={{ mode_0755 }}"
+  file: "path=/home/{{ item }}/dims owner={{ item }} group={{ item }} state=directory mode=0o755"
   with_items: "{{ dims_users }}"
   become: yes
 
 - name: Make ~user/dims/git directory present
-  file: "path=/home/{{ item }}/dims/git owner={{ item }} group={{ item }} state=directory mode={{ mode_0755 }}"
+  file: "path=/home/{{ item }}/dims/git owner={{ item }} group={{ item }} state=directory mode=0o755"
   with_items: "{{ dims_users }}"
   become: yes
 
 - name: Make ~/user/.ssh directory present
-  file: "path=/home/{{ item }}/.ssh owner={{ item }} group={{ item }} state=directory mode=700"
+  file: "path=/home/{{ item }}/.ssh owner={{ item }} group={{ item }} state=directory mode=0o700"
   with_items: "{{ dims_users }}"
   become: yes
 
 - name: Make default ssh config file present
-  template: "src=config.j2 dest=/home/{{ item }}/.ssh/config owner={{ item }} group={{ item }} mode={{ mode_0644 }}"
+  template: "src=config.j2 dest=/home/{{ item }}/.ssh/config owner={{ item }} group={{ item }} mode=0o644"
   with_items: "{{ dims_users }}"
   become: yes
 
 - name: Make default ~user/.gitconfig file present
-  template: "src=gitconfig.j2 dest=/home/{{ item }}/.gitconfig owner={{ item }} group={{ item }} mode={{ mode_0644 }}"
+  template: "src=gitconfig.j2 dest=/home/{{ item }}/.gitconfig owner={{ item }} group={{ item }} mode=0o644"
   with_items: "{{ dims_users }}"
   become: yes
 

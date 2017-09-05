@@ -7,7 +7,7 @@
   file:
     state: directory
     path: "{{ dims_deploy }}/certbot"
-    mode: "{{ mode_0775 }}"
+    mode: 0o775
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
   become: yes
@@ -49,7 +49,7 @@
     remote_src: true
     src: "{{ dims_deploy }}/certbot/certbot-auto"
     dest: "{{ dims_bin }}/certbot-auto"
-    mode: "{{ mode_0755 }}"
+    mode: 0o755
   become: yes
   become_user: "{{ dims_user }}"
 

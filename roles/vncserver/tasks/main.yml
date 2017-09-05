@@ -84,7 +84,7 @@
     dest: /etc/init.d/vncserver
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
         - '{{ vncserver_init }}'
@@ -121,7 +121,7 @@
     dest: "/home/{{ item.user }}/.vnc/xstartup"
     owner: '{{ item.user }}'
     group: '{{ item.user }}'
-    mode: '{{ mode_0750 }}'
+    mode: 0o750
   become: yes
   with_items: '{{ vncserver_users_indexed }}'
   tags: [ vncserver ]
@@ -146,7 +146,7 @@
     dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ inventory_hostname }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
         - '{{ vnc_script }}'
@@ -167,7 +167,7 @@
     dest: /etc/default/vncserver
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ vncserver_default }}'

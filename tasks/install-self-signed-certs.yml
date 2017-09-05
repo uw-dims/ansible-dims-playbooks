@@ -24,7 +24,7 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     state: directory
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   become: yes
 
 - name: Copy SSL secret files

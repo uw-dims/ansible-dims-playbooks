@@ -1,0 +1,43 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+    # Make whitelist file. This should include any valid lines in
+    # .yml files that handle modes.
+    WHITELIST=$(get_temp_file)
+
+    cat > ${WHITELIST} <<EOD
+{% if yaml_mode_whitelist is defined %}
+{% for line in yaml_mode_whitelist %}
+{{ line }}
+{% endfor %}
+{% endif %}
+EOD
+}
+
+function teardown() {
+    rm -f ${WHITELIST}
+}
+
+# Note: The "|| true" at the end of the commands is necessary, becase
+# the "grep" search pipeline is designed to NOT FIND something. In
+# other words, success of the test is a failure to find anything that
+# deviates from the intended mode values. If that is left off, the
+# assert will work (i.e., the result is an empty string), but the
+# final "fgrep" in the pipeline will return a non-zero exit value
+# and bats will think the test has failed.
+
+@test "[U][EV] Modes in tasks under \$PBR use valid '0o' notation" {
+    ! bash -c "find $PBR -type f -name '*.yml' -print | xargs egrep ' mode=| mode:' | egrep -v ' mode=0o[12]*[1-7][0-7][0-7]| mode: 0o[12]*[1-7][0-7][0-7]' | fgrep -v -f ${WHITELIST}"
+}
+
+@test "[U][EV] Modes in tasks under \$DIMS_PRIVATE use valid '0o' notation" {
+    [ -z "$DIMS_PRIVATE" ] && skip 'DIMS_PRIVATE is not defined'
+    ! bash -c "find $DIMS_PRIVATE -type f -name '*.yml' -print | xargs egrep ' mode=| mode:' | egrep -v ' mode=0o[12]*[1-7][0-7][0-7]| mode: 0o[12]*[1-7][0-7][0-7]' | fgrep -v -f ${WHITELIST}"
+}

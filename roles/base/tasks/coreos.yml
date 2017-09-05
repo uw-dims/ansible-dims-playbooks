@@ -14,7 +14,7 @@
     dest=/var/lib/coreos-vagrant/user-data
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_first_found:
     - files:
         - '{{ coreos_userdata }}'
@@ -47,7 +47,7 @@
     dest: /etc/profile.d/coreos.sh
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
         - '{{ coreos_profile }}'

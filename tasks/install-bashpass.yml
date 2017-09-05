@@ -19,7 +19,7 @@
     dest: "{{ dims_deploy }}/bashpass/diffs.hunspell"
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
-    mode: "{{ mode_0644 }}"
+    mode: 0o644
   become: yes
   tags: [ base, packages ]
 

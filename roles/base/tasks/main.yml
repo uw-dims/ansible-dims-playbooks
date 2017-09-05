@@ -53,7 +53,7 @@
     line={{ category }}.{{ deployment }}
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   become: yes
   when: ansible_os_family == "MacOSX"
   tags: [ base, config ]
@@ -86,7 +86,7 @@
     dest: /etc/hosts
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ base_hosts }}'
@@ -114,7 +114,7 @@
     dest: /etc/iptables/rules.v4
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
     validate: '/sbin/iptables-restore --test %s'
   with_first_found:
     - files:
@@ -139,7 +139,7 @@
     dest: /var/lib/iptables/rules-save
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
     validate: '/sbin/iptables-restore --test %s'
   with_first_found:
     - files:
@@ -164,7 +164,7 @@
     dest: /etc/iptables/rules.v6
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
     validate: '/sbin/ip6tables-restore --test %s'
   with_first_found:
     - files:
@@ -189,7 +189,7 @@
     dest: /var/lib/ip6tables/rules-save
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
     validate: '/sbin/ip6tables-restore --test %s'
   with_first_found:
     - files:
@@ -213,7 +213,7 @@
         dest=/etc/timezone
         owner={{ root_user }}
         group={{ root_group }}
-        mode={{ mode_0644 }}
+        mode=0o644
         backup=yes
   notify:
   - update timezone
@@ -234,7 +234,7 @@
     dest: /etc/gai.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ gai_rules }}'
@@ -389,7 +389,7 @@
     path=/var/log/dims
     owner={{ rsyslog_user }}
     group={{ root_group }}
-    mode={{ mode_0775 }}
+    mode=0o775
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -400,7 +400,7 @@
     dest: /etc/rsyslog.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rsyslog_config }}'
@@ -420,7 +420,7 @@
   file:
     path: /etc/rsyslog.d
     state: directory
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -431,7 +431,7 @@
     dest: /etc/rsyslog.d/00-ignore.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rsyslog_ignore_config }}'
@@ -459,7 +459,7 @@
     dest: /etc/rsyslog.d/49-consolidation.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rsyslog_consolidation_config }}'
@@ -483,7 +483,7 @@
     dest: /etc/rsyslog.d/50-default.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rsyslog_default_config }}'
@@ -504,7 +504,7 @@
     dest: /etc/systemd/journald.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ journald_config }}'
@@ -535,7 +535,7 @@
     dest: /etc/logrotate.d/dims
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ logrotate_default_config }}'
@@ -576,7 +576,7 @@
     dest: /etc/resolv.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ resolv_conf }}'
@@ -597,7 +597,7 @@
     dest: /etc/NetworkManager/NetworkManager.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ network_manager }}'
@@ -636,7 +636,7 @@
     dest: /etc/network/interfaces
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ network_interfaces }}'
@@ -704,7 +704,7 @@
     dest: /etc/fstab
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ base_fstab }}'
@@ -720,7 +720,7 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Ensure pip installed for system python
+- name: Ensure pip installed for system Python
   apt:
     name: '{{ item }}'
     state: latest
@@ -730,17 +730,21 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, updates ]
 
-- name: Ensure required system python packages present
-  shell: 'pip install {{ item }}'
-  with_items:
-    - urllib3
-    - pyOpenSSL
-    - ndg-httpsclient
-    - pyasn1
-    - python-dateutil
+- name: Create base-requirements.txt file
+  template:
+    src: pip/base-requirements.txt.j2
+    dest: '{{ dims_etc }}/base-requirements.txt'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o644
   become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config ]
+  tags: [ base, config, updates ]
+
+- name: Ensure required system python packages present
+  pip:
+    requirements: '{{ dims_etc }}/base-requirements.txt'
+  become: yes
+  tags: [ base, config, updates ]
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
@@ -757,7 +761,7 @@
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_fileglob:
    - '{{ files }}/common-scripts/*.j2'
   become: yes
@@ -769,7 +773,7 @@
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_fileglob:
    - '{{ files }}/common-scripts/*.sh'
   become: yes
@@ -781,7 +785,7 @@
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.py$","") }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_fileglob:
    - '{{ files }}/common-scripts/*.py'
   become: yes
@@ -815,7 +819,7 @@
     dest: /etc/ssh/sshd_config
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ sshd_config }}'
@@ -838,7 +842,7 @@
     dest: /etc/rc.local
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0550 }}'
+    mode: 0o550
   with_first_found:
     - files:
         - '{{ base_rclocal }}'
@@ -859,7 +863,7 @@
     dest: '{{ dims_etc_bashrc }}/{{ item | basename | regex_replace("\.j2","") }}'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_fileglob:
    - ../templates/bashrc.d/*.bash.j2
   become: yes
@@ -887,7 +891,7 @@
     dest: '{{ dims_etc_bashrc }}/hub.bash_completion.sh'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
@@ -899,7 +903,7 @@
     dest: '{{ dims_etc_bashrc }}/git-prompt.sh'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
@@ -931,7 +935,7 @@
     dest: /etc/aliases
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ postfix_aliases }}'
@@ -960,6 +964,17 @@
     state: restarted
   become: yes
   when: _aliases.changed
+  tags: [ base, config ]
+
+- name: Ensure cron environment is present
+  cronvar:
+    cron_file: 'dims'
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+  with_items:
+    - "{{ cronvars }}"
+  become: yes
+  when: cronvars is defined
   tags: [ base, config ]
 
 - name: Ensure DIMS cron jobs are present
