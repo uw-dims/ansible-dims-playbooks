@@ -1,14 +1,6 @@
 ---
 
 docker_listen_port: 2375
-# TODO(dittrich): Docker engine is updated differently than compose or machine
-docker_engine_pool: 'main'
-docker_engine_version: '17.05.0~ce-0'
-docker_compose_version: '1.13.0'
-docker_machine_version: '0.8.2'
-# https://github.com/moby/moby/issues/20022
-#docker_keyserver: 'hkp://p80.pool.sks-keyservers.net:80'
-docker_keyserver: 'keyserver.ubuntu.com'
 docker_registry: hub.devops.{{ deployment }}:5000
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
