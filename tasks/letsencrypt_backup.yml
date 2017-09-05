@@ -40,7 +40,7 @@
       dest: '{{ _tmpdir }}/{{ certbot_backup_file }}'
       owner: root
       group: root
-      mode: 0770
+      mode: 0o770
       remove: false
     become: yes
 
@@ -50,7 +50,7 @@
       state: directory
       owner: dims
       group: dims
-      mode: 0770
+      mode: 0o770
     delegate_to: 127.0.0.1
     become: yes
 
@@ -72,7 +72,7 @@
       path: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
       owner: dims
       group: dims
-      mode: 0660
+      mode: 0o660
     delegate_to: 127.0.0.1
     become: yes
 

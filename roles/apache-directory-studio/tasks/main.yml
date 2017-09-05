@@ -35,7 +35,7 @@
     dest: /usr/share/applications/apache_directory_studio.desktop
     owner: "{{ root_user }}"
     group: "{{ root_group }}"
-    mode: "{{ mode_0644 }}"
+    mode: 0o644
   become: yes
   tags: [ apache-directory-studio, packages, ldap ]
 

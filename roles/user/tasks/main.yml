@@ -26,7 +26,7 @@
     owner: '{{ item }}'
     group: '{{ item }}'
     state: directory
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_items: dims_users
   become: yes
 
@@ -36,7 +36,7 @@
     owner: '{{ item }}'
     group: '{{ item }}'
     state: directory
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_items: dims_users
   become: yes
 
@@ -46,7 +46,7 @@
     owner: '{{ item }}'
     group: '{{ item }}'
     state: directory
-    mode: '{{ mode_0700 }}'
+    mode: 0o700
   with_items: dims_users
   become: yes
 
@@ -56,7 +56,7 @@
     dest: '/home/{{ item }}/.ssh/config-dims'
     owner: '{{ item }}'
     group: '{{ item }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
   with_items: dims_users
   become: yes
 
@@ -66,7 +66,7 @@
     dest: '/home/{{ item }}/.gitconfig'
     owner: '{{ item }}'
     group: '{{ item }}'
-    mode: '{{ mode_0600 }}'
+    mode: 0o600
   with_items: dims_users
   become: yes
 

@@ -140,7 +140,7 @@
     dest: /etc/default/rabbitmq-server
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rabbitmq_server_default }}'
@@ -160,7 +160,7 @@
     dest: '/etc/rabbitmq/rabbitmq.config'
     owner: 'rabbitmq'
     group: 'rabbitmq'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rabbitmq_server_default }}'
@@ -182,7 +182,7 @@
     dest: '/etc/rabbitmq/rabbitmq-env.conf'
     group: 'rabbitmq'
     owner: 'rabbitmq'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ rabbitmq_server_default }}'
@@ -262,7 +262,7 @@
     dest: /root/.rabbitmqadmin.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0640 }}'
+    mode: 0o640
   with_first_found:
     - files:
         - '{{ rabbitmqadmin_conf }}'
@@ -282,7 +282,7 @@
     dest: /etc/rabbitmq/broker_objects.json
     owner: rabbitmq
     group: rabbitmq
-    mode: '{{ mode_0640 }}'
+    mode: 0o640
   with_first_found:
     - files:
         - '{{ rabbitmq_broker_objects }}'
@@ -303,7 +303,7 @@
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
-  tags: [ rabbitmq ]
+  tags: [ rabbitmq, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rabbitmq ]

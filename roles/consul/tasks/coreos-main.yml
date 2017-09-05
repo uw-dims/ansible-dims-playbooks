@@ -8,7 +8,7 @@
     dest: /etc/systemd/system/consul.service
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ consul_service_file }}'
@@ -30,7 +30,7 @@
     dest: /etc/systemd/system/consul-join.service
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ consul_join_service_file }}'

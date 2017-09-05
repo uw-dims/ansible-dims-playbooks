@@ -1,0 +1,34 @@
+---
+
+# File: playbooks/groups/ca-certs.yml
+
+# This playbook is designed to distribute self-signed SSL
+# certificates for use in development. It uses a forked
+# version of <https://github.com/shelleg/ansible-role-ca>.
+#
+# Example usage:
+#
+# $ ansible-playbook \
+# > -i $GIT/private-develop/inventory \
+# > $PBR/playbooks/group/ca-cert.yml
+
+- name: Local CA SSL Certificate playbook
+  hosts: "{{ host|default('instances') }}" # override with '-e host=$host.fq.dn'
+  gather_facts: true
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+    dims_private: "{{ playbooks_root }}"
+    ca_init: false
+    ca_certify_nodes: false
+    ca_wildcard: false
+    ca_fetch_keys: false
+    ca_distribute_keys: true
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+
+  roles:
+    - { role: ansible-role-ca }
+
+# vim: ft=ansible :

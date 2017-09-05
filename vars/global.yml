@@ -97,7 +97,7 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "2.10.2"
+ansibleplaybooks_version: "2.12.0"
 
 # Set Python interpreter to be one from DIMS Python virtual
 # environment (the global one, although would be ideal to
@@ -140,28 +140,6 @@ dims_users: [ ]
 
 # To calculate permissions masks or symbolic representations of same,
 # you can use http://permissions-calculator.org/symbolic/
-
-# TODO(dittrich): Fill out the set of modes we might use.
-# Use these symbolic mode variables to avoid misinterpretation of
-# octal vs. decimal in Ansible.
-mode_2775: 'u=rwx,g=rwxs,o=rx'
-mode_1777: 'u=rwx,g=rwx,o=rwx,a+t'
-mode_0775: 'u=rwx,g=rwx,o=rx'
-mode_0770: 'u=rwx,g=rwx,o='
-mode_0755: 'u=rwx,g=rx,o=rx'
-mode_0750: 'u=rwx,g=rx,o='
-mode_0700: 'u=rwx,go='
-mode_0555: 'u=rx,g=rx,o=rx'
-mode_0550: 'u=rx,g=rx,o='
-mode_0500: 'u=rx,go='
-mode_0664: 'u=rw,g=rw,o=r'
-mode_0660: 'u=rw,g=rw,o='
-mode_0644: 'u=rw,g=r,o=r'
-mode_0640: 'u=rw,g=r,o='
-mode_0600: 'u=rw,go='
-mode_0444: 'u=r,g=r,o=r'
-mode_0440: 'u=r,g=r'
-mode_0400: 'u=r,go='
 
 # Jenkins variables
 build_user: jenkins

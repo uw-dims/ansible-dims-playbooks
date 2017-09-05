@@ -28,6 +28,12 @@
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ python-virtualenv, packages, config ]
 
+- name: Define dims_ansible_version
+  set_fact:
+    dims_ansible_version: '{{ _dims_ansible_version }}'
+  when: dims_ansible_version is not defined
+  tags: [ always ]
+
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
   when: ansible_os_family == "Debian"
@@ -87,23 +93,13 @@
 #  become_user: '{{ dims_user }}'
 #  tags: [ python-virtualenv ]
 
-- name: Create base-requirements.txt file
-  template:
-    src=pip/base-requirements.txt.j2
-    dest={{ dims_etc }}/base-requirements.txt
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode={{ mode_0644 }}
-  become: yes
-  tags: [ python-virtualenv ]
-
 - name: Create {{ venv_name }}-requirements.txt file
   template:
     src=pip/{{ venv_name }}-requirements.txt.j2
     dest={{ dims_etc }}/{{ venv_name }}-requirements.txt
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   become: yes
   tags: [ python-virtualenv ]
 
@@ -113,7 +109,7 @@
     dest={{ dims_bin }}/{{ venv_name }}.build
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   become: yes
   tags: [ python-virtualenv, config ]
 
@@ -123,7 +119,7 @@
     dest={{ dims_bin }}/{{ venv_name }}.update
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   become: yes
   tags: [ python-virtualenv, config ]
 
@@ -196,7 +192,7 @@
     dest={{ dims_etc_bashrc }}/{{ item | basename | regex_replace('\.j2','') }}
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_fileglob:
    - ../templates/bashrc.d/*.bash.j2
   become: yes
@@ -208,7 +204,7 @@
     state=directory
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_2775 }}
+    mode=0o2775
   become: yes
   tags: [ python-virtualenv ]
 

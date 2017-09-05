@@ -74,7 +74,7 @@
     dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
     owner: postgres
     group: postgres
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ pghba_conf }}'
@@ -204,7 +204,7 @@
     dest: /etc/default/trident
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_default }}'
@@ -225,7 +225,7 @@
     dest: /etc/trident/trident.conf
     owner: trident
     group: trident
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
        - '{{ trident_conf }}'
@@ -250,7 +250,7 @@
     dest: /var/lib/trident/siteconfig
     owner: trident
     group: trident
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   with_first_found:
     - files:
        - '{{ siteconfig }}'
@@ -275,7 +275,7 @@
     dest: /etc/nginx/sites-available/default
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ nginx_conf_trident }}'
@@ -307,7 +307,7 @@
     dest: /etc/trident/nginx/trident-upstream.inc
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_nginx_upstream }}'
@@ -329,7 +329,7 @@
     dest: /etc/trident/nginx/trident-server.inc
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_nginx_server }}'
@@ -351,7 +351,7 @@
     dest: /usr/share/pitchfork/webroot/{{ trident_site_logo_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_logo }}'
@@ -373,7 +373,7 @@
     dest: /usr/share/trident/webroot/{{ trident_site_header_image }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_header }}'
@@ -397,7 +397,7 @@
     dest: /usr/share/pitchfork/webroot/{{ trident_site_unknown_person }}
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_unknown_person }}'
@@ -419,7 +419,7 @@
     dest: /usr/share/trident/webroot/css/trident.css
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
        - '{{ trident_css }}'

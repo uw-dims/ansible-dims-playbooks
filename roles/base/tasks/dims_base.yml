@@ -35,7 +35,7 @@
     owner={{ dims_user }}
     group={{ dims_group }}
     state=directory
-    mode={{ mode_0775 }}
+    mode=0o775
   become: yes
   tags: [ base, config ]
 
@@ -53,7 +53,7 @@
     owner={{ dims_user }}
     group={{ dims_group }}
     state=directory
-    mode={{ mode_0775 }}
+    mode=0o775
   with_items: '{{ dims_dirs }}'
   become: yes
   tags: [ base, config ]
@@ -64,7 +64,7 @@
     owner={{ dims_user }}
     group={{ dims_group }}
     state=directory
-    mode={{ mode_0770 }}
+    mode=0o770
   become: yes
   tags: [ base, config ]
 
@@ -78,7 +78,7 @@
     dest=/etc/environment
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_first_found:
     - files:
         - '{{ dims_environment }}'
@@ -95,7 +95,7 @@
 
 # TODO(dittrich): Do this for Darwin as well
 #- name: Populate /etc/environment on Darwin
-#  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode={{ mode_0644 }}"
+#  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode=0o644"
 #  when: ansible_os_family == "Darwin"
 #  become: yes
 #  tags: [ base, config ]
@@ -107,7 +107,7 @@
     dest={{ dims_bin }}/dims_functions.sh
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   become: yes
   tags: [ base, config, tests ]
 
@@ -117,7 +117,7 @@
     dest=/etc/bash.bashrc
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   with_first_found:
     - files:
         - '{{ dims_bashrc }}'
@@ -138,7 +138,7 @@
     dest=/etc/profile.d/dims.sh
     owner={{ root_user }}
     group={{ root_group }}
-    mode={{ mode_0644 }}
+    mode=0o644
   with_first_found:
     - files:
         - '{{ dims_profile }}'
@@ -159,7 +159,7 @@
     path: '{{ dims_etc }}/bashrc.dims.d'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
-    mode: '{{ mode_0775 }}'
+    mode: 0o775
   become: yes
   tags: [ base, config ]
 
@@ -169,7 +169,7 @@
     dest={{ dims_etc }}/bashrc.dims
     owner={{ dims_user }}
     group={{ dims_group }}
-    mode={{ mode_0755 }}
+    mode=0o755
   with_first_found:
     - files:
         - '{{ dims_bashrc_dims }}'

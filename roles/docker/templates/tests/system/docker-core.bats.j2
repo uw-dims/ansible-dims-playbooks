@@ -10,44 +10,39 @@ function setup() {
     source $DIMS/bin/dims_functions.sh
 }
 
-# NOTE: Version numbers as stored in variables like docker_engine_version
-# look like "1.12.0-0" (to identify patch level releases), but the number
-# returned by the programs using --version look like "1.12.0". The trailing
-# patch release identifiers need to be stripped, hence the use of Jinja2
-# regex_replace() filters.
-
 @test "[S][EV] The user 'dims' is in the 'docker' group" {
     run bash -c "groups dims | grep -q docker"
 }
 
-@test "[S][EV] Docker Client version is {{ docker_engine_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
+# NOTE: Version numbers as stored in variables like docker_ce_version
+# look like "17.06.1~ce-0" (to identify patch level releases), but the number
+# returned by the programs using --version look like "17.06.1-ce". The trailing
+# patch release identifiers need to be stripped and "`" converted to "-",
+# hence the use of Jinja2 regex_replace() filters.
+
+@test "[S][EV] Docker Client version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_engine_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
 }
 
-@test "[S][EV] Docker Server version is {{ docker_engine_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
+@test "[S][EV] Docker Server version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_engine_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
 }
 
 # NOTE: Programs like docker-machine report their version numbers in a
 # manner that complicates parsing, hence the use of sed:
 # $ docker-machine --version
-# docker-machine version 0.8.0, build b85aac1
+# docker-machine version 0.10.0, build 76ed2a6
 
 # We want 'grep -v' to fail, so don't let that stop things
-@test "[S][EV] APT repo for \"docker-engine\" is only defined in 'docker.list'" {
-    assert '' bash -c "grep -l dockerproject.org /etc/apt/sources.list.d/*.list | grep -v docker.list || true"
+@test "[S][EV] APT repo host \"{{ docker_repo_host }}\" is only defined in 'docker.list'" {
+    assert '' bash -c "grep -l {{ docker_repo_host }} /etc/apt/sources.list.d/*.list | grep -v docker.list || true"
 }
 
-@test "[S][EV] APT repo pool for \"docker-engine\" is \"{{ docker_engine_pool }}\"" {
+@test "[S][EV] APT repo pool for \"docker-ce\" is \"{{ docker_ce_pool }}\"" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_engine_pool }}" bash -c "grep dockerproject.org /etc/apt/sources.list.d/docker.list | awk '{ print \$NF; }'"
-}
-
-@test "[S][EV] Package \"docker-engine\" dpkg is marked \"hold\"" {
-    is_coreos && skip "Not applicable on CoreOS"
-    bash -c "apt-mark showhold | grep -q docker-engine"
+    assert "{{ docker_ce_pool }}" bash -c "grep {{ docker_repo_host }} /etc/apt/sources.list.d/docker.list | awk '{ print \$NF; }'"
 }
 
 @test "[S][EV] Docker machine version is {{ docker_machine_version | regex_replace('-[0-9]+$', '') }}" {
@@ -63,12 +58,4 @@ function setup() {
 @test "[S][EV] Docker compose Bash completions is present in {{ dims_etc_bashrc }}" {
     is_coreos && skip "Not applicable on CoreOS"
     [ -r "{{ dims_etc_bashrc }}/docker-compose" ]
-}
-
-@test "[S][EV] 'docker ps' returns results" {
-    run bash -c "docker ps | grep -q '^CONTAINER'"
-}
-
-@test "[S][EV] 'docker info' returns results" {
-    run bash -c "docker info | grep -q '^Server Version:'"
 }

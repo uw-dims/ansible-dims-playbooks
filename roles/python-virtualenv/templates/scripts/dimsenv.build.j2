@@ -36,7 +36,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.10.2
+DIMS_VERSION=2.12.0
 
 DIMS_ETC=${DIMS_ETC:-{{ dims_etc }}}
 DIMS_BIN=${DIMS_BIN:-{{ dims_bin }}}
@@ -253,9 +253,9 @@ function main()
     # From here on out, we're using the bin/ directory of the just-activated
     # virtual environment.
 
-    verbose "Using easy_install to instal ${DIMS_SRC}/${PRISEM_ARTIFACT}"
-    ${WORKON_HOME}/${VENV}/bin/easy_install --zip-ok ${DIMS_SRC}/${PRISEM_ARTIFACT} ||
-        error_exit $? "easy_install of ${DIMS_SRC}/${PRISEM_ARTIFACT} failed"
+    verbose "Using pip to instal ${DIMS_SRC}/${PRISEM_ARTIFACT}"
+    ${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} ||
+        error_exit $? "${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} failed"
 
     verbose "Installing git"
     (cd ${DIMS_SRC}/git && \

@@ -20,16 +20,16 @@
 
 - name: Ensure SSL file directory exists
   file:
-    path: '{{ sslCertDir }}'
+    path: '{{ ssl_certs_dir }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     state: directory
-    mode: '{{ mode_0755 }}'
+    mode: 0o755
   become: yes
 
 - name: Copy SSL secret files
   copy:
-    dest: '{{ sslCertDir }}/{{ item.key }}'
+    dest: '{{ ssl_certs_dir }}/{{ item.key }}'
     content: '{{ item.value.content }}'
     owner: '{{ item.value.owner }}'
     group: '{{ item.value.group }}'

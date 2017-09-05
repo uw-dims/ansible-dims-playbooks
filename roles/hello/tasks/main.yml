@@ -8,7 +8,7 @@
     dest: /tmp/hello.txt
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - hello.txt.j2

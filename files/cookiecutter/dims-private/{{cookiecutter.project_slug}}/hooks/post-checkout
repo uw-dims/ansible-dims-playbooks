@@ -1,0 +1,16 @@
+#!/bin/bash
+echo "[+] Verifying private key permissions and correcting if necessary"
+find * -type f -name '*.pub' |
+  while read pubkey; do
+    privkey=$(dirname $pubkey)/$(basename $pubkey .pub)
+    if [[ -f $privkey ]]; then
+      mode=$(stat -c %a $privkey)
+      if [[ $? -ne 0 ]]; then
+        echo "[-] Failed to get mode for $privkey"
+      elif [[ "$mode" != "600" ]]; then
+        echo "[+] Changing mode $mode to 600 on file $privkey"
+	chmod 600 $privkey
+      fi
+    fi
+  done
+exit 0

@@ -10,7 +10,6 @@
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
-   - "{{ playbooks_root }}/vars/jessie.yml"
 
   remote_user: "ansible"
   become: yes
@@ -22,7 +21,7 @@
     - { role: dims-ci-utils }
     - { role: dns, zones: ['local', 'consul'] }
     - { role: python-virtualenv, use_sphinx: false, https_proxy: "https://10.0.2.2:8000" }
-    - { role: ansible-role-ssl-certs } # use tag 'ssl-certs'
+    - { role: ansible-role-ca, ca_distribute_keys: true }
     - { role: rabbitmq }
     - { role: postfix }
     - { role: docker }

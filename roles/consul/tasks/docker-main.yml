@@ -29,7 +29,7 @@
   template:
     src: start_consul.sh.j2
     dest: /tmp/start_consul.sh
-    mode: 0775
+    mode: 0o775
 
 - name: Start new instance of consul container
   shell: sh /tmp/start_consul.sh

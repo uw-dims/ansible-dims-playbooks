@@ -3,52 +3,109 @@
 # file: roles/docker/tasks/main.yml
 
 # Follow instructions from Docker web site on installation for
-# Ubuntu and Debian (respectively):
-#   https://docs.docker.com/engine/installation/linux/ubuntu/
-#   https://docs.docker.com/engine/installation/linux/debian/
+# installing Docker CE on Ubuntu and Debian (respectively):
+# https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
+# https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
 
 - include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ docker, packages, config ]
+  tags: [ docker, packages, config, tests ]
 
-# Debian wheezy requires backports (newer releases not)
-- name: Make backports present for APT on Debian wheezy
+- name: Define docker_apt_key_url
+  set_fact:
+    docker_apt_key_url: '{{ _docker_apt_key_url }}'
+  when: docker_apt_key_url is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_apt_key_id
+  set_fact:
+    docker_apt_key_id: '{{ _docker_apt_key_id }}'
+  when: docker_apt_key_id is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_repo_host
+  set_fact:
+    docker_repo_host: '{{ _docker_repo_host }}'
+  when: docker_repo_host is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_ce_pool
+  set_fact:
+    docker_ce_pool: '{{ _docker_ce_pool }}'
+  when: docker_ce_pool is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_ce_version
+  set_fact:
+    docker_ce_version: '{{ _docker_ce_version }}'
+  when: docker_ce_version is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_compose_version
+  set_fact:
+    docker_compose_version: '{{ _docker_compose_version }}'
+  when: docker_compose_version is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Define docker_machine_version
+  set_fact:
+    docker_machine_version: '{{ _docker_machine_version }}'
+  when: docker_machine_version is not defined
+  tags: [ docker, packages, config, tests ]
+
+- name: Ensure all old Docker versions are gone
+  apt:
+    name: '{{ item }}'
+    state: absent
+    purge: true
+    force: true
+  with_items:
+    - 'docker.io'
+    - 'docker'
+    - 'docker-engine'
+  become: yes
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Add Docker repo signing key
+  apt_key:
+    url: '{{ docker_apt_key_url }}'
+    id: '{{ docker_apt_key_id }}'
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+# Alter instructions for Ansible:
+#   $(lsb_release -cs) ==> ansible_lsb.codename
+
+
+- name: Make backports present for APT on Debian jessie/stretch
   apt_repository:
-    repo="deb http://http.debian.net/debian wheezy-backports main non-free contrib"
-    state=present
-    update_cache=yes
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "wheezy"
+    repo: 'deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} {{ docker_ce_pool }}'
+    state: present
+    update_cache: yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename in [ "jessie", "stretch" ]
+  tags: [ docker, packages ]
+
+- fail: msg='Only supporting installation on Debian "jessie" or "stretch" in this role'
+  when: ansible_lsb.id == "Debian" and not ansible_lsb.codename in [ "jessie", "stretch" ]
   tags: [ docker, packages ]
 
 - name: Ensure proper kernel is installed on Ubuntu
   apt:
-    name=linux-image-extra-{{ ansible_kernel }}
-    state=present
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - 'linux-image-extra-{{ ansible_kernel }}'
+    - 'linux-image-virtual'
   become: yes
   when: ansible_lsb.id == "Ubuntu"
-  tags: [ docker, packages ]
-
-- name: Ensure proper kernel is installed on Debian
-  apt:
-    name=linux-image-amd64
-    default_release=wheezy-backports
-    state=present
-  become: yes
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "wheezy" and ansible_architecture == "x86_64"
-  tags: [ docker, packages ]
-
-  # https://github.com/moby/moby/issues/20022
-- name: Make Docker registry key present
-  apt_key:
-    id: 58118E89F3A912897C070ADBF76221572C52609D
-    keyserver: '{{ docker_keyserver|default("hkp://p80.pool.sks-keyservers.net:80") }}'
-  become: yes
-  when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
 
 # Name in "filename" is tightly coupled with test in docker-core.bats.j2
 - name: Make deb sources present
   apt_repository:
-    repo: 'deb https://apt.dockerproject.org/repo {{ ansible_lsb.id | lowercase }}-{{ ansible_lsb.codename }} {{ docker_engine_pool }}'
+    repo: 'deb [arch=amd64] https://{{ docker_repo_host }}/linux/{{ ansible_distribution|lowercase }} {{ ansible_lsb.codename }} {{ docker_ce_pool }}'
     filename: 'docker'
     state: present
     update_cache: yes
@@ -60,13 +117,15 @@
 # this play, so it is being stored in a file in /tmp.
 
 - name: Verify APT repository and contents
-  shell: "apt-cache madison docker-engine | tee /tmp/docker-versions.txt"
+  shell: "apt-cache madison docker-ce | tee /tmp/docker-versions.txt"
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
 
 - name: Verify docker group exists
-  group: name=docker state=present
+  group:
+    name: docker
+    state: present
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, config ]
@@ -79,36 +138,22 @@
   when: ansible_os_family == "Debian"
   tags: [ docker, config ]
 
-# Note package name change as of 1.12.4:
-# docker-engine | 1.12.5-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.5-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
-# docker-engine | 1.12.5~rc1-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.4-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.4-0~ubuntu-trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
-# docker-engine | 1.12.4~rc1-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.3-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.3-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/main amd64 Packages
-# docker-engine | 1.12.3~rc1~git20161025.001321.0.bad4d12-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# docker-engine | 1.12.2-0~trusty | https://apt.dockerproject.org/repo/ ubuntu-trusty/experimental amd64 Packages
-# . . .
-
-- name: Make docker-engine present
+- name: Make docker-ce present
   apt:
-    name=docker-engine={{ docker_engine_version }}~{{ ansible_distribution | lower }}-{{ ansible_lsb.codename }}
-    state=present
-    force=yes
+    name: 'docker-ce={{ docker_ce_version }}~{{ ansible_distribution|lowercase }}'
+    state: present
+    force: yes
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ docker, packages ]
 
-- name: Hold updates of docker-engine package
+- name: Hold updates of docker-ce package
   dpkg_selections:
-    name: docker-engine
+    name: docker-ce
     selection: hold
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
-
 
 - name: Make Docker compose absent
   file: name={{ dims_bin }}/docker-compose state=absent
@@ -120,7 +165,7 @@
   get_url:
     url=https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}
     dest={{ dims_bin }}/docker-compose
-    mode={{ mode_0775 }}
+    mode=0o775
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -136,7 +181,7 @@
   get_url:
     url=https://github.com/docker/machine/releases/download/v{{ docker_machine_version }}/docker-machine-{{ ansible_system }}-{{ ansible_architecture }}
     dest={{ dims_bin }}/docker-machine
-    mode={{ mode_0775 }}
+    mode=0o775
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -148,7 +193,7 @@
     dest: /etc/default/docker
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: '{{ mode_0644 }}'
+    mode: 0o644
   with_first_found:
     - files:
         - '{{ docker_default }}'
@@ -182,7 +227,7 @@
   get_url:
     url=https://raw.githubusercontent.com/docker/compose/{{ docker_compose_version }}/contrib/completion/bash/docker-compose
     dest={{ dims_etc_bashrc }}
-    mode={{ mode_0664 }}
+    mode=0o664
     use_proxy=yes
   become: yes
   when: ansible_os_family == "Debian"
@@ -192,7 +237,7 @@
   get_url:
     url=https://raw.githubusercontent.com/ZZROTDesign/docker-clean/v2.0.4/docker-clean
     dest={{ dims_bin }}/docker-clean
-    mode={{ mode_0755 }}
+    mode=0o755
     use_proxy=yes
   become: yes
   tags: [ docker, config ]

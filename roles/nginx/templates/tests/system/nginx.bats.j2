@@ -93,3 +93,14 @@ function setup() {
 	assert 644 stat --printf "%a" /var/www/health_check/index.html
 }
 
+{% if ssl_certfile is defined %}
+@test "[S][EV] SSL certificate {{ ssl_certfile }} exists" {
+    [ -f {{ ssl_certfile }} ]
+}
+
+{% endif %}
+{% if ssl_keyfile is defined %}
+@test "[S][EV] SSL private key {{ ssl_keyfile }} exists" {
+    [ -f {{ ssl_keyfile }} ]
+}
+{% endif %}

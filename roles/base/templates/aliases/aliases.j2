@@ -1,0 +1,21 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# /etc/aliases
+mailer-daemon: postmaster
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+noc: root
+security: root
+{% if postmaster is defined %}
+root: {{ postmaster }}
+{% else %}
+root: {{ ansible_user_id }}
+{% endif %}
+

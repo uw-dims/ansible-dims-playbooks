@@ -13,7 +13,7 @@
     dest: /etc/timezone
     owner: root
     group: root
-    mode: 0644
+    mode: 0o644
     backup: yes
   notify:
     - Update timezone

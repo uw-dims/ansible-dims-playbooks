@@ -33,7 +33,7 @@
       file:
         path: "{{ dims_etc }}/stack/{{ item }}"
         state: directory
-        mode: "{{ mode_0755 }}"
+        mode: 0o755
       with_items: "{{ start_apps }}"
       run_once: true
       delegate_to: "{{ random_manager }}"
@@ -44,7 +44,7 @@
         dest: "{{ dims_etc }}/stack/{{ item }}/docker-compose.yml"
         owner: "{{ dims_user }}"
         group: "{{ dims_group }}"
-        mode: "{{ mode_0755 }}"
+        mode: 0o755
       with_items: "{{ start_apps }}"
       run_once: true
       delegate_to: "{{ random_manager }}"

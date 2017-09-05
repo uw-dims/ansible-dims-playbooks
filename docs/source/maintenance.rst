@@ -203,6 +203,111 @@ hosts at once:
 
 ..
 
+As a convenience for the system administrator, a ``cron`` job
+is managed by the ``base`` role that runs a script named
+``dims.updatecheck`` on a daily basis.  The variables
+that control the ``cron`` job are defined in the
+``group_vars/all/dims.yml`` file:
+
+.. code-block:: yaml
+
+    cronjobs:
+      - name: 'dims.updatecheck'
+        weekday: '*'
+        hour: '6'
+        minute: '0'
+        user: 'ansible'
+        job: '{{ dims_bin }}/dims.updatecheck'
+
+..
+
+The ``base`` role creates the following file:
+
+.. code-block:: none
+
+    $ cat /etc/cron.d/dims
+    #Ansible: dims.updatecheck
+    0 6 * * * ansible /opt/dims/bin/dims.updatecheck
+
+..
+
+When updates are available, or a reboot is required, email is
+sent to the ``root`` account. Make sure that email to this
+account is forwarded by setting the ``postmaster`` variable
+to a valid email address. An example of the message that
+will be sent is shown here:
+
+.. code-block:: none
+
+    To: dittrich@u.washington.edu
+    Subject: dims.updatecheck results from purple.ops.ectf (2017-09-01T23:06:02.211268+00:00)
+    Message-Id: <20170901230603.9D3C3582@breathe.prisem.washington.edu>
+    Date: Fri,  1 Sep 2017 16:06:03 -0700 (PDT)
+    From: root@breathe.prisem.washington.edu (root)
+
+    -----------------------------------------------------------------------
+
+    Host: purple.ops.ectf
+    Date: 2017-09-01T23:06:02.211268+00:00
+
+    This is a report of available package updates and/or required reboot
+    status.  The output of the bats tests that were run is included below.
+
+    If package updates are necessary, this can be accomplished by running
+    the Ansible playbook for purple.ops.ectf with the following options:
+
+       --tags updates -e packages_update=true
+
+    If a reboot is necessary, ensure that the host (and anyone using it)
+    is prepared for the reboot:
+
+      o Ensure that all users of external services are aware of any
+        potential outage of services provided by this host (or its
+        (VMs).
+
+      o Halt or suspend any VMs if this is a VM host (and be prepared
+        to ensure they are restart after rebooting is complete.)
+        (Use the "dims.shutdown" script to facilitate this. See
+        documentation and/or "dims.shutdown --usage".)
+
+      o Notify any active users to ensure no active development work
+        is lost.
+
+    -----------------------------------------------------------------------
+    test.runner --tap --match "updates|reboot"
+
+    # [+] Running test system/updates
+    1..1
+    not ok 1 [S][EV] All APT packages are up to date (Debian)
+    # (from function `assert' in file system/helpers.bash, line 18,
+    #  in test file system/updates.bats, line 12)
+    #   `assert "0 packages can be updated." bash -c "apt list --upgradable 2>/dev/null"' failed
+    #
+    # WARNING: apt does not have a stable CLI interface yet. Use with caution in scripts.
+    #
+    # expected: "0 packages can be updated."
+    # actual:   "Listing...firefox-esr/oldstable 52.3.0esr-1~deb8u2 amd64 [upgradable fro
+    m: 52.2.0esr-1~deb8u1]gir1.2-soup-2.4/oldstable 2.48.0-1+deb8u1 amd64 [upgradable fro
+    m: 2.48.0-1]git/oldstable 1:2.1.4-2.1+deb8u4 amd64 [upgradable from: 1:2.1.4-2.1+deb8
+    u3]git-core/oldstable 1:2.1.4-2.1+deb8u4 all [upgradable from: 1:2.1.4-2.1+deb8u3]git
+    -man/oldstable 1:2.1.4-2.1+deb8u4 all [upgradable from: 1:2.1.4-2.1+deb8u3]gitk/oldst
+    able 1:2.1.4-2.1+deb8u4 all [upgradable from: 1:2.1.4-2.1+deb8u3]iceweasel/oldstable
+    52.3.0esr-1~deb8u2 all [upgradable from: 52.2.0esr-1~deb8u1]libdbd-pg-perl/jessie-pgd
+    g 3.6.2-1~pgdg80+1 amd64 [upgradable from: 3.4.2-1]libgd3/oldstable 2.1.0-5+deb8u10 a
+    md64 [upgradable from: 2.1.0-5+deb8u9]libpq5/jessie-pgdg 9.6.4-1.pgdg80+1 amd64 [upgr
+    adable from: 9.4.13-0+deb8u1]libsoup-gnome2.4-1/oldstable 2.48.0-1+deb8u1 amd64 [upgr
+    adable from: 2.48.0-1]libsoup2.4-1/oldstable 2.48.0-1+deb8u1 amd64 [upgradable from:
+    2.48.0-1]"
+    #
+    # [+] Running test system/reboot
+    1..1
+    ok 1 [S][EV] System does not require a reboot (Debian)
+    #
+
+    -----------------------------------------------------------------------
+
+..
+
 .. _renewing_letsencrypt_certs:
 
 Renewing Letsencrypt Certificates

@@ -187,7 +187,7 @@
   - base
 
 - name: add rsyslog config to /etc/rsyslog.d
-  copy: src={{ item }} dest=/etc/rsyslog.d/ owner={{ root_user }} group={{ root_group }} mode=0644
+  copy: src={{ item }} dest=/etc/rsyslog.d/ owner={{ root_user }} group={{ root_group }} mode=0o644
   with_fileglob:
    - rsyslog/*.conf
   notify:
@@ -245,7 +245,7 @@
   - base
 
 - name: install /etc/postfix/master.cf file
-  copy: src={{ item }} dest=/etc/postfix/master.cf mode=0644
+  copy: src={{ item }} dest=/etc/postfix/master.cf mode=0o644
   with_first_found:
     - "{{ postfix_mastercf }}"
     - "postfix/master.cf/master.cf.{{ ansible_fqdn }}"
@@ -308,7 +308,7 @@
 #
 
 #- name: Install common scripts
-#  copy: src={{ item }} dest=/usr/local/bin/ owner={{ root_user }} group={{ root_group }} mode={{ mode_0755 }}
+#  copy: src={{ item }} dest=/usr/local/bin/ owner={{ root_user }} group={{ root_group }} mode=0o755
 #  with_fileglob:
 #   - common-scripts/*
 #  tags:

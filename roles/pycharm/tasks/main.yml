@@ -59,7 +59,7 @@
      dest=/usr/share/applications/jetbrains-pycharm-ce.desktop
      owner={{ root_user }}
      group={{ root_group }}
-     mode={{ mode_0644 }}
+     mode=0o644
   become: yes
   tags: [ pycharm, packages ]
 

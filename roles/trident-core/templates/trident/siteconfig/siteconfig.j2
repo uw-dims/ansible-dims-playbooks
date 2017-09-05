@@ -50,8 +50,8 @@ wwwgid=33
 #
 # Paths to SSL Key, Cert, Chainfile. To be used in the Apache configuration.
 {% if use_letsencrypt is not defined or not use_letsencrypt %}
-sslcertfile='{{ sslCertDir }}/self_signed_cert.crt'
-sslkeyfile='{{ sslCertDir}}/self_signed_cert.key'
+sslcertfile='{{ ssl_certfile }}'
+sslkeyfile='{{ ssl_keyfile }}'
 sslchainfile=''
 {% else %}
 sslcertfile='/etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem'
