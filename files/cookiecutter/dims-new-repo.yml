@@ -1,0 +1,9 @@
+---
+
+default_context:
+  full_name: "_NAME_"
+  email: "_EMAIL_"
+  project_name: "_PROJECT_NAME_"
+  project_slug: "_PROJECT_SLUG_"
+  project_short_description: "_PROJECT_DESCRIPTION_"
+  project_copyright_name: "_COPYRIGHT_NAME_"

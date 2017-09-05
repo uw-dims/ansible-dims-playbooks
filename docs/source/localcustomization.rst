@@ -71,10 +71,9 @@ Python virtual environment.
 ..
 
 The source files used by ``cookiecutter`` can be found in
-``$GIT/dims-ci-utils/cookiecutter``. When testing or using DIMS cookiecutters,
-make sure to have an updated ``dims-ci-utils`` repo.
+``ansible-dims-playbooks/files/cookiecutter``.
 
-The directory ``$GIT/dims-ci-utils/cookiecutter/dims-new-repo/`` provides a
+The directory ``ansible-dims-playbooks/files/cookiecutter/dims-new-repo/`` provides a
 template for a new Git source code repository that contains a Sphinx
 documentation directory suitable for publication on `ReadTheDocs`_.
 
@@ -220,7 +219,7 @@ you will find the following files and directories:
 Project Slug Directory
 """"""""""""""""""""""
 
-Path: ``$GIT/dims-new-repo/{{ cookiecutter.project_slug }}``
+Path: ``$GIT/ansible-dims-playbooks/files/cookiecutter/dims-new-repo/{{ cookiecutter.project_slug }}``
 
 Every Cookiecutter includes a directory with a name in the format of
 ``{{cookiecutter.project_slug}}``. This is how the ``cookiecutter`` program
@@ -284,7 +283,7 @@ and files the new repo directory will have.
 Template Defaults
 """""""""""""""""
 
-Path: ``$GIT/dims-new-repo/cookiecutter.json``
+Path: ``$GIT/ansible-dims-playbooks/files/cookiecutter/dims-new-repo/cookiecutter.json``
 
 Every cookiecutter has a ``cookiecutter.json`` file. This file contains
 the default variable definitions for a template. When the user runs
@@ -295,7 +294,7 @@ the ``.json`` file will be used to create the project.
 The ``cookiecutter.json`` file in the ``dims-new-repo`` Cookiecutter slug
 directory contains the following:
 
-.. literalinclude:: ../../cookiecutter/dims-new-repo/cookiecutter.json
+.. literalinclude:: ../../files/cookiecutter/dims-new-repo/cookiecutter.json
    :language: json
 
 Python commands can be used to manipulate the values of one field to
@@ -327,7 +326,7 @@ current date/time as defined. You can over-ride them using the
 Custom Configuration File
 """""""""""""""""""""""""
 
-Path: ``$GIT/dims-new-repo/dims-new-repo.yml``
+Path: ``$GIT/ansible-dims-playbooks/files/cookiecutter/dims-new-repo/dims-new-repo.yml``
 
 The file ``dims-new-repo.yml`` is a configuration file that can
 be passed to ``cookiecutter`` using the ``--config-file`` command
@@ -335,7 +334,7 @@ line option.  It sets the dictionary ``default_context`` for
 ``cookiecutter`` at runtime, over-riding the defaults from
 the ``cookiecutter.json`` file.
 
-.. literalinclude:: ../../cookiecutter/dims-new-repo.yml
+.. literalinclude:: ../../files/cookiecutter/dims-new-repo.yml
    :language: yaml
 
 To use this file, copy the file ``dims-new-repo.yml`` and
@@ -375,7 +374,7 @@ up looking something like this:
 .. dims-new-repo/cookiecutter.json
 .. """"""""""""""""""""""""""""""""""
 ..
-.. .. include:: ../../cookiecutter/dims-new-repo/cookiecutter.json
+.. .. include:: ../../files/cookiecutter/dims-new-repo/cookiecutter.json
 ..    :literal:
 ..
 .. These are the basic elements required for instantiating a new repo
@@ -557,7 +556,7 @@ is what this Cookiecutter uses.
 To produce one of these warning messages, simply place a line containing
 the string ``FIX_UNDERLINE`` in the template file, as shown here:
 
-.. literalinclude:: ../../cookiecutter/dims-new-repo/{{cookiecutter.project_slug}}/docs/source/index.rst
+.. literalinclude:: ../../files/cookiecutter/dims-new-repo/{{cookiecutter.project_slug}}/docs/source/index.rst
    :language: rst
    :emphasize-lines: 6,7
 
