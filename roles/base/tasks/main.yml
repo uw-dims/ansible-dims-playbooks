@@ -720,7 +720,7 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Ensure pip installed for system python
+- name: Ensure pip installed for system Python
   apt:
     name: '{{ item }}'
     state: latest
@@ -730,17 +730,21 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, updates ]
 
-- name: Ensure required system python packages present
-  shell: 'pip install {{ item }}'
-  with_items:
-    - urllib3
-    - pyOpenSSL
-    - ndg-httpsclient
-    - pyasn1
-    - python-dateutil
+- name: Create base-requirements.txt file
+  template:
+    src: pip/base-requirements.txt.j2
+    dest: '{{ dims_etc }}/base-requirements.txt'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o644
   become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config ]
+  tags: [ base, config, updates ]
+
+- name: Ensure required system python packages present
+  pip:
+    requirements: '{{ dims_etc }}/base-requirements.txt'
+  become: yes
+  tags: [ base, config, updates ]
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present

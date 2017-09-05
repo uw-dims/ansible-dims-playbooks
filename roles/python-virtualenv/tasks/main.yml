@@ -93,16 +93,6 @@
 #  become_user: '{{ dims_user }}'
 #  tags: [ python-virtualenv ]
 
-- name: Create base-requirements.txt file
-  template:
-    src=pip/base-requirements.txt.j2
-    dest={{ dims_etc }}/base-requirements.txt
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o644
-  become: yes
-  tags: [ python-virtualenv ]
-
 - name: Create {{ venv_name }}-requirements.txt file
   template:
     src=pip/{{ venv_name }}-requirements.txt.j2
