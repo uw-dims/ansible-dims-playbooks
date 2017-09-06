@@ -1474,6 +1474,7 @@ include:
     + `Ansible Tips and Tricks`_ on ReadTheDocs
     + `How to Use Ansible Roles to Abstract your Infrastructure Environment`_, by Justin Ellingwood, February 11, 2014
     + `Jinja2 for better Ansible playbooks and templates`_, by Daniel Schneller, August 25, 2014
+    + `In YAML, how do I break a string over multiple lines?`_, stackoverflow post, September 24, 2010
     + `Ansible - some random useful things`_, by David Goodwin, August 4, 2014
     + `Tagging`_, ThinkAnsible, June 4, 2014
     + `Scalable and Understandable Provisioning with Ansible and Vagrant`_, by Julien Ponge, October 15, 2013
@@ -1529,6 +1530,7 @@ include:
 .. _Automated Security Hardening with OpenStack-Ansible: https://www.openstack.org/videos/video/automated-security-hardening-with-openstack-ansible
 .. _openstack/openstack-ansible-security: https://github.com/openstack/openstack-ansible-security
 .. _Jinja2 for better Ansible playbooks and templates: https://blog.codecentric.de/en/2014/08/jinja2-better-ansible-playbooks-templates/
+.. _In YAML, how do I break a string over multiple lines?: https://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines
 .. _Ansible\: "default" and "bool" filters: https://dddpaul.github.io/blog/2015/11/30/ansible-default-and-bool-filters/
 .. _Ansible loop through group vars in template: http://stackoverflow.com/questions/26989492/ansible-loop-through-group-vars-in-template
 .. _Ansible loop over variables: http://stackoverflow.com/questions/26606121/ansible-loop-over-variables
