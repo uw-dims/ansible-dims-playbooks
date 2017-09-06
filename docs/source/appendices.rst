@@ -643,3 +643,57 @@ broken system is lessened, so testing should *always* be done first
 on throw-away VMs. But on those occassions where something goes wrong
 on "production" hosts, Ansible ad-hoc mode is a powerful debugging
 and corrective capability.
+
+.. _advanced_ansible_jinja:
+
+Advanced Ansible Tasks or Jinja Templating
+------------------------------------------
+
+This section includes some advanced uses of Ansible task declaration and/or
+Jinja templating that may be difficult to learn from Ansible documentation
+or other sources.  Some useful resources that were identified during the
+DIMS Project are listed in Section :ref:`bestpractices`.
+
+.. _multiline_output:
+
+Multi-line ``fail`` or ``debug`` Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are times when it is necessary to produce a long message
+in a ``fail`` or ``debug`` play.  An answer to the stackoverflow
+post `In YAML, how do I break a string over multiple lines?`_
+includes multiple ways to do this.  Here is one of them in action
+in the ``virtualbox`` role:
+
+.. literalinclude:: ../../roles/virtualbox/tasks/main.yml
+   :language: yaml
+   :emphasize-lines: 35-41
+
+..
+
+When this code is triggered, the output is now clean and clear about what
+to do.
+
+.. code-block:: none
+
+    TASK [virtualbox : fail] *******************************************************************
+    task path: /home/dittrich/dims/git/ansible-dims-playbooks/roles/virtualbox/tasks/main.yml:33
+    Wednesday 06 September 2017  12:45:38 -0700 (0:00:01.046)       0:00:51.117 ***
+    fatal: [dimsdemo1.devops.develop]: FAILED! => {
+        "changed": false,
+        "failed": true
+    }
+
+    MSG:
+
+    Found 1 running Virtualbox VM.
+    Virtualbox cannot be updated while VMs are running.
+    Please halt or suspend this VM and apply this role again.
+
+    USER       PID CMD
+    dittrich 15289 /usr/lib/virtualbox/VBoxHeadless --comment orange_default_1504485887221_79778 --startvm 62e20c31-7c2c-417a-a5ab-3a056aa81e2d --vrde config
+
+..
+
+
+.. _In YAML, how do I break a string over multiple lines?: https://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines

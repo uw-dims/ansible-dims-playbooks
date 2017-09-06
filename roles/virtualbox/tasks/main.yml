@@ -8,14 +8,14 @@
 # Instead, we are looking for running processes.
 
 - name: Look for running VM guests
-  shell: "ps auxwww| grep 'virtualbox/VBox.* --startvm'|grep -v 'grep '| wc -l"
+  shell: "ps -Ao user,pid,cmd|egrep '^USER|virtualbox/VBox.* --startvm'|grep -v ' egrep '"
   register: _vbox_result
   delegate_to: '{{ inventory_hostname }}'
   tags: [ virtualbox, packages ]
 
 - name: Register number of running VM guests
   set_fact:
-    _running_vms: '{{ _vbox_result.stdout }}'
+    _running_vms: '{{ ((_vbox_result.stdout_lines|length) - 1) }}'
   when: _vbox_result is defined
   tags: [ virtualbox, packages ]
 
@@ -30,8 +30,16 @@
       _running_vms: -1
     tags: [ virtualbox, packages ]
 
-- fail: msg='Found {{ _running_vms }} running VMs. Please suspend them and apply this role again.'
-  when: _running_vms is defined and _running_vms|int > 0
+- fail:
+    msg: |
+      Found {{ _running_vms }} running Virtualbox VM{{ (_running_vms|int == 1)|ternary("","s") }}.
+      Virtualbox cannot be updated while VMs are running.
+      Please halt or suspend {{ (_running_vms|int == 1)|ternary("this VM","these VMs") }} and apply this role again.
+      {% raw %}{% endraw %}
+      {% for line in _vbox_result.stdout_lines|default([]) %}
+      {{ line }}
+      {% endfor %}
+  when: _running_vms is defined and _running_vms|int >= 1
   tags: [ virtualbox, packages ]
 
 - include: virtualbox.yml
