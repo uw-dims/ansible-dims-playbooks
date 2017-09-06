@@ -4,8 +4,6 @@ ansible_server:
   vars:
     ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
     ansible_dims_playbooks_version: 'master'
-    ansible_host: 127.0.0.1
-    ansible_connection: local
     ansible_accounts:
       - ansible
     https_proxy: 'https://127.0.0.1:8000'
