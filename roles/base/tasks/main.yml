@@ -302,7 +302,7 @@
   when: ansible_os_family == "Debian"
   tags: [ base, packages, updates ]
 
-- name: Clean APT cache to avoid Make upgraded packages present if we are explicitly upgrading
+- name: Clean APT cache
   command: apt-get clean
   become: yes
   when: packages_upgrade|bool and ansible_os_family == "Debian"
