@@ -33,6 +33,6 @@ load helpers
 
 # Docker changed distribution with CE/EE release in mid-2017
 @test "[S][EV] APT repo using \"dockerproject.org\" is not used" {
-    assert '' ! bash -c "grep -l dockerproject.org /etc/apt/sources.list.d/*.list"
+    bash -c "! grep dockerproject.org /etc/apt/sources.list.d/*.list 1>&2"
 }
 
