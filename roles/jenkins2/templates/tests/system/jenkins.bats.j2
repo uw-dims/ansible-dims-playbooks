@@ -15,5 +15,6 @@ load helpers
 }
 
 @test "[S][EV] Jenkins version is {{ jenkins_version }}" {
-    assert "{{ jenkins_version }}" bash -c "jenkins.cli version"
+    [ -r ~jenkins/config.xml ] || skip "Can't read ~jenkins/config.xml"
+    assert "{{ jenkins_version }}" bash -c "xml_grep 'version' ~jenkins/config.xml --text_only"
 }
