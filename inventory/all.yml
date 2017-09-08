@@ -92,6 +92,7 @@ all:
           - 'tree'
           - 'unzip'
           - 'vim'
+         -  'xml-twig-tools'
           - 'xsltproc'
         packages_remove:
           - 'modemmanager'
@@ -152,6 +153,7 @@ all:
          -  'strace'
          -  'tree'
          -  'vim'
+         -  'xml-twig-tools'
          -  'xsltproc'
         packages_remove:
           - 'modemmanager'
