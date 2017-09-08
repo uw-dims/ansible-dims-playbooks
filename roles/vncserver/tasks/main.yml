@@ -5,9 +5,6 @@
 # Playbook based in part on this resource:
 # https://rbgeek.wordpress.com/2012/06/25/how-to-install-vnc-server-on-ubuntu-server-12-04/
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
-  tags: [ vncserver ]
-
 - name: Define vncserver_packages
   set_fact:
     vncserver_packages: '{{ _vncserver_packages }}'
@@ -52,6 +49,9 @@
   tags: [ vncserver ]
 
 - debug: var=vncserver_users_indexed
+  tags: [ vncserver ]
+
+- include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ vncserver ]
 
 - name: Ensure vncserver is stopped

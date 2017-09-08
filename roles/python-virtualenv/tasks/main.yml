@@ -25,14 +25,14 @@
 # system Python virtual environment, which is intended to remain stable
 # and functional.
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ python-virtualenv, packages, config ]
-
 - name: Define dims_ansible_version
   set_fact:
     dims_ansible_version: '{{ _dims_ansible_version }}'
   when: dims_ansible_version is not defined
   tags: [ always ]
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ python-virtualenv, packages, config ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
@@ -229,10 +229,6 @@
   when: result is defined and result.stdout != ""
   ignore_errors: yes
   tags: [ python-virtualenv ]
-
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
-  tags: [ python-virtualenv, tests ]
 
 - name: Run {{ venv_name }}.build script
   command:

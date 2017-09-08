@@ -311,6 +311,7 @@
 - name: Make upgraded packages present if we are explicitly upgrading
   apt:
     upgrade: safe
+    dpkg_options: 'force-confold,force-confdef'
     autoremove: yes
   become: yes
   when: packages_upgrade|bool and ansible_os_family == "Debian"

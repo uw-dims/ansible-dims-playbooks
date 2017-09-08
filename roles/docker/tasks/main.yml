@@ -7,9 +7,6 @@
 # https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
 # https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ docker, packages, config, tests ]
-
 - name: Define docker_apt_key_url
   set_fact:
     docker_apt_key_url: '{{ _docker_apt_key_url }}'
@@ -50,6 +47,9 @@
   set_fact:
     docker_machine_version: '{{ _docker_machine_version }}'
   when: docker_machine_version is not defined
+  tags: [ docker, packages, config, tests ]
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ docker, packages, config, tests ]
 
 - name: Ensure all old Docker versions are gone
@@ -250,10 +250,6 @@
   when: ansible_os_family == "Container Linux by CoreOS"
   become: yes
   tags: [ docker, config ]
-
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
-  tags: [ docker, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ docker, packages, config ]
