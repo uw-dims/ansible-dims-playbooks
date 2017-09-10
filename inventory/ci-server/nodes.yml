@@ -12,14 +12,17 @@ ci-server:
     jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
     jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
     jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
-    jenkins_version: 2.19.4
+    jenkins_version: 2.60.3
     jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_port: 8080
+    jenkins_ssh_port: 8022
+    jenkins_context_path: '/jenkins'
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
+    jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
     jenkins_plugins:
       - git
       - git-client
@@ -63,10 +66,15 @@ ci-server:
     jenkins_plugin_timeout: 60
 
     jenkins_admin_username: admin
+    jenkins_admin_email: 'dittrich@u.washington.edu'
     jenkins_admin_password: "admin"
     jenkins_admin_password_file: ""
     jenkins_admin_token: "" # "07ce05c0b5209c43ce434231b2c90866"
     jenkins_admin_token_file: ""
+
+    # For cli_config.yml and its templates
+    jenkins_admin_users:
+      - 'ansible'
 
     jenkins_process_user: jenkins
     jenkins_process_group: "{{ jenkins_process_user }}"
@@ -76,7 +84,27 @@ ci-server:
         value: "--prefix={{ jenkins_url_prefix }}"
       - option: "{{ jenkins_java_options_env_var }}"
         value: "{{ jenkins_java_options }}"
+    jenkins_job_params:
+      'build-rpc-prod':
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'master'
+      'build-rpc-develop':
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'develop'
+      'deploy-rpc-prod':
+        playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
+        private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'master'
+      'deploy-rpc-develop':
+        playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
+        private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'develop'
   hosts:
     'orange.devops.local':
+      custom_hosts:
+        - '10.142.29.98  source.devops.develop'
+        - '10.142.29.115  eclipse.devops.develop'
 
 # vim: ft=ansible :

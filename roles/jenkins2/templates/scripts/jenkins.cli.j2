@@ -32,10 +32,10 @@
 # directory, which must be readable only to trusted users running
 # this script.
 
-java -jar {{ jenkins_jar_location }} \
-     -s http://localhost:{{ jenkins_port }}{{ jenkins_url_prefix | default('') }} \
-     $@ \
-     --username admin \
-     --password-file {{ jenkins_home }}/secrets/AdminPassword
+ssh -l {{ jenkins_admin }} \
+    -p {{ jenkins_ssh_port }} \
+    -i {{ jenkins_ssh_public_key }} \
+    {{ jenkins_hostname }} \
+    $@
 
 exit $?
