@@ -44,7 +44,11 @@
   </views>
   <primaryView>all</primaryView>
   <slaveAgentPort>-1</slaveAgentPort>
+{% if jenkins_labels is defined %}
+  <label>{{ jenkins_labels|join(" ") }}</label>
+{% else %}
   <label></label>
+{% endif %}
   <crumbIssuer class="hudson.security.csrf.DefaultCrumbIssuer">
     <excludeClientIPFromCrumb>false</excludeClientIPFromCrumb>
   </crumbIssuer>

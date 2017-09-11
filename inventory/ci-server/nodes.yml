@@ -23,6 +23,10 @@ ci-server:
     jenkins_context_path: '/jenkins'
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
+    jenkins_labels:
+      - '{{ ansible_lsb.codename }}'
+      - '{{ ansible_architecture }}'
+      - '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
     jenkins_plugins:
       - git
       - git-client
