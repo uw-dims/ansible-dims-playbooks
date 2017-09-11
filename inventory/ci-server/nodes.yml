@@ -101,6 +101,27 @@ ci-server:
         private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
         repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
         repo_branch: 'develop'
+      'pitchfork':
+        project_url: 'https://github.com/tridentli/pitchfork'
+        repo_url: 'https://github.com/tridentli/pitchfork.git'
+        repo_branch: 'DEV_1.4.6'
+        repo_credentials: ''
+      'pitchfork-data':
+        project_url: 'https://github.com/tridentli/pitchfork'
+        repo_url: 'https://github.com/tridentli/pitchfork.git'
+        repo_branch: 'DEV_1.4.6'
+        repo_credentials: ''
+      'trident':
+        project_url: 'https://github.com/tridentli/trident'
+        repo_url: 'https://github.com/tridentli/trident.git'
+        repo_branch: 'DEV_1.4.6'
+        repo_credentials: ''
+      'trident-ext-src':
+        project_url: 'https://github.com/tridentli/trident-ext-src'
+        repo_url: 'https://github.com/tridentli/trident-ext-src.git'
+        repo_branch: 'master'
+        repo_credentials: ''
+
   hosts:
     'orange.devops.local':
       custom_hosts:

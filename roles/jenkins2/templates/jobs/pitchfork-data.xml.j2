@@ -5,7 +5,7 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.24.0">
-      <projectUrl>https://github.com/tridentli/trident/</projectUrl>
+      <projectUrl>{{ jenkins_job_params['pitchfork-data'].project_url }}</projectUrl>
       <displayName>Trident</displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
   </properties>
@@ -14,20 +14,20 @@
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
         <name>origin</name>
-        <url>https://github.com/tridentli/trident.git</url>
-        <credentialsId>3688a4d8-de68-45c0-8701-ef30e44f0284</credentialsId>
+        <url>{{ jenkins_job_params['pitchfork-data'].repo_url }}</url>
+        <credentialsId>{{ jenkins_job_params['pitchfork-data'].repo_credentials }}</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>*/DEV_1.4.5</name>
+        <name>*/{{ jenkins_job_params['pitchfork-data'].repo_branch }}</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
-  <assignedNode>jessie &amp;&amp; amd64</assignedNode>
+  <assignedNode>jessie</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -39,50 +39,39 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.38.1">
-      <project>trident-ext-src</project>
-      <filter>output/*.deb</filter>
-      <target>./</target>
-      <excludes></excludes>
-      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
-      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
-    </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>mv output/* ./
-rm -rf output
-sudo dpkg -i ./trident-ext-src*.deb
-sudo apt-get install  -t jessie-backports golang-go -y
+      <command>sudo apt-get install  -t jessie-backports golang-go -y
 sudo apt-get install dh-golang dh-systemd
-make build_ext
-dpkg-buildpackage -us -uc
-export GOPATH=${PWD}/ext/_gopath/src
-#TODO add make vtests
+make pkg
 mkdir output
 mv ../*.deb ./output
 mv ../*.changes ./output
 mv ../*.dsc ./output
-mv ../*.tar.xz ./output</command>
+mv ../*.tar.xz ./output
+mv ../*.sha256sum ./output
+cd ./output
+for f in *.deb *.tar.xz; do sha256sum ${f} > ${f}.sha256sum; done
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
       <artifacts>output/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
-      <onlyIfSuccessful>true</onlyIfSuccessful>
-      <fingerprint>true</fingerprint>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
       <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.32">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs class="empty-list"/>
-          <projects>trident_32, trident.stage, </projects>
-          <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>trident-ext-src</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
   </publishers>
   <buildWrappers>
     <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.32">
