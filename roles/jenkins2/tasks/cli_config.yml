@@ -9,13 +9,11 @@
 - name: Jenkins Script - Configure Slave Agent Port
   template:
     src: slaveAgentPort.groovy
-    dest: /var/lib/jenkins/init.groovy.d/slaveAgentPort.groovy
+    dest: '{{ jenkins_home }}/init.groovy.d/slaveAgentPort.groovy'
     owner: jenkins
     group: jenkins
-    mode: 0744
+    mode: 0755
   become: true
-  notify:
-    - restart jenkins
 
 - name: Generate SSH Keys for jenkins Service Account
   user:
@@ -24,7 +22,7 @@
   become: true
 
 - name: Read SSH Public Key for jenkins Service Account
-  shell: cat /var/lib/jenkins/.ssh/id_rsa.pub
+  shell: cat {{ jenkins_home }}/.ssh/id_rsa.pub
   become: true
   changed_when: false
   register: jenkins_user_ssh_public_file
@@ -32,32 +30,67 @@
 - name: Parse SSH Public Key for jenkins Service Account
   set_fact: jenkins_user_ssh_public_key="{{ jenkins_user_ssh_public_file.stdout_lines[0] }}"
 
-- name: Jenkins Script - Configure SSH Keys for admin
+# This isn't working. Not sure why, but too much time spent.
+# Hacking in admin's config.xml file instead.
+
+#- name: Jenkins Script - Configure SSH Keys for admin
+#  template:
+#    src: adminSshKeys.groovy
+#    dest: '{{ jenkins_home }}/init.groovy.d/adminSshKeys.groovy'
+#    owner: jenkins
+#    group: jenkins
+#    mode: 0755
+#  become: true
+
+- name: Install initial Jenkins admin config
   template:
-    src: adminSshKeys.groovy
-    dest: /var/lib/jenkins/init.groovy.d/adminSshKeys.groovy
+    src: users/admin/config.xml.j2
+    dest: '{{ jenkins_home }}/users/admin/config.xml'
     owner: jenkins
     group: jenkins
-    mode: 0744
+    mode: 0755
   become: true
-  notify:
-    - restart jenkins
 
 - name: Jenkins Script - Refresh Update Center
   template:
     src: updateCenterRefresh.groovy
-    dest: /var/lib/jenkins/init.groovy.d/updateCenterRefresh.groovy
+    dest: '{{ jenkins_home }}/init.groovy.d/updateCenterRefresh.groovy'
     owner: jenkins
     group: jenkins
-    mode: 0744
+    mode: 0755
   become: true
-  notify:
-    - restart jenkins
 
-# Fire any pending restart handlers now, as all of the above scripts will not 
-# be run until Jenkins restarts, and are required in order for the CLI-using
-# tasks below to work.
-- meta: flush_handlers
+- name: Restart Service 'jenkins'
+  service:
+    name: jenkins
+    state: restarted
+  # This is a little hack to run more than one task in a handler.
+  # Reference: http://stackoverflow.com/a/31618968/1851299
+  become: true
+
+- name: Wait for Jenkins HTTP
+  uri:
+    url: "http://localhost:{{ jenkins_port }}{{ jenkins_context_path | default('') }}/login"
+    status_code: 200
+  register: jenkins_login_page
+  until: jenkins_login_page.status == 200
+  retries: 60
+  delay: 1
+
+- name: "Wait for {{ jenkins_ssh_port }}"
+  wait_for:
+    port: '{{ jenkins_ssh_port }}'
+    delay: 5
+
+- name: Remove initial groovy configuration scripts
+  file:
+    state: absent
+    path: '{{ item }}'
+  with_items:
+  - '{{ jenkins_home }}/init.groovy.d/slaveAgentPort.groovy'
+  - '{{ jenkins_home }}/init.groovy.d/adminSshKeys.groovy'
+  - '{{ jenkins_home }}/init.groovy.d/updateCenterRefresh.groovy'
+  ignore_errors: yes
 
 # At this point (once the service is restarted), the CLI itself should be usable
 # by the 'jenkins' system user (and its SSH keys).
@@ -71,7 +104,7 @@
     mode: 0755
   become: true
 
-# The CLI comes "baked in" to the Jenkins WAR. Easiest way to extract it is 
+# The CLI comes "baked in" to the Jenkins WAR. Easiest way to extract it is
 # just to download it.
 - name: Get Jenkins CLI
   get_url:
@@ -83,7 +116,7 @@
     mode: 0444
   become: true
 
-- name: Verify CLI
+- name: Verify CLI using username/password
   shell: >
     java -jar /opt/jenkins/jenkins-cli.jar
     -s http://localhost:{{ jenkins_port }}{{ jenkins_context_path | default('') }}
