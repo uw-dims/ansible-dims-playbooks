@@ -32,9 +32,9 @@
 # directory, which must be readable only to trusted users running
 # this script.
 
-ssh -l {{ jenkins_admin }} \
+ssh -l {{ jenkins_admin_username }} \
     -p {{ jenkins_ssh_port }} \
-    -i {{ jenkins_ssh_public_key }} \
+    -i {{ jenkins_home }}/.ssh/id_rsa \
     {{ jenkins_hostname }} \
     $@
 
