@@ -1369,7 +1369,7 @@ currently logged in to using ``run.playbook --tags base``.)
 | ``updates``  | Updates installed packages that are not held back.                      |
 +--------------+-------------------------------------------------------------------------+
 
-.. _bestpractices:
+.. _ansible_best_practices:
 
 Ansible Best Practices and Related Documentation
 ------------------------------------------------
@@ -1377,7 +1377,7 @@ Ansible Best Practices and Related Documentation
 Before doing too much writing of Ansible playbooks, you should familiarize
 yourself with the recommended *best practices* for using Ansible for automating
 program installation and system configuration tasks in a general, repeatable,
-and scalable manner. Ansible provides recommended `Best Practices`_ guidelines
+and scalable manner. Ansible provides recommended `Playbooks Best Practices`_ guidelines
 in the the `Ansible Documentation`_, but sometimes these don't go far
 enough in guiding a new Ansible user.
 
