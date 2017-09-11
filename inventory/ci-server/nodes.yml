@@ -74,7 +74,7 @@ ci-server:
 
     # For cli_config.yml and its templates
     jenkins_admin_users:
-      - 'ansible'
+      - 'admin'
 
     jenkins_process_user: jenkins
     jenkins_process_group: "{{ jenkins_process_user }}"
