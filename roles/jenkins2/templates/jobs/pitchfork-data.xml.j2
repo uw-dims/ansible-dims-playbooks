@@ -48,7 +48,6 @@ mv ../*.deb ./output
 mv ../*.changes ./output
 mv ../*.dsc ./output
 mv ../*.tar.xz ./output
-mv ../*.sha256sum ./output
 cd ./output
 for f in *.deb *.tar.xz; do sha256sum ${f} > ${f}.sha256sum; done
 </command>
