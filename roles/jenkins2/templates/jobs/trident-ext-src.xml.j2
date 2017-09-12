@@ -57,7 +57,7 @@ mv ../*.deb ./output
 mv ../*.changes ./output
 mv ../*.dsc ./output
 cd ./output
-for f in *.deb *.tar.xz; do sha256sum ${f} > ${f}.sha256sum; done
+for f in *.deb; do sha256sum ${f} > ${f}.sha256sum; done
 </command>
     </hudson.tasks.Shell>
   </builders>
