@@ -1,21 +1,143 @@
 #!/bin/bash
-
-# This script copies any .tgz and .tar.gz files in the workspace
-# to /data/src
 #
-# Note the owner of /data/src must be jenkins for this 
-# script to work. We now have ownership of /data/src as jenkins:dims
-# rather than dims:dims in order for the script to be executed by
-# a Jenkins job.
+# vim: set ts=4 sw=4 tw=0 et :
 #
+# {{ ansible_managed }}
+#
+# Copyright (C) 2014-2017, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-echo "[+] Running jenkins.saveartifact"
+# Default because templating for use by Ansible
+DIMS="${DIMS:-{{ dims }}}"
 
-if [ -f $WORKSPACE/*.tgz ]; then
-  cp $WORKSPACE/*.tgz /data/src
+. ${DIMS}/lib/shflags
+. ${DIMS}/bin/dims_functions.sh
 
+# Tracks with bumpversion
+DIMS_VERSION="2.12.0"
+
+if [[ ! -z "$WORKSPACE" ]]; then
+    OUTPUT_DIR="${WORKSPACE}/output"
+else
+    OUTPUT_DIR=""
 fi
+SOURCE_DIR="${OUTPUT_DIR:-$(pwd)}"
+DEST_DIR="${DEST_DIR:-{{ dims }}/source}"
+FLAGS_HELP="usage: $BASE [options] message"
 
-if [ -f $WORKSPACE/*.tar.gz ]; then
-  cp $WORKSPACE/*.tar.gz /data/src
-fi
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_string 'output' "${SOURCE_DIR}" 'source directory' 'S'
+DEFINE_string 'saveto' "${DEST_DIR}" 'destination directory' 'D'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'version' false 'print version number and exit' 'V'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+
+# Define functions
+
+# TODO(dittrich): Pull out hard-coded directory path to inventory variable.
+# This script was hacked together quickly. It uses the hard-coded
+# path to the source directory shared by the nginx role. They should
+# both use a single common variable to avoid the issue raised by
+# coupling logic in multiple programs.
+
+usage() {
+    flags_help
+    cat << EOD
+
+This script copies any files from the Jenkins workspace for
+a given job existing in a subdirectory "output" into a
+directory where it can be archived and/or served to external
+systems (e.g., a "source" server). By default, this destination
+directory is "{{ dims }}/source" (for more, see
+"roles/nginx/templates/sites-available/source.j2")
+
+After a successful build, the workspace for the job will
+look like this:
+
+  jobs/trident-ext-src/
+  ├── builds
+  │   ├── 5
+  │   │   ├── archive
+  │   │   │   └── output
+  │   │   │       ├── trident-ext-src_0.1.5_all.deb
+  │   │   │       ├── trident-ext-src_0.1.5_all.deb.sha256sum
+  │   │   │       ├── trident-ext-src_0.1.5_amd64.changes
+  │   │   │       └── trident-ext-src_0.1.5.dsc
+  │   │   ├── build.xml
+  │   │   ├── changelog.xml
+  │   │   ├── injectedEnvVars.txt
+  │   │   └── log
+  │   ├── lastFailedBuild -> -1
+  │   ├── lastStableBuild -> 5
+  │   ├── lastSuccessfulBuild -> 5
+  │   ├── lastUnstableBuild -> -1
+  │   ├── lastUnsuccessfulBuild -> -1
+  │   └── legacyIds
+  ├── config.xml
+  ├── lastStable -> builds/lastStableBuild
+  ├── lastSuccessful -> builds/lastSuccessfulBuild
+  └── nextBuildNumber
+
+  8 directories, 14 files
+EOD
+    exit 0
+}
+
+main()
+{
+    dims_main_init
+
+    if [[ ${FLAGS_debug} -eq ${FLAGS_TRUE} ]]; then
+        env | sort
+        tree -taD $(pwd)
+    fi
+
+    verbose "Running $BASE"
+
+    _status=0
+    for _file in $(find ${FLAGS_output} -maxdepth 1); do
+        debug "_file=${_file}"
+        [[ "${_file}" == "${FLAGS_output}" ]] && continue
+        if [[ -f ${_file} ]]; then
+            cp ${_file} ${FLAGS_saveto} ||
+                error_exit $? "Failed to copy ${_file}"
+        elif [[ -d ${_file} ]]; then
+            warn "Handling directories is not supported"
+        else
+            local _type="$(file ${_file})"
+            warn "File type not supported: ${_type}"
+        fi
+    done
+
+    return ${_status}
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?
