@@ -14,7 +14,6 @@ ansible_server:
       nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
       nginx_source_hostname: '{{ inventory_hostname }}'
     'orange.devops.local':
-      nginx_source_hostname: '{{ inventory_hostname }}'
       ansible_accounts:
         - jenkins
         - ansible

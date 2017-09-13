@@ -73,7 +73,7 @@ ci-server:
     jenkins_admin_email: 'dittrich@u.washington.edu'
     jenkins_admin_password: "admin"
     jenkins_admin_password_file: ""
-    jenkins_admin_token: "" # "07ce05c0b5209c43ce434231b2c90866"
+    jenkins_admin_token: ""
     jenkins_admin_token_file: ""
 
     # For cli_config.yml and its templates
@@ -128,6 +128,9 @@ ci-server:
 
   hosts:
     'orange.devops.local':
+      nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
+      nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
+      nginx_source_hostname: '{{ inventory_hostname }}'
       custom_hosts:
         - '10.142.29.98  source.devops.develop'
         - '10.142.29.115  eclipse.devops.develop'
