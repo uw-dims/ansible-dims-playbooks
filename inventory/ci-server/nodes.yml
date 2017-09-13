@@ -134,5 +134,12 @@ ci-server:
       custom_hosts:
         - '10.142.29.98  source.devops.develop'
         - '10.142.29.115  eclipse.devops.develop'
+      cronjobs:
+        - name: 'source index'
+          weekday: '*'
+          hour: '*'
+          minute: '*'
+          user: 'jenkins'
+          job: "ls -l {{ dims }}/source | egrep -v '^total| index.txt' > {{ dims }}/source/index.txt"
 
 # vim: ft=ansible :
