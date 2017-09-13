@@ -13,10 +13,36 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>echo &quot;[+] Jenkins built on {{ inventory_hostname }}&quot;
-	      dims.logger -l devops &quot;[+] Jenkins built on $(hostname)&quot;</command>
+      <command>[ -d output ] || mkdir output
+echo &quot;[+] Jenkins job &apos;install-test&apos; on $(hostname)&quot; |
+tee output/install-test.txt
+cd output
+sha256sum install-test.txt > install-test.txt.sha256sum
+</command>
     </hudson.tasks.Shell>
-  </builders>
-  <publishers/>
-  <buildWrappers/>
+	  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText></logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+	  <script>{{ dims_bin }}/jenkins.saveartifact -d</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.34">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
 </project>
