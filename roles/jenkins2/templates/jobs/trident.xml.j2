@@ -48,14 +48,15 @@
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>mv output/* ./
-sudo dpkg -i ./trident-ext-src*.deb
+      <command># BOJ
+#mv output/* ./
+#sudo dpkg -i ./trident-ext-src*.deb
 rm -rf output
-sudo apt-get install  -t jessie-backports golang-go -y
-sudo apt-get install dh-golang dh-systemd -y
+#sudo apt-get install  -t jessie-backports golang-go -y
+#sudo apt-get install dh-golang dh-systemd -y
 export GOPATH=/usr/share/go-1.7/src:${PWD}/ext/_gopath/src
 make build_ext
-sudo cp -r  /usr/share/go-1.7/src/* /usr/lib/go-1.7/src/
+#sudo cp -r  /usr/share/go-1.7/src/* /usr/lib/go-1.7/src/
 dpkg-buildpackage -us -uc
 #make vtests
 mkdir output
@@ -65,7 +66,7 @@ mv ../*.dsc ./output
 mv ../*.tar.xz ./output
 cd ./output
 for f in *.deb *.tar.xz; do sha256sum ${f} > ${f}.sha256sum; done
-</command>
+# EOJ</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

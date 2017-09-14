@@ -40,8 +40,9 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sudo apt-get install  -t jessie-backports golang-go -y
-sudo apt-get install dh-golang dh-systemd
+      <command># BOJ
+#sudo apt-get install  -t jessie-backports golang-go -y
+#sudo apt-get install dh-golang dh-systemd
 make pkg
 mkdir output
 mv ../*.deb ./output
@@ -50,7 +51,7 @@ mv ../*.dsc ./output
 mv ../*.tar.xz ./output
 cd ./output
 for f in *.deb *.tar.xz; do sha256sum ${f} &gt; ${f}.sha256sum; done
-</command>
+# EOJ</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

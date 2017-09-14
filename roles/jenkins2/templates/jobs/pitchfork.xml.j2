@@ -20,7 +20,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>*/DEV_1.4.5</name>
+        <name>*/{{ jenkins_job_params['pitchfork'].repo_branch }}</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>

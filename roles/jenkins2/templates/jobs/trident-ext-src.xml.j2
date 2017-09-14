@@ -40,15 +40,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sudo dpkg -P trident-ext-src
+      <command># BOJ
+#sudo dpkg -P trident-ext-src
 git submodule init
 git submodule update
 cd trident
-git checkout DEV_1.4.5
-git pull origin DEV_1.4.5
+git checkout {{ jenkins_job_params['trident-ext-src'].repo_branch }}
+git pull origin {{ jenkins_job_params['trident-ext-src'].repo_branch }}
 cd ..
-sudo apt-get install  -t jessie-backports golang-go -y
-sudo apt-get install dh-golang dh-systemd
+#sudo apt-get install  -t jessie-backports golang-go -y
+#sudo apt-get install dh-golang dh-systemd
 export GOPATH=${PWD}/ext/_gopath/src
 dpkg-buildpackage -us -uc
 #TODO add make vtests
@@ -58,7 +59,7 @@ mv ../*.changes ./output
 mv ../*.dsc ./output
 cd ./output
 for f in *.deb; do sha256sum ${f} &gt; ${f}.sha256sum; done
-</command>
+# EOJ</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
