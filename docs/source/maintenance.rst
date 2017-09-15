@@ -435,9 +435,17 @@ their plugins with the following command:
 Updating PyCharm Community Edition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now that we have seen an example of setting variables at the host level
-that override group variables, and validating the values of those variables
-at run time, we will see how an example of upgrading the application.
+PyCharm is installed using Ansible. The normal workflow for updating a component
+like PyCharm is to test the new version to ensure it works properly, then update
+the variables for PyCharm in the Ansible ``inventory`` before exporting your old
+settings and then running the ``pycharm`` role for your development system.
+
+.. TODO(dittrich): Add a cross-reference to running the playbook
+.. todo::
+
+    Add a cross-reference to running the playbook.
+
+..
 
 PyCharm keeps all of its state, including settings, breakpoints, indexes, in internal
 data stores in a directory specific to the version of PyCharm being used.  For example,
@@ -460,18 +468,6 @@ setting file is located, since you need to select it in the next step.) Select
    :align: center
 
    Exporting Settings from PyCharm 2016.2.3
-
-..
-
-PyCharm is installed using Ansible. The normal workflow for updating a component
-like PyCharm is to test the new version to ensure it works properly, then update
-the variables for PyCharm in the Ansible ``inventory`` before exporting your old
-settings and then running the ``pycharm`` role for your development system.
-
-.. TODO(dittrich): Add a cross-reference to running the playbook
-.. todo::
-
-    Add a cross-reference to running the playbook.
 
 ..
 
