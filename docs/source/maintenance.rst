@@ -365,11 +365,75 @@ Ansible ad-hoc mode:
 
 ..
 
+.. _updating_secondary:
+
+Updating Secondary Components
+-----------------------------
+
+The package update steps above perform what you could call a
+*first order* update process, that is, updating the packages for
+the major components of the operating system. Some of these components,
+however, themselves use plugins or other sub-components that require
+updating. This is most disruptive for major releases (e.g., going
+from PyCharm ``2016.2`` to ``2016.3``, as shown in the next section).
+
+A development system will have more of these components requiring
+secondary updates. Partly because of this reason, these type of
+components are pinned to a specific version. When updating the
+``ansible-dims-playbooks``, take note of the changes and check
+for required secondary updates.
+
+.. attention::
+
+    You will sometimes need to communicate the need for these secondary
+    updates to users of the system (e.g., to developers) because some
+    tools like Vagrant and PyCharm keep plugins in users' accounts,
+    not in system directories.  As it is difficult to automate this
+    process in a robust way, each user must take responsibility for
+    updating their own plugins to avoid having their toolset go
+    out-of-sync with other developers and cause random failures
+    that are difficult to track down.
+
+..
+
+.. todo::
+
+   TODO(dittrich): Add bats tests to users' shell init process to check for updates
+
+..
+
+In this section, we cover updating Vagrant and PyCharm.
+
+.. _updating_vagrant:
+
+Updating Vagrant Plugins
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Vagrant is used for development using Virtualbox virtual
+machines. It has a few plugins that were adopted (or at
+least experimentally used) during DIMS development.
+
+After upgrading Vagrant to a new version, users can update
+their plugins with the following command:
+
+.. code-block:: none
+
+    $ vagrant plugin update
+    Updating installed plugins...
+    Fetching: vagrant-ignition-0.0.3.gem (100%)
+    Successfully uninstalled vagrant-ignition-0.0.1
+    Updated 'vagrant-ignition' to version '0.0.3'!
+    Updated 'vagrant-scp' to version '0.5.7'!
+    Updated 'vagrant-share' to version '1.1.9'!
+    Updated 'vagrant-triggers' to version '0.5.3'!
+    Updated 'vagrant-vbguest' to version '0.14.2'!
+
+..
 
 .. _updatingpycharm:
 
 Updating PyCharm Community Edition
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that we have seen an example of setting variables at the host level
 that override group variables, and validating the values of those variables
