@@ -32,7 +32,6 @@ __metaclass__ = type
 
 import os
 from sh import bash
-from sh import sed
 
 from ansible.plugins.lookup import LookupBase
 
@@ -68,17 +67,13 @@ class LookupModule(LookupBase):
     def run(self, terms, variables=None, **kwargs):
 
         results = []
-        cmd = [
-            "source {}/bin/dims_functions.sh\n".format(
+        _dims_function = "{}/bin/dims.function".format(
                 os.getenv('DIMS', '')
-            ),
-            " ".join([arg for arg in terms]) + "\n",
-        ]
-
+                )
+        cmd = [ _dims_function ] + [ arg for arg in terms ]
         try:
-            results = [line.strip() for line in bash(_in=cmd, _iter=True)]
+            results = [line.strip() for line in bash(cmd, _iter=True)]
         except Exception as e:
-            # Should we ignore errors?
-            pass
+            raise e
 
         return results
