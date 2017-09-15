@@ -789,7 +789,7 @@ use ``run.playbook --tags updates``, or to just apply changes to
 To run the playbook using Ansible directly, performing both of the
 example tasks just listed at once, the command would look like this:
 
-.. code-block::
+.. code-block:: none
 
     $ ansible-playbook $DIMS_PRIVATE/playbooks/hosts/dellr510.devops.develop --tags updates,iptables
 
