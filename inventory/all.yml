@@ -4,6 +4,14 @@ all:
   vars:
     dist_tag: "u'{{ ansible_distribution_version }}'"
     os_version: '?'
+    ansible_user: 'ansible'
+    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }} {{ dims_private }}') }}"
+    category: 'devops'
+    deployment: 'local'
+    dims_domain: '{{ category }}.{{ deployment }}'
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+    dims_private: "{{ playbooks_root }}"
+    artifacts_url: 'http://source.{{ dims_domain }}/source'
   hosts:
     'black.devops.local':
     'blue14.devops.local':
