@@ -30,6 +30,8 @@ yaml_mode_whitelist:
 # for random failures or random behavior in scripts.
 dims_global_path: '{{ dims_bin }}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
+dims_source_path: '/var/www/source'
+
 dims_kibana_port: 8480
 dims_ssh_port: 8422
 dims_ssl_port: 8443
