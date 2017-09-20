@@ -6,6 +6,14 @@
 
 load helpers
 
+function setup() {
+    apt-mark showhold > /tmp/packages_hold.$$.$PPID
+}
+
+function teardown() {
+    rm -f /tmp/packages_hold.$$.$PPID
+}
+
 {% if ansible_distribution == 'Ubuntu' %}
 @test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
     bash -c "(/usr/lib/update-notifier/apt-check -p && echo '')" 1>&2
@@ -13,7 +21,7 @@ load helpers
 }
 {% elif ansible_distribution == 'Debian' %}
 @test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
-    assert "Listing..." bash -c "apt list --upgradable"
+    assert "Listing..." bash -c "apt list --upgradable | fgrep -v -f /tmp/packages_hold.$$.$PPID"
 }
 {% else %}
 @test "[S][EV] All packages are up to date ({{ ansible_distribution }})" {
