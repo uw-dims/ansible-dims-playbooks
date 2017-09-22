@@ -127,7 +127,6 @@
     version: '{{ ansible_dims_playbooks_version }}'
     update: yes
     force: yes
-  become: yes
   tags: [ ansible-server ]
 
 - name: Define install_ssh_keypair
