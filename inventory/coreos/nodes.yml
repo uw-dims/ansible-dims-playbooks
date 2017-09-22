@@ -1,0 +1,35 @@
+---
+
+coreos:
+  vars:
+    #ansible_python_interpreter: '/opt/bin/python'
+    ansible_python_interpreter: '/home/ansible/pypy/bin/python'
+    iptables_rules: rules.v4.coreos-local.j2
+    dims_environment: environment.coreos-local.j2
+    consul_service_file: consul.service.coreos.j2
+    box_baseos: "coreos"
+    box_osnick: "coreos"
+    box_oschannel: "alpha"
+    #box_osversion: "1451.2.0"
+    box_osversion: "1248.2.0"
+    box_vagrant_boxversion: "0"
+    # The path to boxes for CoreOS is different than other OSs.
+    # TODO(dittrich): Handle all boxes the same. Special cases confuse things.
+    box_url: "file:///vm/box/{{ box_baseos }}/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+  hosts:
+    'node01.devops.local':
+    'node02.devops.local':
+    'node03.devops.local':
+    'core-01':
+  children:
+    coreos-vagrant:
+      hosts:
+        'core-01':
+          ansible_host: '127.0.0.1'
+          #ansible_host: '172.17.8.101'
+          ansible_user: 'core'
+          ansible_port: 2222
+          ansible_ssh_private_key_file: '/home/dittrich/.vagrant.d/insecure_private_key'
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+# vim: ft=ansible :
