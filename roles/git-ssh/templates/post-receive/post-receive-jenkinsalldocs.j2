@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# {{ ansible_managed }}
+#
+# post-receive hook to
+# call parameterized Jenkins job to build and deploy documentation if the repo
+# contains sphinx documentation in the designated areas. 
+# 
+# Documentation variables
+# DOCPATH = Path to Makefile to build docs
+# DOCREPO = Name of repo
+# DOCBRANCH = Branch pushed
+# DOCTYPE = Type of output - html or pdf
+# DOCDELETE = "true" if a delete operation is required, "false" otherwise
+
+# Note that the hook does not provide the url or destination path of the documentation. 
+# Those values are determined by the Jenkins documentation job. We could create different
+# hooks that would deploy to different machines but for now we are deploying all docs
+# to the location specified by the Jenkins documentation job defaults.
+
+REPO=$(basename $PWD)
+REPONAME="${REPO%.*}"
+HOOK=$(basename $0)
+
+# Parameterized documentation job name
+JOB="dims-docs-deploy"
+
+# Jenkins URL
+JENKINSURL="https://jenkins.{{ dims_domain }}{{ jenkins_context_path }}"
+
+# Deleted branch rev - all zeros
+DELETEDREV="0000000000000000000000000000000000000000"
+
+# Flag indicating whether or not to public docs
+PUBLISH=false
+
+echo "[+] $HOOK started"
+echo "[+] REPONAME=$REPONAME"
+
+# Get the branch(es) pushed from stdin
+while read oldrev newrev refname
+do
+  DOCDELETE="false"
+  BRANCH=$(git rev-parse --symbolic --abbrev-ref $refname)
+  echo "[+] BRANCH=$BRANCH"
+  echo "[+] newrev=$newrev"
+  echo "[+] oldrev=$oldrev"
+
+  if [ "$newrev" = "$DELETEDREV" ]; then
+    # This branch has been deleted
+    echo "[+] This branch was deleted. Set delete flag "
+    DOCDELETE="true"
+    echo "[+] Check for directories in oldrev"
+    USESDOCS=$( git rev-parse --verify ${oldrev}:docs/source/conf.py 2>&1 | grep fatal: )
+    ISSYS=$( git rev-parse --verify ${oldrev}:source/conf.py 2>&1 | grep fatal: )
+  else
+    echo "[+] Branch was updated."
+    DOCDELETE="false"
+    USESDOCS=$( git rev-parse --verify ${BRANCH}:docs/source/conf.py 2>&1 | grep fatal: )
+    ISSYS=$( git rev-parse --verify ${BRANCH}:source/conf.py 2>&1 | grep fatal: )
+  fi
+
+  if [ -z "$ISSYS" ]; then
+    echo "[+] This is a system documentation repo."
+    DOCPATH="."
+    PUBLISH=true
+  elif [ -z "$USESDOCS" ]; then
+    echo "[+] This repo has a documentation directory."
+    DOCPATH="./docs"
+    PUBLISH=true
+  else
+    echo "[+] No documentation present - Do not publish"
+  fi
+
+  if [ "$PUBLISH" = true ]; then
+    # Call job to build and deploy the html
+    curl \
+      --silent \
+      --cacert {{ ssl_cacertfile }} \
+      --data-urlencode "REPO=${REPONAME}" \
+      --data-urlencode "BRANCH=${BRANCH}" \
+      --data-urlencode "DOCPATH=${DOCPATH}" \
+      --data-urlencode "DOCTYPE=html" \
+      --data-urlencode "DOCDELETE=${DOCDELETE}" \
+      $JENKINSURL/job/$JOB/buildWithParameters
+    # Call job to build and deploy the pdf
+    curl \
+      --silent \
+      --cacert {{ ssl_cacertfile }} \
+      --data-urlencode "REPO=${REPONAME}" \
+      --data-urlencode "BRANCH=${BRANCH}" \
+      --data-urlencode "DOCPATH=${DOCPATH}" \
+      --data-urlencode "DOCTYPE=pdf" \
+      --data-urlencode "DOCDELETE=${DOCDELETE}" \
+      $JENKINSURL/job/$JOB/buildWithParameters
+  fi
+
+done
+
+echo "[+] $HOOK finished"
+
+# EOF

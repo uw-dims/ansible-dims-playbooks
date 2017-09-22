@@ -1,0 +1,21 @@
+#!/bin/bash
+# {{ ansible_managed }}
+#
+# This is a generic script for handling
+# hooks in Git. It looks for scripts that
+# share a base name with this script (so
+# "post-recieve" looks for subordinate
+# scripts that extend that name, etc.)
+
+TFILE=$(mktemp --tmpdir $$.hook.$RANDOM.XXXXXX)
+BASE=$(basename "$0")
+# Cleanup on exit
+trap "rm -f ${TFILE}" EXIT
+
+echo "Running ${BASE} hook: $(date)"
+
+cat - > ${TFILE}
+for HOOK in $(ls hooks/${BASE}-[0-9]*); do
+    [ -x ${HOOK} ] && bash ${HOOK} < ${TFILE}
+done
+exit $?

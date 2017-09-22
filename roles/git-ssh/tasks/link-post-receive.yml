@@ -1,0 +1,48 @@
+---
+
+- name: Register _repopath
+  set_fact:
+    _repopath: '{{ git_reposdir }}/{{ _reponame }}.git'
+
+- name: Ensure post-receive hook runner is present
+  file:
+    src: '{{ git_reposdir }}/bin/post-receive'
+    dest: '{{ _repopath }}/hooks/post-receive'
+    state: link
+    owner: git
+    group: git
+
+- name: Identify hooks to remove
+  find:
+    path: '{{ _repopath }}/hooks/'
+    file_type: link
+    patterns: 'post-receive-[0-9][0-9]*,*.sample'
+    use_regex: false
+    recurse: false
+  register: _find
+  delegate_to: '{{ inventory_hostname }}'
+
+- name: Remove existing numeric hooks
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - '{{ _find.files|map(attribute="path")|list }}'
+
+- name: Extract post_receive hooks
+  set_fact:
+    post_receive_hooks: '{{ item.post_receive_hooks|default([]) }}'
+  when: item.name == _reponame
+  with_items: '{{ git_required_repos }}'
+
+- name: Create numeric links for post-receive hooks
+  file:
+    src: '{{ git_reposdir }}/bin/post-receive-{{ item.1 }}'
+    dest: '{{ _repopath }}/hooks/post-receive-{{ "%02d"|format(item.0|int) }}{{ item.1 }}'
+    state: link
+    owner: git
+    group: git
+  with_indexed_items:
+    - '{{ post_receive_hooks|default([]) }}'
+
+# vim: ft=ansible :
