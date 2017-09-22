@@ -25,6 +25,7 @@
     - { role: nginx }
     - { role: java8 }
     - { role: ansible-role-jenkins, tags: jenkins2 }
+    - { role: git-ssh } # This role must be applied before jenkins2 role
     - { role: jenkins2 }
 
   handlers:
