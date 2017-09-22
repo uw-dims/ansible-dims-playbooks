@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>stage</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <jenkins.triggers.ReverseBuildTrigger>
+      <spec></spec>
+      <upstreamProjects>trident, </upstreamProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </jenkins.triggers.ReverseBuildTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.38.1">
+      <project>trident</project>
+      <filter>output/*.deb</filter>
+      <target>./</target>
+      <excludes></excludes>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector">
+        <stable>true</stable>
+      </selector>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.38.1">
+      <project>pitchfork-data</project>
+      <filter>output/pitchfork-data*.deb</filter>
+      <target>./</target>
+      <excludes></excludes>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.tasks.Shell>
+      <command>#sudo apt-get -t jessie-backports install golang-go -y
+sudo apt-get remove exim4-base -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postfix 
+sudo apt-get install postgresql postgresql-9.4 -y
+sudo apt-get install nginx-full ntpdate -y
+sudo dpkg -i ./output/pitchfork-data*.deb ./output/trident-server*.deb ./output/trident-cli*.deb
+sudo su postgres -c &quot;/usr/sbin/tsetup --force-db-destroy setup_test_db&quot;
+echo &apos;include &quot;/etc/trident/nginx/trident-upstream.inc&quot;;
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
+        include &quot;/etc/trident/nginx/trident-server.inc&quot;;
+}&apos; &gt; /tmp/default
+sudo mv /tmp/default /etc/nginx/sites-enabled/default
+
+echo &apos;
+TRIDENT_ENABLED=Yes
+DAEMON_USER=trident
+DAEMON_OPTS=&quot;--insecurecookies&quot;
+&apos; &gt; /tmp/default
+sudo mv /tmp/default /etc/default/trident
+
+sudo service nginx restart
+sudo service trident start</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.32">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+</project>

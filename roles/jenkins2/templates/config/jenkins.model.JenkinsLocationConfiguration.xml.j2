@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jenkins.model.JenkinsLocationConfiguration>
+{% if jenkins_admin_email is defined %}
+  <adminAddress>{{ jenkins_admin_email }}</adminAddress>
+{% endif %}
+  <jenkinsUrl>http://jenkins.{{ dims_domain }}:{{ jenkins_port|default('8080') }}{{ jenkins_context_path}}/</jenkinsUrl>
+</jenkins.model.JenkinsLocationConfiguration>

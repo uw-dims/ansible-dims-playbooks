@@ -191,7 +191,7 @@
   notify: restart nginx
   tags: [ jenkins2, config ]
 
-- name: Ensure (templated) job scripts are present
+- name: Ensure (templated) scripts are present
   template:
     src: '{{ item }}'
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
@@ -203,7 +203,7 @@
     - "../templates/scripts/*.j2"
   tags: [ jenkins2, scripts ]
 
-- name: Ensure (non-templated) job scripts are present
+- name: Ensure (non-templated) scripts are present
   copy:
     src: '{{ item }}'
     dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'

@@ -243,8 +243,6 @@ export PROGRAM="${0##-}"
 export BASE=$(basename "$PROGRAM")
 #HELP_Global: PWD
 export PWD=$(pwd); export PWD
-#HELP_Global: RECIPIENTS
-export RECIPIENTS=dims-devops@uw.ops-trust.net
 #HELP_Global: COMMAND
 export COMMAND=""
 

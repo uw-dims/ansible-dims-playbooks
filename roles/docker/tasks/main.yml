@@ -82,6 +82,7 @@
 - name: Make backports present for APT on Debian jessie/stretch
   apt_repository:
     repo: 'deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} {{ docker_ce_pool }}'
+    filename: 'docker'
     state: present
     update_cache: yes
   when: ansible_lsb.id == "Debian" and ansible_lsb.codename in [ "jessie", "stretch" ]

@@ -6,7 +6,7 @@ _docker_apt_key_url: 'https://download.docker.com/linux/{{ ansible_lsb.id|lowerc
 _docker_apt_key_id: '9DC858229FC7DD38854AE2D88D81803C0EBFCD88'
 _docker_repo_host: 'download.docker.com'
 _docker_ce_pool: 'stable'
-_docker_ce_version: '17.06.1~ce-0'
+_docker_ce_version: '17.06.2~ce-0'
 _docker_compose_version: '1.16.0'
 _docker_machine_version: '0.10.0'
 

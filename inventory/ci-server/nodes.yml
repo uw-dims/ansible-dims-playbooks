@@ -50,14 +50,21 @@ ci-server:
     jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
     jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
     jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
-    jenkins_version: 2.19.4
+    jenkins_version: 2.60.3
     jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_port: 8080
+    jenkins_ssh_port: 8022
+    jenkins_context_path: '/jenkins'
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
+    jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
+    jenkins_labels:
+      - '{{ ansible_lsb.codename }}'
+      - '{{ ansible_architecture }}'
+      - '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
     jenkins_plugins:
       - git
       - git-client
@@ -101,9 +108,10 @@ ci-server:
     jenkins_plugin_timeout: 60
 
     jenkins_admin_username: admin
-    jenkins_admin_password: "admin"
+    jenkins_admin_email: 'dittrich@u.washington.edu'
+    jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
     jenkins_admin_password_file: ""
-    jenkins_admin_token: "" # "07ce05c0b5209c43ce434231b2c90866"
+    jenkins_admin_token: ""
     jenkins_admin_token_file: ""
 
     # For cli_config.yml and its templates
