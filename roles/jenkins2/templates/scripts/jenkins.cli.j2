@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# {{ ansible_managed }}
+#
 # Copyright (C) 2014-2017, University of Washington. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,10 +36,56 @@
 # directory, which must be readable only to trusted users running
 # this script.
 
-java -jar {{ jenkins_jar_location }} \
-     -s http://localhost:{{ jenkins_port }}{{ jenkins_url_prefix | default('') }} \
-     $@ \
-     --username admin \
-     --password-file {{ jenkins_home }}/secrets/AdminPassword
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
 
+# Tracks with bumpversion
+VERSION="2.12.0"
+PORT=${PORT:-{{ jenkins_ssh_port }}}
+ADMIN_USER=${ADMIN_USER:-{{ jenkins_admin_username }}}
+IDENTITY=${IDENTITY:-$HOME/.ssh/id_rsa}
+JENKINS_HOSTNAME=${JENKINS_HOSTNAME:-{{ jenkins_hostname }}}
+
+FLAGS_HELP="usage: $BASE [options] args"
+
+# Define command line options
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_string 'identity' "${IDENTITY}" 'identity (SSH private key)' 'i'
+DEFINE_string 'hostname' "${JENKINS_HOSTNAME}" 'Jenkins host name' 'H'
+DEFINE_string 'port' "${PORT}" 'Jenkins SSH service port' 'p'
+DEFINE_string 'user' "${ADMIN_USER}" 'Jenkins admin user' 'l'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+
+usage() {
+    flags_help
+    cat << EOD
+
+This script serves as a front-end to Jenkins using the
+SSH authentication mechanism supported by Jenkins.
+
+{{ ansible_managed }}
+EOD
+    exit 0
+}
+
+main()
+{
+    dims_main_init
+
+    ssh -p ${FLAGS_port} \
+      -l ${FLAGS_user} \
+      -i ${FLAGS_identity} \
+      ${FLAGS_hostname} \
+      $@
+
+    debug "Returning from main()"
+    on_exit
+    return $?
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
 exit $?

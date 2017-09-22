@@ -13,16 +13,36 @@
 # there are still bugs that prevent handlers from executing
 # properly that make this not possible.
 
+- name: Define jenkins_cli command
+  set_fact:
+    jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
+  when: jenkins_cli is not defined
+  tags: [ jenkins2 ]
+
+- name: Define _jobs_configs directory path
+  set_fact:
+    _jobs_configs: '{{ jenkins_home }}/jobs_configs'
+  tags: [ jenkins2 ]
+
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ jenkins2, packages ]
+
+- name: Run system test for required Java8 installation
+  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  tags: [ jenkins2 ]
 
 ## We want to pin the version of Jenkins for stability
 ## reasons.
 
 - name: Hold updates of jenkins package
   dpkg_selections:
-    name: jenkins
+    name: '{{ item }}'
     selection: hold
+  with_items:
+    - jenkins
   become: yes
   tags: [ jenkins2, packages ]
 
@@ -33,21 +53,6 @@
     groups: jenkins
   become: yes
   when: "groups['ci-server'] is defined and inventory_hostname in groups['ci-server']"
-  tags: [ jenkins2 ]
-
-# Install bats tests first so we can use them to validate
-# installation of Java and Jenkins.
-
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
-  ignore_errors: yes
-  tags: [ jenkins2, tests ]
-
-- name: Run system test for Java8 installation
-  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
-  environment:
-    DIMS: '{{ dims }}'
-    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ jenkins2 ]
 
 - name: Make Jenkins nginx front end present
@@ -81,6 +86,42 @@
   notify: restart nginx
   tags: [ jenkins2, config ]
 
+- name: Ensure custom Jenkins configurations are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ jenkins_home }}/{{ item|basename|regex_replace(".j2","") }}'
+    owner: '{{ root_user }}'
+    group: 'jenkins'
+    mode: 0o640
+  with_fileglob:
+    - "{{ dims_private }}/roles/{{ role_name }}/templates/config/*.j2"
+    - "../templates/config/*.j2"
+  become: yes
+  notify: restart jenkins
+  tags: [ jenkins2, config ]
+
+  # Use the cli_config.yml task file from https://github.com/karlmdavis/ansible-jenkins2.git
+
+- include: 'cli_config.yml'
+  tags: [ jenkins2 ]
+
+- name: Get plugin version numbers
+  shell:
+    chdir={{ jenkins_home }}
+    grep -r Plugin-Version plugins | sed 's/\// /g' | awk '{ print $2, $5; }'
+  become: yes
+  register: _plugin_out
+  tags: [ jenkins2 ]
+
+- name: Save plugin version numbers in dictionary
+  set_fact:
+    jenkins_plugin_versions: "{{ jenkins_plugin_versions|default({}) | combine( {item.split(' ')[0]: item.split(' ')[1]} ) }}"
+  with_items: "{{ _plugin_out.stdout_lines }}"
+  tags: [ jenkins2 ]
+
+- debug: 'var=jenkins_plugin_versions'
+  tags: [ jenkins2 ]
+
 - name: Ensure members of jenkins group can read secrets
   file:
     path: '{{ jenkins_home }}/secrets'
@@ -99,18 +140,47 @@
   become: yes
   tags: [ jenkins2, config ]
 
-- name: Ensure admin password is available for jenkins-cli
-  lineinfile:
-    line: '{{ jenkins_admin_password }}'
-    path: '{{ jenkins_home }}/secrets/AdminPassword'
-    backup: yes
-    create: yes
+- name: Define variable with ansible public key
+  set_fact:
+    _public_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}.pub'
+  when: _public_key is not defined
+  tags: [ jenkins2 ]
+
+- name: Ensure public keys in jenkins authorized_keys
+  authorized_key:
+    user: jenkins
     state: present
-    owner: '{{ jenkins_process_user }}'
-    group: '{{ jenkins_process_user }}'
-    mode: 0o640
+    key: '{{ item }}'
+  with_items:
+      - '{{ lookup("file", _public_key) }}'
+      - '{{ jenkins_authorized_keys|default([]) }}'
   become: yes
-  tags: [ jenkins2, config ]
+  tags: [ jenkins2 ]
+
+- name: Ensure root account prepared for known_hosts file
+  file:
+    path: '/root/.ssh'
+    state: directory
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o700
+  become: yes
+  tags: [ jenkins2 ]
+
+- name: Ensure host key is in known_hosts files
+  shell: >
+    (ssh-keyscan -p {{ jenkins_ssh_port }} -t rsa localhost;
+    ssh-keyscan -p {{ jenkins_ssh_port }} -t ecdsa localhost;
+    [ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts) |
+    sort | uniq > ~/.ssh/known_hosts
+  become: yes
+  become_user: '{{ item }}'
+  ignore_errors: true
+  with_items:
+    - git
+    - root
+    - jenkins
+  tags: [ jenkins2 ]
 
 - name: Ensure jenkins user is in www-data group
   user:
@@ -128,6 +198,7 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
   with_fileglob:
     - "../templates/scripts/*.j2"
   tags: [ jenkins2, scripts ]
@@ -139,9 +210,144 @@
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
   with_fileglob:
-    - "../files/scripts/*.sh"
+    - "scripts/*.sh"
   tags: [ jenkins2, scripts ]
+
+
+- name: Ensure jobs_configs directory is present
+  file:
+    path: '{{ _jobs_configs }}'
+    state: directory
+    owner: 'jenkins'
+    group: 'jenkins'
+    mode: 0o750
+  tags: [ jenkins2 ]
+
+- name: Ensure non-templated jobs are present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ _jobs_configs }}/{{ item|basename }}'
+    owner: 'jenkins'
+    group: 'jenkins'
+    mode: 0o640
+  become: yes
+  with_fileglob:
+    - "jobs/*.xml"
+  register: _jobsfiles_not_templated
+  tags: [ jenkins2 ]
+
+- debug: 'var=_jobsfiles_not_templated'
+  tags: [ jenkins2 ]
+
+- name: Ensure templated jobs are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ _jobs_configs }}/{{ item|basename|regex_replace(".j2$","") }}'
+    owner: 'jenkins'
+    group: 'jenkins'
+    mode: 0o640
+  become: yes
+  with_fileglob:
+    - "../templates/jobs/*.xml.j2"
+  register: _jobsfiles_templated
+  tags: [ jenkins2 ]
+
+- debug: 'var=_jobsfiles_templated'
+  tags: [ jenkins2 ]
+
+- name: Find jobs files
+  find:
+    path: '{{ _jobs_configs }}'
+    file_type: file
+    patterns: "*.xml"
+    use_regex: false
+    recurse: false
+  register: _find
+  tags: [ jenkins2 ]
+
+- name: Record job (base file name)
+  set_fact:
+    _jobsfiles: '{{ _jobsfiles|default([]) + [item|basename|regex_replace("\.xml","")] }}'
+  with_items: '{{ _find.files|map(attribute="path")|list }}'
+  tags: [ jenkins2 ]
+
+- debug: 'var=_jobsfiles'
+  when: _jobsfiles is defined
+  tags: [ jenkins2 ]
+
+  # SEE: http://stackoverflow.com/a/9954283/100134
+  # Uses same "-s" option content as ansible-jenkins2/tasks/plugins.yml
+  # SEE ALSO: https://issues.jenkins-ci.org/browse/JENKINS-38318
+
+- name: Get 'list-jobs' from jenkins CLI
+  shell: "{{ jenkins_cli }} list-jobs"
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: jenkins
+  register: _list_jobs
+  tags: [ jenkins2 ]
+
+- name: Record installed jobs
+  set_fact:
+    _installed_jobs: '{{ _installed_jobs|default([]) + [ item ] }}'
+  with_items: '{{ _list_jobs.stdout_lines }}'
+  when: _list_jobs is defined and _list_jobs.stdout_lines|length > 0
+  tags: [ jenkins2 ]
+
+- name: Record no installed jobs
+  set_fact:
+    _installed_jobs: []
+  when: _list_jobs is not defined or _list_jobs.stdout_lines|length == 0
+  tags: [ jenkins2 ]
+
+- name: Create new Jenkins jobs
+  shell: >
+    {{ jenkins_cli }} create-job '{{ item }}'
+    < '{{ _jobs_configs }}/{{ item }}.xml'
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: jenkins
+  register: _create
+  changed_when: "_create.stdout and 'already exists' not in _create.stdout"
+  failed_when: "_create.stderr and 'already exists' not in _create.stderr"
+  with_items:
+    - "{{ _jobsfiles }}"
+  when: _jobsfiles is defined and item not in _installed_jobs
+  notify: restart jenkins
+  tags: [ jenkins2 ]
+
+- name: Update existing Jenkins jobs
+  shell: >
+    {{ jenkins_cli }} update-job '{{ item }}'
+    < '{{ _jobs_configs }}/{{ item }}.xml'
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: jenkins
+  register: _update
+  changed_when: "_update.stdout and 'already exists' not in _update.stdout"
+  failed_when: "_update.stderr and 'already exists' not in _update.stderr"
+  with_items:
+    - "{{ _jobsfiles }}"
+  when: _jobsfiles is defined and item in _installed_jobs
+  notify: restart jenkins
+  tags: [ jenkins2 ]
+
+- name: Validate installation using installed jenkins.cli script
+  shell: '{{ dims_bin }}/jenkins.cli build install-test'
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: yes
+  become_user: jenkins
+  tags: [ jenkins2 ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ jenkins2, packages ]
