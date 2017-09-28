@@ -38,7 +38,7 @@
 # specified on the command line, or all bare repos in $GITDIR.
 
 # Tracks with bumpversion
-VERSION=2.12.2
+VERSION=2.13.0
 
 export FQDN=$(get_fqdn)
 DEPLOYMENT=${DEPLOYMENT:-$(get_deployment_from_fqdn)}
