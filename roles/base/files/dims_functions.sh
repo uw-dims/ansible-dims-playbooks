@@ -1391,11 +1391,10 @@ function get_ssh_private_key_file() {
 
     if [[ -f ${_kfile}  ]]; then
         echo ${_kfile}
-        return 0
     else
         echo ''
-        return 1
     fi
+    return 0
 }
 
 #HELP get_user_ssh_key()

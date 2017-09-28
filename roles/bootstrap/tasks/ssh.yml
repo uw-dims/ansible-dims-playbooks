@@ -2,12 +2,22 @@
 
 # File: roles/bootstrap/tasks/ssh.yml
 
+- name: Define variable with ansible private key
+  set_fact:
+    _private_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}'
+  when: _private_key is not defined
+  tags: [ bootstrap ]
+
+- fail: msg="Could not look up \"dims_function get_ssh_private_key_file ansible\""
+  when: _private_key is not defined or _private_key == ''
+  tags: [ bootstrap ]
+
 - name: Define variable with ansible public key
   set_fact:
-    _public_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}.pub'
-  tags: [ bootstrap ]
+    _public_key: '{{ _private_key }}.pub'
   when: _public_key is not defined
-  
+  tags: [ bootstrap ]
+
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
     user: ansible

@@ -140,6 +140,10 @@
     _private_key_file: '{{ lookup("dims_function", "get_ssh_private_key_file {{ ansible_user }}") }}'
   tags: [ ansible-server ]
 
+- fail: msg="Could not look up \"dims_function get_ssh_private_key_file ansible\""
+  when: _private_key is not defined or _private_key == ''
+  tags: [ ansible-server ]
+
 - name: Ensure ansible SSH key pair is present
   copy:
     src: '{{ item }}'
