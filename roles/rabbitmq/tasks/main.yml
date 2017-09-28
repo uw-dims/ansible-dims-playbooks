@@ -2,9 +2,6 @@
 
 # File: roles/rabbitmq/tasks/main.yml
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ rabbitmq ]
-
 - fail: msg="Installation on {{ ansible_os_family }} is not supported"
   when: ansible_os_family != "Debian"
   tags: [ rabbitmq ]
@@ -56,6 +53,9 @@
 #    rabbitmq_mgmt_stats_interval: '{{ _rabbitmq_mgmt_stats_interval }}'
 #  when: rabbitmq_mgmt_stats_interval is not defined
 #  tags: [ rabbitmq ]
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ rabbitmq ]
 
 - name: Add rabbitmq repo signing key
   apt_key:
@@ -300,10 +300,6 @@
   shell: "rabbitmqadmin -N localhost import /etc/rabbitmq/broker_objects.json"
   become: yes
   tags: [ rabbitmq, config ]
-
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
-  tags: [ rabbitmq, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rabbitmq ]

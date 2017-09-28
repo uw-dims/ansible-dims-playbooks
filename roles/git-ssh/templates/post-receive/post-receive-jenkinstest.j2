@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# post-receive hook to test functionality - sandbox
+
+REPO=$(basename $PWD)
+GITREPO=$(pwd)
+REPONAME="${REPO%.*}"
+DOCDELETE="false"
+
+# Jenkins URL
+JENKINSURL="https://jenkins.{{ dims_domain }}{{ jenkins_context_path }}"
+
+# Global vars. These are currently specified in dims-ci-utils/jenkins/job-scripts/jenkins.dims-defaults.
+# Need to have these (as well as JENKINSURL) in a common area, or populate 
+# from the global configuration file (which is TBD)
+#
+# Standard branch names 
+MASTERBRANCH="master"
+# Will change this when we move to "develop" as the development branch name
+DEVBRANCH="dev"
+# Branches which will trigger a call to Jenkins
+DEFAULTBRANCHESTOBUILD=( $MASTERBRANCH $DEVBRANCH )
+
+
+echo REPO=$REPO
+echo REPONAME=$REPONAME
+echo GITREPO=$GITREPO
+
+# Testing determining if docs directory exists
+# We are going to call the parameterized job if a docs directory exists or if a source/conf.py file
+# exists (should be true for both types of documentation). Might want to think about moving all to 
+# docs since this is not very elegant.
+while read oldrev newrev refname
+do
+  DOCDELETE="false"
+  BRANCH=$(git rev-parse --symbolic --abbrev-ref $refname)
+  echo BRANCH=$BRANCH
+  echo REPO=$REPO
+  echo newrev=$newrev
+
+  if [ "$newrev" = "0000000000000000000000000000000000000000" ]; then
+    # This branch has been deleted
+    echo "branch was deleted. Check old rev for docs "
+    echo oldrev=$oldrev
+    DOCDELETE="true"
+    USESDOCS=$( git rev-parse --verify ${oldrev}:docs/source/conf.py 2>&1 | grep fatal: )
+    ISSYS=$( git rev-parse --verify ${oldrev}:source/conf.py 2>&1 | grep fatal: )
+    echo "end of branch deleted code"
+  else
+    echo "branch not deleted"
+    USESDOCS=$( git rev-parse --verify ${BRANCH}:docs/source/conf.py 2>&1 | grep fatal: )
+    ISSYS=$( git rev-parse --verify ${BRANCH}:source/conf.py 2>&1 | grep fatal: )
+  fi
+  if [ -z "$ISSYS" ]; then
+    echo "This is a system documentation repo. Path is ."
+  elif [ -z "$USESDOCS" ]; then
+    echo "This has a documentation folder. Path is ./docs"
+  else
+    echo "Do not publish docs"
+  fi
+done
+echo "done"
+
+# Multiple push testing:
+# Tested the previous code with multiple pushes and jenkins job only ran on last. Try it with
+# just one:
+
+#curl \
+#    --silent \
+#    --cacert {{ ssl_cacertfile }} \
+#    ${JENKINSURL}/git/notifyCommit?url=git@source.{{ dims_domain }}:${GITREPO}

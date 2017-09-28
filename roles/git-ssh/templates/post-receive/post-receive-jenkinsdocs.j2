@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# post-receive hook to notify Jenkins and call parameterized docs job for docs/ directory
+# changes in a repo
+# This is an older hook and not used as of post-receive-06jenkinsalldocs. Leaving it in the 
+# repo for now for historical reasons. We are no longer building only the master and develop
+# branches.
+
+REPO=$(basename $PWD)
+REPONAME="${REPO%.*}"
+DOCPATH="./docs"
+HOOK=$(basename $0)
+
+# Parameterized job name
+JOB="dims-docs-deploy"
+
+# Jenkins URL
+JENKINSURL="https://jenkins.{{ dims_domain }}{{ jenkins_context_path }}"
+
+# Global vars. These are currently specified in dims-ci-utils/jenkins/job-scripts/jenkins.dims-defaults.
+# Need to have these (as well as JENKINSURL) in a common area, or populate 
+# from the global configuration file (which is TBD)
+#
+# Standard branch names 
+MASTERBRANCH="master"
+# Will change this when we move to "develop" as the development branch name
+DEVBRANCH="develop"
+# Branches which will trigger a call to Jenkins
+DEFAULTBRANCHESTOBUILD=( $MASTERBRANCH $DEVBRANCH )
+
+# Get the branch(es)
+while read oldrev newrev refname
+do
+
+  BRANCH=$(git rev-parse --symbolic --abbrev-ref $refname)
+  echo BRANCH=$BRANCH
+  echo REPO=$REPO
+
+  # The curl command will only be called for $DEFAULTBRANCHESTOBUILD - currently those are the
+  # only branches set up for automated deployments.
+  for i in "${DEFAULTBRANCHESTOBUILD[@]}"; do
+    if [ $i = $BRANCH ]; then
+      # Build html and pdf versions of the docs by calling the parameterized jenkins job dims-docs-deploy
+      curl \
+        --silent \
+        --cacert {{ ssl_cacertfile }} \
+        --data-urlencode "DOCREPO=${REPONAME}" \
+        --data-urlencode "DOCBRANCH=${BRANCH}" \
+        --data-urlencode "DOCPATH=${DOCPATH}" \
+        --data-urlencode "DOCTYPE=html" \
+        $JENKINSURL/job/$JOB/buildWithParameters
+      curl \
+        --silent \
+        --cacert {{ ssl_cacertfile }} \
+        --data-urlencode "DOCREPO=${REPONAME}" \
+        --data-urlencode "DOCBRANCH=${BRANCH}" \
+        --data-urlencode "DOCPATH=${DOCPATH}" \
+        --data-urlencode "DOCTYPE=pdf" \
+        $JENKINSURL/job/$JOB/buildWithParameters
+    fi
+  done 
+done
+
+# EOF

@@ -14,82 +14,115 @@ worker_processes {{ nginx_worker_processes | default(4) }};
 pid /run/nginx.pid;
 
 events {
-	worker_connections 768;
-	# multi_accept on;
+  worker_connections 1024;
+  use epoll;
+  # multi_accept on;
 }
 
 http {
 
-	##
-	# Basic Settings
-	##
+  ##
+  # Basic Settings
+  ##
 
-	sendfile on;
-	tcp_nopush on;
-	tcp_nodelay on;
-	keepalive_timeout 65;
-	types_hash_max_size 2048;
-	# server_tokens off;
+  sendfile on;
+  tcp_nopush on;
+  tcp_nodelay off;
+  keepalive_timeout 5;
+  types_hash_max_size 2048;
+  server_tokens off;
 
-	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  # spool uploads to disk instead of clobbering downstream servers
+  client_body_temp_path /var/spool/nginx-client-body 1 2;
+  client_max_body_size 32m;
+  client_body_buffer_size 128k;
 
-	# server_names_hash_bucket_size 64;
-	# server_name_in_redirect off;
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
 
-	include /etc/nginx/mime.types;
-	default_type application/octet-stream;
+  # allow long server names
+  server_names_hash_bucket_size 64;
+  server_name_in_redirect off;
 
-	##
-	# Logging Settings
-	##
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
 
-	access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
-	error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+  ##
+  # Logging Settings
+  ##
 
-	##
-	# Gzip Settings
-	##
+  access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+  error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
 
-	gzip on;
-	gzip_disable "msie6";
+  ##
+  # Gzip Settings
+  ##
 
-	# gzip_vary on;
-	# gzip_proxied any;
-	# gzip_comp_level 6;
-	# gzip_buffers 16 8k;
-	# gzip_http_version 1.1;
-	# gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+  gzip on;
+  gzip_http_version 1.1;
+  gzip_comp_level 2;
+  gzip_proxied any;
+  gzip_min_length  1100;
+  gzip_buffers 16 8k;
+  gzip_types text/plain text/css text/xml text/javascript \
+      application/x-javascript application/json application/xml application/xml+rss;
+  # Some version of IE 6 don't handle compression well on some mime-types,
+  # so just disable for them
+  gzip_disable "MSIE [1-6].(?!.*SV1)";
+  # Set a vary header so downstream proxies don't send cached gzipped
+  # content to IE6
+  gzip_vary on;
 
-	##
-	# Virtual Host Configs
-	##
 
-	# Include alternate config files (if any)
-	include /etc/nginx/conf.d/*.conf;
+  # proxy settings
+  proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+  proxy_redirect     off;
+  proxy_http_version 1.1;
 
-	# Put site configuration dropins here and create symlink
-	# into /etc/nginx/sites-enabled to enable them.
-	include /etc/nginx/sites-enabled/*;
+  proxy_set_header   Host              $host;
+  proxy_set_header   X-Real-IP         $remote_addr;
+  proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+  proxy_set_header   X-Forwarded-Proto $scheme;
+  proxy_max_temp_file_size 0;
+
+  proxy_connect_timeout      90;
+  proxy_send_timeout         90;
+  proxy_read_timeout         90;
+
+  proxy_buffer_size          4k;
+  proxy_buffers              4 32k;
+  proxy_busy_buffers_size    64k;
+  proxy_temp_file_write_size 64k;
+
+  ##
+  # Virtual Host Configs
+  ##
+
+  # Include alternate config files (if any)
+  include /etc/nginx/conf.d/*.conf;
+
+  # Put site configuration dropins here and create symlink
+  # into /etc/nginx/sites-enabled to enable them.
+  include /etc/nginx/sites-enabled/*;
 }
 
 
 #mail {
-#	# See sample authentication script at:
-#	# http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
-# 
-#	# auth_http localhost/auth.php;
-#	# pop3_capabilities "TOP" "USER";
-#	# imap_capabilities "IMAP4rev1" "UIDPLUS";
-# 
-#	server {
-#		listen     localhost:110;
-#		protocol   pop3;
-#		proxy      on;
-#	}
-# 
-#	server {
-#		listen     localhost:143;
-#		protocol   imap;
-#		proxy      on;
-#	}
+#  # See sample authentication script at:
+#  # http://wiki.nginx.org/ImapAuthenticateWithApachePhpScript
+#
+#  # auth_http localhost/auth.php;
+#  # pop3_capabilities "TOP" "USER";
+#  # imap_capabilities "IMAP4rev1" "UIDPLUS";
+#
+#  server {
+#    listen     localhost:110;
+#    protocol   pop3;
+#    proxy      on;
+#  }
+#
+#  server {
+#    listen     localhost:143;
+#    protocol   imap;
+#    proxy      on;
+#  }
 #}

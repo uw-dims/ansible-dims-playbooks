@@ -33,7 +33,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=2.12.0
+DIMS_VERSION=2.13.0
 
 FLAGS_HELP="usage: $BASE [options]"
 
@@ -75,8 +75,16 @@ main()
 Host: ${_hostname}
 Date: ${_now}
 
-This is a report of available package updates and/or required reboot
-status.  The output of the bats tests that were run is included below.
+This report was triggered due to the results of running tests for
+available package updates and/or required reboot status. Here are
+the results:
+
+-----------------------------------------------------------------------
+test.runner --tap --match "updates|reboot"
+
+$(cat ${_tmpout})
+
+-----------------------------------------------------------------------
 
 If package updates are necessary, this can be accomplished by running
 the Ansible playbook for ${_hostname} with the following options:
@@ -99,11 +107,6 @@ a controlled manner:
 
   o Notify any active users to ensure no active development work
     is lost.
-
------------------------------------------------------------------------
-test.runner --tap --match "updates|reboot"
-
-$(cat ${_tmpout})
 
 -----------------------------------------------------------------------
 EOD

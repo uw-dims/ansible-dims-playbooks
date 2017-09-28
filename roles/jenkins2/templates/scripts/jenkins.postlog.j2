@@ -7,7 +7,7 @@
 
 TFILE=$(mktemp --tmpdir $$.jenkins.$RANDOM.XXXXXX)
 BASE=$(basename "$0")
-RECIPIENTS=${RECIPIENTS:-"dims-devops@uw.ops-trust.net"}
+RECIPIENTS="${RECIPIENTS:-{{ devops_email_list }}}"
 
 # The following are either inherited from the calling
 # program via the environment (called directly by
@@ -35,6 +35,7 @@ curl -s $BUILD_URL/consoleText |
 
 RESULT=$(grep -a "^Finished: " $TFILE | awk -F": " '{print $2;}')
 
+# TODO(dittrich): Remove hard-coded path!
 # Send message to AMQP fanout.
 [[ -x /opt/dims/bin/logmon ]] &&
 	/opt/dims/bin/logmon -l devops -m $BUILD_TAG -s $TFILE

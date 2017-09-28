@@ -1,0 +1,197 @@
+---
+
+# File: roles/source/tasks/main.yml
+
+# This role sets up an account for holding Git git-ssh repositories
+# with support for hooks that drive Jenkins jobs as part of a
+# continuous integration, continuous delivery development server.
+
+- name: Define variable with ansible public key
+  set_fact:
+    ansibleuser_public_key: '{{ lookup("dims_function", "get_ssh_private_key_file {{ ansible_user }}") }}.pub'
+  when: ansibleuser_public_key is not defined
+  tags: [ git-ssh ]
+
+- include: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ git-ssh ]
+
+- name: Ensure git user present w/git-shell for shell
+  user:
+    name: git
+    state: present
+    append: yes
+    shell: '/usr/bin/git-shell'
+    generate_ssh_key: yes
+    createhome: yes
+  become: yes
+  tags: [ git-ssh ]
+
+- name: Get Git user SSH public key for jenkins.cli
+  command: cat ~git/.ssh/id_rsa.pub
+  register: _get_pub_key
+  tags: [ git-ssh ]
+
+- name: Ensure git SSH public key in git_authorized_keys
+  set_fact:
+    git_authorized_keys: '{{ git_authorized_keys|default([]) + [_get_pub_key.stdout] }}'
+  tags: [ git-ssh ]
+
+- name: Ensure required subdirectories exist
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: git
+    group: dims
+    mode: 0o755
+  with_items:
+    - '{{ git_reposdir }}/bin'
+    - '~git/git-shell-commands'
+  become: yes
+  tags: [ git-ssh ]
+
+- name: Ensure jenkins user is in git group on ci-server
+  user:
+    name: jenkins
+    append: yes
+    groups: git
+  become: yes
+  when: "groups['ci-server'] is defined and inventory_hostname in groups['ci-server']"
+  tags: [ git-ssh ]
+
+- name: Ensure public keys in git authorized_keys
+  authorized_key:
+    user: git
+    state: present
+    key: '{{ item }}'
+  with_items:
+      - '{{ lookup("file", ansibleuser_public_key) }}'
+      - '{{ git_authorized_keys }}'
+  become: yes 
+  tags: [ git-ssh ]
+
+- name: Ensure (templated) scripts are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
+  with_fileglob:
+    - "../templates/scripts/*.j2"
+  tags: [ git-ssh, scripts ]
+
+- name: Ensure (non-templated) scripts are present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.sh$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
+  with_fileglob:
+    - "scripts/*.sh"
+  tags: [ git-ssh, scripts ]
+
+- name: Ensure (non-templated) git-shell-commands are present
+  copy:
+    src: '{{ item }}'
+    dest: '~git/git-shell-commands/{{ item|basename|regex_replace("\.sh$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
+  with_fileglob:
+    - "git-shell-commands/*.sh"
+  tags: [ git-ssh, scripts ]
+
+- name: Ensure (templated) git-shell-commands are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ dims_bin }}/{{ item | basename | regex_replace("\.j2$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
+  with_fileglob:
+    - "../templates/git-shell-commands/*.j2"
+  tags: [ git-ssh, scripts ]
+
+- name: Ensure post-receive hook scripts are present
+  template:
+    src: '{{ item }}'
+    dest: '{{ git_reposdir }}/bin/{{ item|basename|regex_replace("\.j2$","") }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  # with_fileglob relative paths rooted at {{ role_name }}/files directory
+  with_fileglob:
+    - "../templates/post-receive/*.j2"
+  tags: [ git-ssh ]
+
+- name: Ensure required repos are present
+  shell: >
+    [ -d {{ git_reposdir }}/{{ item.name }}.git ] ||
+    {{ dims_bin }}/git.newrepo
+    --description "{{ item.description|default(item.name) }}"
+    {{ item.name }}
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  become: true
+  become_user: git
+  with_items:
+    - "{{ git_required_repos }}"
+  tags: [ git-ssh ]
+
+- name: 'Find existing repos (assumes *.git extension)'
+  find:
+    path: '{{ git_reposdir }}'
+    file_type: directory
+    patterns: "*.git"
+    use_regex: false
+    recurse: false
+  register: _find
+  delegate_to: '{{ inventory_hostname }}'
+  tags: [ git-ssh ]
+
+- name: Register existing_repos
+  set_fact:
+    existing_repos: '{{ _find.files|map(attribute="path")|list }}'
+  when: _find.matched is defined and _find.matched|int > 0
+  tags: [ git-ssh ]
+
+- name: Register no existing_repos
+  set_fact:
+    existing_repos: []
+  when: _find.matched is not defined or _find.matched|int == 0
+  tags: [ git-ssh ]
+
+- debug: var=existing_repos
+  tags: [ git-ssh ]
+
+- name: Ensure repos are configured
+  template:
+    src: 'config.j2'
+    dest: '{{ item }}/config'
+    owner: 'git'
+    group: 'git'
+    mode: 0o644
+  with_items:
+    - '{{ existing_repos }}'
+  tags: [ git-ssh ]
+
+- name: Ensure desired post-receive hooks are present
+  include: 'link-post-receive.yml'
+  static: no
+  with_items:
+    - '{{ git_required_repos|map(attribute="name")|list }}'
+  loop_control:
+    loop_var: _reponame
+  become: yes
+  tags: [ git-ssh ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ git-ssh ]
+
+# vim: ft=ansible :

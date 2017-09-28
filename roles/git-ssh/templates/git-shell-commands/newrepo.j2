@@ -1,0 +1,189 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# {{ ansible_managed }}
+#
+# Copyright (C) 2014-2017, University of Washington. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+. $DIMS/lib/shflags
+. $DIMS/bin/dims_functions.sh
+
+# Tracks with bumpversion
+VERSION="2.13.0"
+
+export FQDN="$(get_fqdn)"
+DESCRIPTION="${DESCRIPTION:-{repo_name}}"
+REPOSDIR="${REPOSDIR:-{{ git_reposdir }}}"
+DEPLOYMENT=${DEPLOYMENT:-$(get_deployment_from_fqdn)}
+CATEGORY=${CATEGORY:-$(get_category_from_fqdn)}
+SENDER=${SENDER:-{{ git_envelope_sender|default("git@{{ inventory_hostname }}") }}}
+RECIPIENTS=${RECIPIENTS:-{{ git_mailing_list|default("git@{{ inventory_hostname }}") }}}
+
+FLAGS_HELP="usage: $BASE [options] args"
+
+# Define command line options
+DEFINE_boolean 'debug' false 'enable debug mode' 'd'
+DEFINE_string 'description' "${DESCRIPTION}" 'repo description' 'D'
+DEFINE_string 'reposdir' "${REPOSDIR}" 'repos directory' 'R'
+DEFINE_string 'recipients' "${RECIPIENTS}" 'email envelope recipients' 'E'
+DEFINE_string 'sender' "${SENDER}" 'email envelope sender' 'F'
+DEFINE_boolean 'hooks' false 'install hooks configuration' 'H'
+DEFINE_boolean 'usage' false 'print usage information' 'u'
+DEFINE_boolean 'verbose' false 'be verbose' 'v'
+DEFINE_boolean 'version' false 'print version and exit' 'V'
+
+usage() {
+    flags_help
+    cat << EOD
+
+This script is intended to facilitate creating new Git
+repositories with the necessary elements for use in
+continuous integration and continuous deployment workflows.
+This includes setting up hooks to trigger Jenkins build
+jobs, feedback via email and/or message bus queues,
+description strings, etc.
+
+If the repo name is a bare string (e.g., "mynewrepo"), a new
+local bare Git repository named "mynewrepo.git" will be
+created in ${REPOSDIR}.
+
+  $ newrepo mynewrepo
+  $ cat ${REPOSDIR}/mynewrepo.git/description
+  mynewrepo
+
+To produce a more verbose description, use:
+
+  $ newrepo --description "This is my second repo" mynewrepo2
+  $ cat ${REPOSDIR}/mynewrepo2.git/description
+  This is my second repo
+
+If the repo name contains an equal sign ('=') then it is assumed
+the desired repo name is to the left of the equal sign, and a
+valid URL follows on the right of the equal sign, like this:
+
+    shflags=https://github.com/kward/shflags
+
+A file named 'shflags.git' will be created and the URL will
+be returned by programs such as 'mrconfig'.
+
+For use in creating a bare repo on a host serving Git repos,
+you only need to provide the desired name of the repo without
+the .git extension. (If .git is provided, it will be ignored;
+if left off, it will be added.)
+
+When installed in ~git/git-shell-commands directory, anyone with
+SSH access to Git repos can invoke the script remotely:
+
+  $ ssh git@source.{{ dims_domain }} newrepo anotherrepo
+
+{{ ansible_managed }}
+EOD
+    exit 0
+}
+
+main()
+{
+    dims_main_init
+
+    debug 'debug mode enabled'
+    [[ $FLAGS_debug -eq ${FLAGS_TRUE} && $FLAGS_verbose -eq ${FLAGS_TRUE} ]] && set -x
+
+    # Validate required elements
+    [ ! -z "$1" ] ||              error_exit 1 "No repo specified"
+    [[ -d ${FLAGS_reposdir} ]] || error_exit 1 "Repos directory \"${FLAGS_reposdir}\" not found"
+    cd ${FLAGS_reposdir} ||       error_exit 1 "Cannot change directory to ${FLAGS_reposdir}"
+
+    if [[ $1 =~ '=' ]]; then
+        verbose "Processing remote reference"
+        REPO=$(echo $1 | awk -F= '{ print $1; }')
+        RURL=$(echo $1 | awk -F= '{ print $2; }')
+        [[ ! -d ${REPO}.git ]] || error_exit 1 "Directory ${REPO}.git already exists"
+        [[ ! -f ${REPO}.git ]] || error_exit 1 "File ${REPO}.git already exists"
+        echo "$RURL" > ${REPO}.git || error_exit 1 "Could not create file ${REPO}.git linking to ${RURL}"
+        exit 0
+    fi
+
+    verbose "Processing local repo"
+    # Strip any .git extension, if provided (it is forced later).
+    REPO="$(basename $1 .git)"
+
+    debug "REPO=${REPO}"
+    [[ ! -d "${REPO}.git" ]] || error_exit 1 "Directory \"${REPO}.git\" already exists"
+
+    if [[ ${FLAGS_description} = "${DESCRIPTION}" ]]; then
+        FLAGS_description="$REPO"
+    fi
+
+    # We want the repo name to end in .git, so after validation
+    # and possible use of short name for description, put it back.
+    REPO="${REPO}.git"
+
+    # Exit immediately on any error
+    set -e
+
+    verbose "Initializing repo \"$REPO\""
+    git init --bare $REPO >/dev/null
+
+    verbose "Removing .sample hooks"
+    rm -f $REPO/hooks/*.sample || true
+
+    verbose "Setting description to \"${FLAGS_description}\""
+    echo "${FLAGS_description}" > $REPO/description
+
+    # The git-ssh role handles the "config" file, so this option isn't
+    # strictly necessary (but code was left here for use by enabling the
+    # option if so desired.)
+
+    if [[ $FLAGS_hooks -eq $FLAGS_TRUE ]]; then
+        verbose "Enabling hooks:"
+        git config --file $REPO/config hooks.mailinglist ${FLAGS_recipients}
+        git config --file $REPO/config hooks.announcelist ${FLAGS_recipients}
+        git config --file $REPO/config hooks.envelopesender ${FLAGS_sender}
+        git config --file $REPO/config hooks.emailprefix "[Git] "
+        #git config --file $REPO/config hooks.diffopts '"--stat" "--summary" "--find-copies-harder" "-p"'
+        # hack - force writing a line that starts with tab and has a single
+        # quoted string with options, since "git config" doesn't seem to want
+        # to do this in a way that works for reading the value properly.
+        echo "	diffopts = \"--stat --summary --find-copies-harder -p\"" >> $REPO/config
+    fi
+
+    if [[ ${FLAGS_verbose} -eq ${FLAGS_TRUE} && -f $REPO/config ]]; then
+	    git config --file $REPO/config -l | grep "^hooks\." | sed 's/^/\[+\]   /'
+    fi
+
+    debug "Returning from main()"
+    on_exit
+    return $?
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
+exit $?

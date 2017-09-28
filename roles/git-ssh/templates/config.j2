@@ -1,0 +1,10 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[hooks]
+	mailinglist = {{ git_mailing_list }}
+	announcelist = {{ git_announce_list }}
+	envelopesender = {{ git_envelopesender }}
+	emailprefix = "{{ git_emailprefix }}"
+	diffopts = "--stat --summary --find-copies-harder -p"

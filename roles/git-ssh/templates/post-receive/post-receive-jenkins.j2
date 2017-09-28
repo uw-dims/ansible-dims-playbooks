@@ -1,0 +1,129 @@
+#!/bin/bash -x
+#
+# post-receive hook to notify Jenkins
+#
+# This script uses code from post-receive-email script:
+#
+# Copyright (c) 2007 Andy Parkins
+
+JENKINSURL="https://jenkins.{{ dims_domain }}{{ jenkins_context_path }}"
+REPODIR=$(pwd)
+REPO=$(basename $REPODIR)
+
+# Function taken from post-receive-email
+prep_for_trigger()
+{
+  # --- Arguments
+  oldrev=$(git rev-parse $1)
+  newrev=$(git rev-parse $2)
+  refname="$3"
+
+  # --- Interpret
+  # 0000->1234 (create)
+  # 1234->2345 (update)
+  # 2345->0000 (delete)
+  if expr "$oldrev" : '0*$' >/dev/null
+  then
+    change_type="create"
+  else
+    if expr "$newrev" : '0*$' >/dev/null
+    then
+      change_type="delete"
+    else
+      change_type="update"
+    fi
+  fi
+
+  # --- Get the revision types
+  newrev_type=$(git cat-file -t $newrev 2> /dev/null)
+  oldrev_type=$(git cat-file -t "$oldrev" 2> /dev/null)
+  case "$change_type" in
+  create|update)
+    rev="$newrev"
+    rev_type="$newrev_type"
+    ;;
+  delete)
+    rev="$oldrev"
+    rev_type="$oldrev_type"
+    ;;
+  esac
+
+  # The revision type tells us what type the commit is, combined with
+  # the location of the ref we can decide between
+  #  - working branch
+  #  - tracking branch
+  #  - unannoted tag
+  #  - annotated tag
+  case "$refname","$rev_type" in
+    refs/tags/*,commit)
+      # un-annotated tag
+      refname_type="tag"
+      short_refname=${refname##refs/tags/}
+      ;;
+    refs/tags/*,tag)
+      # annotated tag
+      refname_type="annotated tag"
+      short_refname=${refname##refs/tags/}
+      # change recipients
+      if [ -n "$announcerecipients" ]; then
+        recipients="$announcerecipients"
+      fi
+      ;;
+    refs/heads/*,commit)
+      # branch
+      refname_type="branch"
+      short_refname=${refname##refs/heads/}
+      ;;
+    refs/remotes/*,commit)
+      # tracking branch
+      refname_type="tracking branch"
+      short_refname=${refname##refs/remotes/}
+      echo >&2 "*** Push-update of tracking branch, $refname"
+      echo >&2 "***  - no email generated."
+      return 1
+      ;;
+    *)
+      # Anything else (is there anything else?)
+      echo >&2 "*** Unknown type of update to $refname ($rev_type)"
+      echo >&2 "***  - no email generated"
+      return 1
+      ;;
+  esac
+  return 0
+}
+
+if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
+  prep_for_email $2 $3 $1
+  # TODO(dittrich): Not DRY (but no time)
+  if [[ -x {{ dims_bin }}/jenkins.cli ]]; then
+    {{ dims_bin }}/jenkins.cli -- \
+      build build-parameterized \
+      -p REPO=$REPODIR \
+      -p BRANCH=$short_refname \
+      -p SAVE_TO_SOURCE=true
+  else
+    curl \
+      --silent \
+      --cacert {{ ssl_cacertfile }} \
+      ${JENKINSURL}/git/notifyCommit?url=git@source.{{ dims_domain }}:${REPODIR}
+  fi
+else
+  while read oldrev newrev refname
+  do
+    prep_for_trigger $oldrev $newrev $refname || continue
+    # TODO(dittrich): Not DRY (but no time)
+    if [[ -x {{ dims_bin }}/jenkins.cli ]]; then
+      {{ dims_bin }}/jenkins.cli -- \
+        build build-parameterized \
+        -p REPO=$REPODIR \
+        -p BRANCH=$short_refname \
+        -p SAVE_TO_SOURCE=true
+    else
+      curl \
+        --silent \
+        --cacert {{ ssl_cacertfile }} \
+        ${JENKINSURL}/git/notifyCommit?url=git@source.{{ dims_domain }}:${REPODIR}
+    fi
+  done
+fi
+exit $?

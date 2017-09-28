@@ -1,6 +1,7 @@
 ---
 
 docker_listen_port: 2375
+docker_api_port: 2376
 docker_registry: hub.devops.{{ deployment }}:5000
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
@@ -10,7 +11,7 @@ docker_network_opts: ''
 #docker_network_opts: |
   #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
 docker_opts: |
-  -H=tcp://{{ inventory_hostname }}:2376
+  -H=tcp://{{ inventory_hostname }}:{{ docker_api_port }}
   -H=unix:///var/run/docker.sock
   --log-driver json-file
   --log-opt max-size=10m

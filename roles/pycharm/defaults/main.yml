@@ -1,8 +1,8 @@
 ---
 
-pycharm_version: '2017.2.2'
+pycharm_version: '2017.2.3'
 pycharm_archive: 'pycharm-community-{{ pycharm_version }}.tar.gz'
 pycharm_dist_url: 'https://download.jetbrains.com/python/pycharm-community-{{ pycharm_version }}.tar.gz'
-pycharm_sha256_sum: '4eacc9bf512406bebf71546ccb4b6c14ea8e06748fd76be6ca409ea1955e1f53'
+pycharm_sha256_sum: 'e8562938c2ede32a1c1036391942190144cd9f0927bd49b6b3ddf5f7a01c33aa'
 
 # vim: ft=ansible :

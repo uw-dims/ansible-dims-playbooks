@@ -266,13 +266,10 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-# TODO(dittrich): Overwriting nginx sites-available/default for now
-# to get this working with shared nginx role used by jenkins
-
-- name: Make /etc/nginx/sites-available/default present
+- name: Make /etc/nginx/sites-available/trident present
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/sites-available/default
+    dest: /etc/nginx/sites-available/trident
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: 0o644
@@ -286,60 +283,6 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/sites-available/'
        - nginx/sites-available/
-  become: yes
-  notify: restart nginx
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-# TODO(dittrich): Overwriting nginx sites-available/default for now
-#- name: Create symlink to enable trident site
-#  file:
-#    src: '/etc/nginx/sites-available/trident'
-#    dest: '/etc/nginx/sites-enabled/trident'
-#    state: link
-#  become: yes
-#  notify: restart nginx
-#  tags: [ trident-core, config ]
-
-- name: Make Trident Daemon upstream configuration present
-  template:
-    src: '{{ item }}'
-    dest: /etc/trident/nginx/trident-upstream.inc
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_nginx_upstream }}'
-       - trident-upstream.inc.{{ inventory_hostname }}.j2
-       - trident-upstream.inc.category-{{ category }}.j2
-       - trident-upstream.inc.deployment-{{ deployment }}.j2
-       - trident-upstream.inc.j2
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
-       - trident-nginx/
-  become: yes
-  notify: restart nginx
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Make Trident Daemon upstream server configuration present
-  template:
-    src: '{{ item }}'
-    dest: /etc/trident/nginx/trident-server.inc
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_nginx_server }}'
-       - trident-server.inc.{{ inventory_hostname }}.j2
-       - trident-server.inc.category-{{ category }}.j2
-       - trident-server.inc.deployment-{{ deployment }}.j2
-       - trident-server.inc.j2
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
-       - trident-nginx/
   become: yes
   notify: restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
