@@ -1,0 +1,8 @@
+---
+
+dnsmasq_version: '2.78'
+dnsmasq_archive: 'dnsmasq-{{ dnsmasq_version }}.tar.xz'
+dnsmasq_dist_url: 'http://thekelleys.org.uk/dnsmasq/{{ dnsmasq_archive }}'
+dnsmasq_sha256_sum: '89949f438c74b0c7543f06689c319484bd126cc4b1f8c745c742ab397681252b'
+
+# vim: ft=ansible :

@@ -35,6 +35,10 @@ function setup() {
     [ $result -ne 0 ]
 }
 
+@test "[S][EV] dnsmasq version is {{ dnsmasq_version }}" {
+    assert "{{ dnsmasq_version }}" bash -c "dnsmasq --version|head -n 1|awk '{print \$3;}'"
+}
+
 @test "[S][EV] Output of 'hostname' is not null" {
     result="$(hostname)"
     echo "'hostname' returned '$(hostname)'" >&2
