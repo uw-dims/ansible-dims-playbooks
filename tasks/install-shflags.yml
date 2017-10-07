@@ -21,7 +21,7 @@
   tags: [ base, packages ]
 
 - name: Install shflags into dims_lib
-  shell: "cd {{ dims_src }}/shflags/src && cp -p * {{ dims_lib }}"
+  shell: "cd {{ dims_src }}/shflags/lib && cp -p * {{ dims_lib }}"
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ base, packages ]
