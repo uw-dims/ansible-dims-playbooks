@@ -9,41 +9,35 @@
 # consistent in version being used to avoid breaking things.
 # (See also comments in roles/dns/tasks/main.yml)
 
+- include_vars:
+    file: '{{ playbooks_root }}/roles/base/defaults/dnsmasq.yml'
+
+  # TODO(ditrich): Quick fix after announcement of dnsmasq vulns
+  # Just work on Debian for now. Fix for other OSs when time available.
+- fail: msg="Only ansible_os_family==Debian supported"
+  when: ansible_os_family != "Debian"
+
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
   become: yes
   when: ansible_os_family == "Debian"
 
-- name: Make backports present for APT on Debian jessie
-  apt_repository:
-    repo="deb http://http.debian.net/debian jessie-backports main non-free contrib"
-    state=present
-    update_cache=yes
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
-  tags: [ base, packages ]
-
-- name: Make full dnsmasq present (Debian, Trusty)
-  apt: name=dnsmasq=2.68-1ubuntu0.1 state=present force=yes
-  become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
-
-- name: Make full dnsmasq package present (Debian, not Trusty)
-  apt: name=dnsmasq state=present force=yes
-  become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename != "trusty"
-
 - name: Make dbus-1 development libraries present
-  apt: name=libdbus-1-dev state=present force=yes
+  apt:
+    name: libdbus-1-dev
+    state: present
+    force: yes
   become: yes
+  when: ansible_os_family == "Debian"
 
 - name: Download dnsmasq source
   get_url:
     url: "{{ dnsmasq_dist_url }}"
     sha256sum: "{{ dnsmasq_sha256_sum }}"
     dest: "{{ dims_deploy }}/{{ dnsmasq_archive }}"
-    validate_certs: false
+    validate_certs: true
   become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
+  when: ansible_os_family == "Debian"
 
 - name: Unpack dnsmasq archive file
   unarchive:
@@ -51,14 +45,14 @@
     dest: "{{ dims_deploy }}/"
     copy: no
   become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
+  when: ansible_os_family == "Debian"
 
 - name: Compile and install dnsmasq
   shell: >
     cd {{ dims_deploy }}/dnsmasq-{{ dnsmasq_version }} &&
     make COPTS="-DHAVE_DBUS" PREFIX=/usr install
   become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
+  when: ansible_os_family == "Debian"
 
 - name: Clean up dnsmasq build artifacts
   file: "state=absent path={{ item }}"
@@ -66,5 +60,5 @@
     - "{{ dims_deploy }}/dnsmasq-{{ dnsmasq_version }}"
     - "{{ dims_deploy }}/{{ dnsmasq_archive }}"
   become: yes
-  when: ansible_os_family == "Debian" and ansible_lsb.codename == "trusty"
+  when: ansible_os_family == "Debian"
 
