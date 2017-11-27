@@ -7,9 +7,11 @@
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ consul, config, tests, packages ]
 
-- debug: msg="{{ inventory_hostname }} is not in groups.consul"
+- debug:
+    msg: "{{ inventory_hostname }} is not in groups.consul"
   when: not (ansible_os_family == "Debian" and
-        inventory_hostname in groups.consul)
+             groups.consul is defined and
+             inventory_hostname in groups.consul)
   tags: [ consul, config, tests, packages ]
 
 - include: tasks/debian-main.yml
