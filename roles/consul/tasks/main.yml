@@ -5,21 +5,32 @@
 # Tasks for setting up a Consul agent/peer.
 
 - include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ consul, config, packages ]
+  tags: [ consul, config, tests, packages ]
+
+- debug: msg="{{ inventory_hostname }} is not in groups.consul"
+  when: not (ansible_os_family == "Debian" and
+        inventory_hostname in groups.consul)
+  tags: [ consul, config, tests, packages ]
 
 - include: tasks/debian-main.yml
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and
+        groups.consul is defined and
+        inventory_hostname in groups.consul
   tags: [ consul, config, packages ]
 
 - include: tasks/coreos-main.yml
-  when: ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_os_family == "Container Linux by CoreOS" and
+        groups.consul is defined and
+        inventory_hostname in groups.consul
   tags: [ consul, config, packages ]
 
 - name: Make defined bats tests present
   include: "{{ tasks_path }}/bats-tests.yml"
+  when: groups.consul is defined and
+        inventory_hostname in groups.consul
   tags: [ consul, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
-  tags: [ consul, config, packages ]
+  tags: [ consul, config, tests, packages ]
 
 # vim: ft=ansible :
