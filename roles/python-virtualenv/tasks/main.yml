@@ -134,20 +134,35 @@
 
 - name: Ensure get-pip.py is present
   git:
-    repo=https://github.com/pypa/get-pip.git
-    dest={{ dims_src }}/get-pip
-    force=yes
+    repo: 'https://github.com/pypa/get-pip.git'
+    dest: '{{ dims_src }}/get-pip'
+    force: yes
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
 
 - name: Ensure prisem-rpc source is present
-  get_url:
-    url={{ prisem_rpc_dist_url }}
-    dest={{ dims_src }}/{{ prisem_rpc_archive }}
+  git:
+    repo: '{{ prisem_rpc_repo_url }}'
+    version: '{{ prisem_rpc_version }}'
+    dest: '{{ dims_src }}/prisem-rpc'
+    force: yes
   become: yes
   become_user: '{{ dims_user }}'
+  when: prisem_rpc_repo_url is defined
+  ignore_errors: yes
   tags: [ python-virtualenv ]
+
+#- name: Ensure prisem-rpc source is present
+#  get_url:
+#    url={{ prisem_rpc_dist_url }}
+#    dest={{ dims_src }}/{{ prisem_rpc_archive }}
+#  become: yes
+#  become_user: '{{ dims_user }}'
+#  when: prisem_rpc_repo_url is not defined and
+#        prisem_rpc_dist_url is defined
+#  ignore_errors: yes
+#  tags: [ python-virtualenv ]
 
 - name: Ensure source for Git is present
   git:

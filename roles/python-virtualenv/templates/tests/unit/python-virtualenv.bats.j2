@@ -33,17 +33,25 @@ load helpers
     [[ -f {{ ansible_python_virtualenv }}/bin/activate ]]
 }
 
-{% for item in [ 'logmon', 'blueprint', 'dimscli', 'sphinx-autobuild', 'ansible' ] %}
+{% if dimscli_version is defined %}
+{% set items = [ 'logmon', 'blueprint', 'dimscli', 'sphinx-autobuild', 'ansible' ] %}
+{% else %}
+{% set items = [ 'logmon', 'blueprint', 'sphinx-autobuild', 'ansible' ] %}
+{% endif %}
+
+{% for item in items %}
 @test "[U][EV] Program {{ ansible_python_virtualenv }}/bin/{{ item }} exists" {
     [[ -x {{ ansible_python_virtualenv }}/bin/{{ item }} ]]
 }
 
 {% endfor -%}
 
+{% if dimscli_version is defined %}
 # This is a duplicate of a system test.
 @test "[U][EV] {{ ansible_python_virtualenv }}/bin/dimscli version is {{ dimscli_version }}" {
     assert "dimscli {{ dimscli_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/dimscli --version 2>&1"
 }
+{% endif %}
 
 # This is a duplicate of a system test.
 @test "[U][EV] {{ ansible_python_virtualenv }}/bin/ansible version is {{ dims_ansible_version }}" {

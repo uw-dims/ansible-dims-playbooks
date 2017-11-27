@@ -253,9 +253,16 @@ function main()
     # From here on out, we're using the bin/ directory of the just-activated
     # virtual environment.
 
-    verbose "Using pip to instal ${DIMS_SRC}/${PRISEM_ARTIFACT}"
-    ${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} ||
-        error_exit $? "${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} failed"
+    if [[ -f ${DIMS_SRC}/${PRISEM_ARTIFACT} ]]; then
+        verbose "Using pip to install ${DIMS_SRC}/${PRISEM_ARTIFACT}"
+        ${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} ||
+            error_exit $? "${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/${PRISEM_ARTIFACT} failed"
+    fi
+    if [[ -d ${DIMS_SRC}/prisem-rpc ]]; then
+        verbose "Using pip to install ${DIMS_SRC}/prisem-rpc"
+        ${WORKON_HOME}/${VENV}/bin/pip install -e ${DIMS_SRC}/prisem-rpc ||
+            error_exit $? "${WORKON_HOME}/${VENV}/bin/pip install ${DIMS_SRC}/prisem_rpc failed"
+    fi
 
     verbose "Installing git"
     (cd ${DIMS_SRC}/git && \
