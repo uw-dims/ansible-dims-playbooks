@@ -1,4 +1,5 @@
 vagrant_provision*
+ansible-digital_ocean.cache
 *.sublime*
 ~$*
 .DS_Store
