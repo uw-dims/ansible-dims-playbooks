@@ -1,8 +1,8 @@
 ---
 
 prisem_rpc_repo_url: 'https://github.com/davedittrich/prisem-rpc'
-prisem_rpc_version: '0.6.0'
-prisem_rpc_archive: 'prisem_rpc-{{ prisem_rpc_version }}.tar.gz'
+prisem_rpc_version: '1.1.1'
+prisem_rpc_archive: 'prisem-rpc-{{ prisem_rpc_version }}.tar.gz'
 prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
 # vim: ft=ansible :

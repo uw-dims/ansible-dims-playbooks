@@ -27,7 +27,7 @@
 
 - name: Ensure chrony is running on RedHat
   service:
-    name: chrony
+    name: chronyd
     state: started
     enabled: yes
   when: ansible_os_family == "RedHat"

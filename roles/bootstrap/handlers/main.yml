@@ -4,3 +4,4 @@
 
 - name: Update timezone
   command: "dpkg-reconfigure --frontend noninteractive tzdata"
+  when: ansible_os_family == "Debian"

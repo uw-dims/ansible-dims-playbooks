@@ -17,7 +17,7 @@ certbot_install_from_source: yes
 certbot_repo: https://github.com/certbot/certbot.git
 certbot_version: master
 certbot_keep_updated: yes
-certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
-certbot_adminemail: '{{ trident_site_adminemail }}'
+#certbot_sitename: ''
+#certbot_adminemail: ''
 
 # vim: ft=ansible :

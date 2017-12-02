@@ -1,0 +1,14 @@
+{
+  "data": {
+    "droplets": []
+  }, 
+  "inventory": {
+    "_meta": {
+      "hostvars": {}
+    }, 
+    "all": {
+      "hosts": [], 
+      "vars": {}
+    }
+  }
+}

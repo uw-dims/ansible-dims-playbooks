@@ -4,9 +4,9 @@
 
 vagrants:
   vars:
-    ansible_user: 'ansible'
-    ansible_port: 22
-    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
+    #ansible_user: 'root'
+    #ansible_port: 22
+    #ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     artifacts_url: 'file:///home/ansible/sources'
     # Set this variable for all vagrants
     box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
@@ -73,17 +73,11 @@ vagrants:
       box_osversion: "14.04.5"
       box_osnick: "trusty"
       box_type: "server"
-    'blue14.devops.local':
+    'blue.devops.local':
       #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"
       box_osversion: "14.04.5"
       box_osnick: "trusty"
-      box_type: "server"
-    'blue16.devops.local':
-      box_name: "ubuntu/xenial64"
-      box_baseos: "ubuntu"
-      box_osversion: "16.04.1"
-      box_osnick: "xenial"
       box_type: "server"
     'yellow.devops.local':
       box_baseos: "debian"
@@ -105,11 +99,31 @@ vagrants:
     'node02.devops.local':
     'node03.devops.local':
   children:
+    coreos:
+      vars:
+        #ansible_python_interpreter: '/opt/bin/python'
+        ansible_python_interpreter: '/home/ansible/pypy/bin/python'
+        iptables_rules: rules.v4.coreos-local.j2
+        dims_environment: environment.coreos-local.j2
+        consul_service_file: consul.service.coreos.j2
+        box_baseos: "coreos"
+        box_osnick: "coreos"
+        box_oschannel: "alpha"
+        #box_osversion: "1451.2.0"
+        box_osversion: "1248.2.0"
+        box_vagrant_boxversion: "0"
+        # The path to boxes for CoreOS is different than other OSs.
+        # TODO(dittrich): Handle all boxes the same. Special cases confuse things.
+        box_url: "file:///vm/box/{{ box_baseos }}/packer_{{ box_baseos }}-{{ box_osversion }}_box_virtualbox.box"
+      hosts:
+        'node01.devops.local':
+        'node02.devops.local':
+        'node03.devops.local':
+        'core-01':
     demo:
       hosts:
         'red.devops.local':
         'yellow.devops.local':
         'purple.devops.local':
-        'orange.devops.local':
 
 # vim: ft=ansible :

@@ -4,7 +4,10 @@
 
 # Use group= rather than groups= otherwise primary group is users [LP]
 - name: Ensure dims group exists
-  group: "name={{ dims_group }} state=present system=no"
+  group:
+    name: '{{ dims_group }}'
+    state: present
+    system: no
   become: yes
   tags: [ base, config ]
 
@@ -12,9 +15,10 @@
   user:
     name: ansible
     append: yes
-    groups:
-      - '{{ dims_group }}'
-      - sudo
+    groups: '{{ item }}'
+  with_items:
+    - '{{ dims_group }}'
+    - sudo
   become: yes
   tags: [ base, config ]
 

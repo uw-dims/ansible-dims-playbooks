@@ -1,13 +1,13 @@
 ---
 
 # Example playbook from geerlingguy/ansible-role-jenkins
-# - hosts: ci-server
+# - hosts: ci_server
 #   vars:
 #     jenkins_hostname: jenkins.devops.local
 #   roles:
 #     - ansible-role-jenkins
 
-ci-server:
+ci_server:
   vars:
     devops_email_list: 'dittrich@u.washington.edu'
     git_reposdir: '/opt/git'

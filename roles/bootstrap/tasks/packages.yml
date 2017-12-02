@@ -13,12 +13,11 @@
   ignore_errors: yes
   when: ansible_os_family == "Debian"
 
-- name: Make sure required APT packages are present (RedHat)
+- name: Make sure required RPM packages are present (RedHat)
   yum:
     state: present
     name: '{{ item }}'
     update_cache: yes
-    force: yes
   with_items:
    - "{{ packages_install }}"
   ignore_errors: yes

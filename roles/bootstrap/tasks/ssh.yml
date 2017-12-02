@@ -20,7 +20,7 @@
 
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
-    user: ansible
+    user: '{{ ansible_user }}'
     state: present
     key: '{{ lookup("file", _public_key) }}'
   tags: [ bootstrap ]

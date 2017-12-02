@@ -8,47 +8,21 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ java8, packages ]
 
-- name: Ensure PPA for Java 8 is present on Ubuntu
+- name: Ensure PPA for Java 8 is present
   apt_repository:
-    repo: 'ppa:openjdk-r/ppa'
+    repo: '{{ java8_apt_repo }}'
     state: present
     update_cache: yes
   become: yes
-  when: ansible_lsb.id == "Ubuntu"
   tags: [ java8, packages ]
 
-- name: Ensure Java8 is installed on Ubuntu
+- name: Ensure Java8 is installed
   apt:
     name: '{{ item }}'
     state: latest
+    default_release: '{{ java8_default_release }}'
   with_items:
-    - openjdk-8-jdk
-    - openjdk-8-jre
-    - openjdk-8-jre-headless
-  when: ansible_lsb.id == "Ubuntu"
-  become: yes
-  tags: [ java8, packages ]
-
-- name: Ensure PPA for Java 8 is present on Debian
-  apt_repository:
-    repo: 'deb http://http.debian.net/debian jessie-backports main'
-    state: present
-    update_cache: yes
-  become: yes
-  when: ansible_lsb.id == "Debian"
-  tags: [ java8, packages ]
-
-- name: Ensure Java8 is installed on Debian
-  apt:
-    name: '{{ item }}'
-    default_release: 'jessie-backports'
-    state: latest
-  with_items:
-    - ca-certificates-java
-    - openjdk-8-jdk
-    - openjdk-8-jre
-    - openjdk-8-jre-headless
-  when: ansible_lsb.id == "Debian"
+    - '{{ java8_packages }}'
   become: yes
   tags: [ java8, packages ]
 
@@ -58,9 +32,7 @@
     state: absent
     purge: yes
   with_items:
-    - openjdk-7-jre
-    - openjdk-7-jre-headless
-    - openjdk-7-jdk
+    - '{{ java7_packages }}'
   become: yes
   tags: [ java8, packages ]
 
@@ -69,9 +41,7 @@
     name: '{{ item }}'
     selection: hold
   with_items:
-    - openjdk-7-jre
-    - openjdk-7-jre-headless
-    - openjdk-7-jdk
+    - '{{ java7_packages }}'
   become: yes
   tags: [ java8, packages ]
 

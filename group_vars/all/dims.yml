@@ -61,8 +61,7 @@ artifact_branch: 'develop'
 install_type: 'install'
 install_mode: 'system'
 
-# Default to using a local squid proxy on the virtual machine host (e.g., dev laptop)
-https_proxy: 'https://10.0.2.2:8000'
+https_proxy: ''
 
 # Bash automated testing system
 bats_version: 'v0.4.0'

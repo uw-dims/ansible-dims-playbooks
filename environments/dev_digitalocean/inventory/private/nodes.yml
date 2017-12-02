@@ -1,0 +1,34 @@
+---
+
+# File: inventory/private/nodes.yml
+
+# These variables are what could be in an Ansible Vault file
+# which would encrypt them and allow them to be kept in a
+# public repo, without prying eyes being able to see them.
+
+# These variables (and any other variables or files [SSH
+# keys, etc]) which should be kept secret should be stored
+# in an entirely different repo or directory, a 'private'
+# place. Then, files can be encrypted with Ansible Vault or
+# some other mechanism, and you can allow the 'ansible'
+# and/or 'ansible-playbook' scripts access to those secret
+# files as necessary.
+
+private:
+  vars:
+    vault_tridentDBPass: 'trident'
+    vault_tridentSysAdminPass: 'trident'
+    vault_jenkins_admin_password: 'admin'
+    vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
+    vault_rabbitmq_default_user_pass: 'rpcm3pwd'
+    vault_rabbitmq_admin_user_pass: 'uncool+midscale~legmen'
+    # For ansible-role-ca
+    ca_rootca_password: 'tempted@ignobly+fugal'
+    #
+  hosts:
+    'red.devops.local':
+    'blue.devops.local':
+    'orange.devops.local':
+    'purple.devops.local':
+
+# vim: ft=ansible :

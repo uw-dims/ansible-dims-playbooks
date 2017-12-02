@@ -1,0 +1,22 @@
+---
+
+# File: do/create-provider.tf.yml
+
+- name: 'Generate provider.tf file for groups.do'
+  vars:
+    - playbooks_root: '{{ lookup("env", "PBR") }}'
+  vars_files:
+    - '{{ playbooks_root }}/vars/global.yml'
+  hosts: do
+  gather_facts: False
+
+  tasks:
+
+  - name: "Template provider.tf file"
+    template:
+      src: 'provider.tf.j2'
+      dest: '{{ lookup("pipe", "pwd") }}/provider.tf'
+    delegate_to: localhost
+    run_once: true
+
+# vim: ft=ansible :

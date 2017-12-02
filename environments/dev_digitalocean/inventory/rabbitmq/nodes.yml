@@ -1,0 +1,44 @@
+---
+
+# File: inventory/amqp/nodes.yml
+
+# Keep in mind that variables needed by other hosts to get
+# to rabbitmq are defined in group_vars/all/rabbitmq.yml.
+# This includes things like rabbitmq_tcp_listen_port,
+# rabbitmq_ssl_listen_port, etc.
+
+rabbitmq:
+  vars:
+    rabbitmq_tcp_listen_address: '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
+    rabbitmq_ssl_listen_address: '{{ rabbitmq_tcp_listen_address }}'
+    # Cert vars come from group_vars/all/ssl.yml
+    rabbitmq_ssl_cacertfile: '{{ ssl_cacertfile }}'
+    rabbitmq_ssl_certfile: '{{ ssl_certfile }}'
+    rabbitmq_ssl_keyfile: '{{ ssl_keyfile }}'
+    rabbitmq_ssl_fail_if_no_peer_cert: 'false'
+    rabbitmq_users:
+      - { name: '{{ rabbitmq_default_user }}', password: '{{ rabbitmq_default_user_pass }}' }
+      - { name: '{{ rabbitmq_admin_user }}', password: '{{ rabbitmq_admin_user_pass }}' }
+    rabbitmq_environment: |
+      RABBITMQ_NODE_IP_ADDRESS={{ rabbitmq_tcp_listen_address }}
+      RABBITMQ_NODENAME=rabbit@{{ inventory_hostname_short }}
+      RABBITMQ_USE_LONGNAMES=false
+      RABBITMQ_DEFAULT_USER={{ rabbitmq_default_user }}
+      RABBITMQ_DEFAULT_USER_PASS={{ rabbitmq_default_user_pass }}
+      RABBITMQ_ADMIN_USER={{ rabbitmq_admin_user }}
+      RABBITMQ_ADMIN_USER_PASS={{ rabbitmq_admin_user_pass }}
+
+    # Variables to control ansible-role-ssl-certs
+    # (No longer using this role.)
+    #ssl_certs_common_name: '{{ inventory_hostname }}'
+    #ssl_certs_path: '{{ ssl_certs_dir }}'
+    #ssl_certs_path_owner: rabbitmq
+    #ssl_certs_path_group: rabbitmq
+    #ssl_certs_mode: "0600"
+    #ssl_certs_organization: "DIMS Project"
+    #ssl_certs_locality: "Seattle"
+    #ssl_certs_state: "WA"
+  hosts:
+    'red.devops.local':
+
+# vim: ft=ansible :

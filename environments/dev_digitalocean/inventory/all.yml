@@ -1,0 +1,196 @@
+---
+
+all:
+  vars:
+    dist_tag: '{{ ansible_distribution_version }}'
+    os_version: '?'
+  hosts:
+    'red.devops.local':
+      tcp_ports: [ 53 ]
+      udp_ports: [ 53 ]
+    'blue.devops.local':
+    'orange.devops.local':
+      tcp_ports:
+        - '{{ nginx_default_port }}'
+        - '{{ jenkins_port }}'
+        - '{{ nginx_health_check_port }}'
+      udp_ports: [ ]
+      jenkins_url_external: 'http://{{ hostvars["orange.devops.local"].ansible_host }}/jenkins'
+    'purple.devops.local':
+      tcp_ports: [ 25, 80, 443 ]
+  children:
+    production:
+      hosts:
+        'red.devops.local':
+        'orange.devops.local':
+    development:
+      hosts:
+        'blue.devops.local':
+        'purple.devops.local':
+    coreos:
+      vars:
+        ssl_certs_dir: '?'
+        ssl_key_dir: '?'
+    ubuntu:
+      vars:
+        ssl_certs_dir: '/etc/ssl/certs'
+        ssl_key_dir: '/etc/ssl/private'
+        packages_install:
+          - 'apt-transport-https'
+          - 'bash-completion'
+          - 'ca-certificates'
+          - 'chrony'
+          - 'chrony'
+          - 'cpanminus'
+          - 'curl'
+          - 'dconf-tools'
+          - 'default-jdk'
+          - 'git-core'
+          - 'gitk'
+          - 'gnupg2'
+          - 'htop'
+          - 'hunspell'
+          - 'ifstat'
+          - 'iptables-persistent'
+          - 'make'
+          - 'myrepos'
+          - 'netcat'
+          - 'nfs-common'
+          - 'nfs-kernel-server'
+          - 'ntpdate'
+          - 'openssh-server'
+          - 'patch'
+          - 'perl'
+          - 'postfix'
+          - 'python'
+          - 'python-apt'
+          - 'remake'
+          - 'rsync'
+          - 'rsyslog'
+          - 'smartmontools'
+          - 'software-properties-common'
+          - 'sshfs'
+          - 'sshpass'
+          - 'strace'
+          - 'tree'
+          - 'unzip'
+          - 'vim'
+          - 'xml-twig-tools'
+          - 'xsltproc'
+        packages_remove:
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: [ ]
+        services_enabled:
+          - 'auditd'
+        root_user: 'root'
+        root_group: 'root'
+    debian:
+      vars:
+        ssl_certs_dir: '/etc/ssl/certs'
+        ssl_key_dir: '/etc/ssl/private'
+        packages_install:
+          - 'apt-transport-https'
+          - 'bash-completion'
+          - 'ca-certificates'
+          - 'chrony'
+          - 'cpanminus'
+          - 'curl'
+          - 'dconf-tools'
+          - 'debian-archive-keyring'
+          - 'git-core'
+          - 'gitk'
+          - 'gnupg2'
+          - 'htop'
+          - 'hunspell'
+          - 'ifstat'
+          - 'iptables-persistent'
+          - 'make'
+          - 'myrepos'
+          - 'netcat'
+          - 'nfs-common'
+          - 'ntpdate'
+          - 'openssh-server'
+          - 'patch'
+          - 'perl'
+          - 'postfix'
+          - 'python'
+          - 'python-apt'
+          - 'remake'
+          - 'rsync'
+          - 'rsyslog'
+          - 'smartmontools'
+          - 'software-properties-common'
+          - 'sshfs'
+          - 'strace'
+          - 'tree'
+          - 'unzip'
+          - 'vim'
+          - 'xml-twig-tools'
+          - 'xsltproc'
+        packages_remove:
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: [ ]
+        services_enabled:
+          - 'auditd'
+      hosts:
+        'red.devops.local':
+          os_version: '8.5.0'
+        'orange.devops.local':
+          os_version: '8.5.0'
+        'purple.devops.local':
+          os_version: '8.5.0'
+    centos:
+      vars:
+        ssl_certs_dir: '/etc/pki/ca-trust/source/anchors/'
+        ssl_key_dir: '/etc/pki/tls/private'
+        syslog_user: 'root'
+        root_user: 'root'
+        root_group: 'root'
+        packages_install:
+          - 'bash-completion'
+          - 'ca-certificates'
+          - 'chrony'
+          - 'curl'
+          - 'git-core'
+          - 'gitk'
+          - 'gnupg2'
+          - 'htop'
+          - 'hunspell'
+          - 'libxslt'
+          - 'make'
+          - 'nc'
+          - 'ntpdate'
+          - 'openssh-server'
+          - 'patch'
+          - 'perl'
+          - 'perl-XML-Twig'
+          - 'postfix'
+          - 'python'
+          - 'rsync'
+          - 'rsyslog'
+          - 'sshfs'
+          - 'strace'
+          - 'tree'
+          - 'unzip'
+          - 'vim'
+        packages_remove:
+          - 'firewalld'
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: []
+        services_enabled:
+          - 'auditd'
+      hosts:
+        'blue.devops.local':
+    darwin:
+      vars:
+        syslog_user: 'root'
+        root_user: 'root'
+        root_group: 'wheel'
+
+# vim: ft=ansible:

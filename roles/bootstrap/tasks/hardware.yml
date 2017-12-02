@@ -4,10 +4,11 @@
 
 # DIMS developer laptops require specific Broadcom driver
 
-- name: Check for Broadcom device 14e4:43b1
+- name: 'Check for Broadcom device 14e4:43b1'
   shell: >
     lspci -nn -d 14e4:43b1
-  when: ansible_lsb.id == "Ubuntu"
+  when: ansible_lsb is defined and
+        ansible_lsb.id == "Ubuntu"
   ignore_errors: yes
   register: _lspci_broadcom
 
@@ -15,7 +16,8 @@
   apt:
     name: bcmwl-kernel-source
     state: present
-  when: ansible_lsb.id == "Ubuntu" and
+  when: ansible_lsb is defined and
+        ansible_lsb.id == "Ubuntu" and
         _lspci_broadcom is defined and
         _lspci_broadcom.stdout != ''
 

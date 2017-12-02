@@ -1,0 +1,40 @@
+---
+
+# file: roles/terraform/tasks/main.yml
+
+# Install terraform on Linux 
+
+- include: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ terraform, packages ]
+
+- name: Get terraform zip 
+  get_url:
+    url: "{{ terraform_dist_url }}"
+    sha256sum: "{{ terraform_sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}/{{ terraform_archive }}"
+    validate_certs: true
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ terraform, packages ]
+
+- name: Unpack terraform archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ terraform_archive }}"
+    dest: "{{ dims_bin }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: 0o755
+    remote_src: True
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ terraform, packages ]
+
+- name: Make defined bats tests present
+  include: "{{ tasks_path }}/bats-tests.yml"
+  ignore_errors: yes
+  tags: [ terraform, tests ]
+
+- include: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ terraform, tests ]
+
+# vim: ft=ansible :

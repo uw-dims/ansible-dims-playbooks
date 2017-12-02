@@ -1,0 +1,67 @@
+---
+
+# File: playbooks/do_rekey.yml
+
+# Process DigitalOcean droplet SSH public keys
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: yes
+  vars:
+    remove_keys: false
+    ansible_python_interpreter: "python"
+
+  tasks:
+  - name: Define known_hosts_root
+    set_fact:
+      known_hosts_root: '{{ known_hosts_root|default("known_hosts") }}'
+
+  - name: Define known_hosts_files
+    set_fact:
+      ssh_known_hosts_files: '{{ ssh_known_hosts_files|default([]) + [ item ] }}'
+    with_items:
+      - /etc/ssh/ssh_known_hosts
+     #- /root/.ssh/known_hosts
+     #- '{{ lookup("pipe", "echo ~{{ ansible_user }}/.ssh/known_hosts") }}'
+
+  - name: Remove old SSH host keys
+    local_action: known_hosts state=absent path={{ item.0 }} host={{ item.1 }}
+    ignore_errors: True
+    with_nested:
+      - '{{ ssh_known_hosts_files }}'
+      - '{{ groups.do }}'
+    when: remove_keys|bool
+
+  - name: Find public key files
+    find:
+      paths: '{{ known_hosts_root }}'
+      pattern: '*.known_hosts'
+      file_type: file
+      recurse: yes
+      use_regex: no
+    delegate_to: localhost
+    register: _find_known_hosts
+
+  - debug: var=_find_known_hosts
+
+  - name: Gather SSH host keys into list
+    set_fact:
+      ssh_host_public_keys: '{{ ssh_host_public_keys|default([]) + [ lookup("file", item.path)] }}'
+    with_items: '{{ _find_known_hosts.files }}'
+    when: _find_known_hosts is defined and not remove_keys|bool
+
+  - name: Ensure new SSH host key present
+    local_action: known_hosts state=present path={{ item.0 }} key="{{ item.1 }}" host="{{ item.1.split(' ')[0].split(',')[0] }}"
+    ignore_errors: True
+    with_nested:
+      - '{{ ssh_known_hosts_files }}'
+      - '{{ ssh_host_public_keys }}'
+    when: not remove_keys|bool
+
+  - name: Fix file permissions on global known_hosts file
+    file:
+      path: '{{ ssh_known_hosts_files.0 }}'
+      mode: 0o644
+
+# vim: ft=ansible :
