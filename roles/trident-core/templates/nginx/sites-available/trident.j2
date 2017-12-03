@@ -7,8 +7,8 @@ upstream trident-daemon {
 # Redirect all HTTP (80) traffic to HTTPS (443)
 # Trident should only be exposed over HTTPS
 server {
-  listen {{ tridentNginxHTTPPort }} default_server;
-  #listen [::]:{{ tridentNginxHTTPPort }} default_server;
+  listen {{ tridentNginxHTTPPort }} {{ tridentFQDN }};
+  #listen [::]:{{ tridentNginxHTTPPort }} {{ tridentFQDN }};
 
   server_name _default_;
 
