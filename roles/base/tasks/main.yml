@@ -6,16 +6,19 @@
   set_fact:
     manage_dnsmasq: false
   when: manage_dnsmasq is not defined
+  tags: [ always ]
 
 - name: Define manage_resolv_conf
   set_fact:
     manage_resolv_conf: false
   when: manage_resolv_conf is not defined
+  tags: [ always ]
 
 - name: Define manage_interfaces
   set_fact:
     manage_interfaces: false
   when: manage_interfaces is not defined
+  tags: [ always ]
 
 - fail: msg="Variable 'packages_install' is not defined.
     Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
