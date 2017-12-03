@@ -15,7 +15,7 @@ server {
   return 301 https://$host$request_uri;
 }
 
- The HTTPS server that exposed Trident
+# The HTTPS server that exposed Trident
 server {
   listen {{ tridentNginxHTTPSPort }} ssl;
   listen [::]:{{ tridentNginxHTTPSPort }} ssl;
