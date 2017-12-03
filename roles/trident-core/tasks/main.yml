@@ -288,6 +288,16 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
+- name: Make /etc/nginx/sites-enabled/trident present
+  file:
+    src: '/etc/nginx/sites-available/trident'
+    dest: '/etc/nginx/sites-enabled/trident'
+    state: link
+  become: yes
+  notify: restart nginx
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
+
 - name: Ensure 'logo.png' is present
   copy:
     src: '{{ item }}'
