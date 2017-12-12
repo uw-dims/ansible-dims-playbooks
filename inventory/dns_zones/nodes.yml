@@ -31,8 +31,6 @@ dns_zones:
         'gray.devops.local':
         'black.devops.local':
         'orange.devops.local':
-        'blue14.devops.local':
-        'blue16.devops.local':
         'yellow.devops.local':
         'purple.devops.local':
         'hub.devops.local':

@@ -1,0 +1,215 @@
+---
+
+category: 'devops'
+deployment: 'local'
+dims_domain: '{{ category }}.{{ deployment }}'
+playbooks_root: "{{ lookup('env', 'PBR') }}"
+#dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+dims_private: '{{ playbooks_root }}'
+
+
+# The following variables only exist for compatibility with
+# the original PRISEM Project RPC scripts.  They reflect
+# the settings from group_vars/all/rabbitmq.yml and will
+# be removed when the PRISEM RPC code can be updated.
+
+amqp_port: '{{ rabbitmq_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_program: 'rabbitmq'
+amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
+
+# Local customization variables (remainder are in role's vars/main.yml file)
+
+# These are used by programs outside the consul role, so they are
+# defined here for all hosts.
+
+consul_ui_port: 8500
+consul_dns_port: 8600
+consul_start_join: '[{{ groups.consul|list_to_string_args }}]'
+consul_retry_join: '[{{ groups.consul|list_to_string_args }}]'
+consul_data_center: '{{ deployment }}'
+consul_dns_domain: '{{ deployment }}'
+# Type (and mode... not sure why both?) are set based on whether in groups.consul
+consul_agent_type: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
+consul_mode: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
+
+cronvars:
+  - name: 'MAILTO'
+    value: '{{ postmaster|default("postmaster") }}'
+    user: 'ansible'
+  - name: 'PATH'
+    value: '{{ dims_global_path }}'
+    user: 'ansible'
+
+cronjobs:
+  - name: 'dims.updatecheck'
+    weekday: '*'
+    hour: '6'
+    minute: '0'
+    user: 'ansible'
+    job: '{{ dims_bin }}/dims.updatecheck'
+
+yaml_mode_whitelist:
+  - 'mode: push'
+  - "{% raw %}mode: '{{ item.value.mode }}'{% endraw %}"
+
+# Try to use this as the PATH set at the lowest level for shells, startup scripts,
+# etc. This way there is more consistency across system components, so less chance
+# for random failures or random behavior in scripts.
+dims_global_path: '{{ dims_bin }}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+dims_kibana_port: 8480
+dims_ssh_port: 8422
+dims_ssl_port: 8443
+# TODO(dittrich): This is a confusing name (left over from old role)
+dims_elasticsearch_kibana_port: 9200
+
+# Default browser page
+dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.json'
+dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
+dims_firefox_default_homepage: '{{ dims_owf_url }}'
+
+# file name of Vault password file. Path is created in Vagrantfile.
+dims_vault_password_file: '{{ dims_private }}/vault_pass.txt'
+
+#dimscli_version: 0.26.0
+
+dims_timezone: 'US/Pacific'
+dims_locale: 'en_US.UTF-8'
+dims_etcd2_reboot_strategy: 'off'
+
+https_proxy: ''
+
+# Bash automated testing system
+bats_version: 'v0.4.0'
+
+dnsmasq_version: '2.76'
+dnsmasq_archive: 'dnsmasq-{{ dnsmasq_version }}.tar.gz'
+dnsmasq_dist_url: 'http://thekelleys.org.uk/dnsmasq/dnsmasq-{{ dnsmasq_version }}.tar.gz'
+dnsmasq_sha256_sum: '777c4762d2fee3738a0380401f2d087b47faa41db2317c60660d69ad10a76c32'
+
+
+docker_listen_port: 2375
+docker_api_port: 2376
+docker_registry: hub.devops.{{ deployment }}:5000
+
+# TODO(dittrich): This should be derived from (a) more global variable(s)
+# e.g., docker_insecure_registry_net: '{{ networks["vlan1"].network }}/{{ networks["vlan1"].cidr_bits }}'
+docker_insecure_registry_net: 192.168.56.0/24
+docker_network_opts: ''
+#docker_network_opts: |
+  #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
+docker_opts: |
+  -H=tcp://{{ inventory_hostname }}:{{ docker_api_port }}
+  -H=unix:///var/run/docker.sock
+  --log-driver json-file
+  --log-opt max-size=10m
+  --log-opt max-file=10
+  --insecure-registry {{ docker_registry }}
+  --insecure-registry {{ docker_insecure_registry_net }}
+
+go_version: '1.6.1'
+go_archive: 'go{{ go_version }}.linux-amd64.tar.gz'
+go_dist_url: 'https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz'
+go_sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988'
+
+# Local settings for geerlingguy/nginx role
+
+nginx_version: '1.6.2-5+deb8u3'
+nginx_health_check_port: 8888
+nginx_worker_processes: 4
+nginx_default_port: 80
+nginx_default_domain: '{{ category }}.{{ deployment }}'
+
+# For use by ansible-role-certbot
+certbot_auto_renew_user: ansible
+certbot_auto_renew_minute: 20
+certbot_auto_renew_hour: 5
+certbot_install_from_source: yes
+certbot_repo: https://github.com/certbot/certbot.git
+certbot_version: master
+certbot_keep_updated: yes
+#certbot_sitename: ''
+#certbot_adminemail: ''
+
+postgresql_version: '9.4'
+postgresql_pool: 'main'
+postgresql_apt_key_id: '7FCC7D46ACCC4CF8'
+postgresql_apt_key_url: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+
+prisem_rpc_repo_url: 'https://github.com/davedittrich/prisem-rpc'
+prisem_rpc_version: '1.1.1'
+prisem_rpc_archive: 'prisem-rpc-{{ prisem_rpc_version }}.tar.gz'
+prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
+
+rabbitmq_tcp_listen_port: 5672
+rabbitmq_ssl_listen_port: 5671
+rabbitmq_mgmt_port: 15672
+rabbitmq_server: '{{ groups.rabbitmq.0 }}'
+rabbitmq_vhost: '/'
+rabbitmq_default_user: 'rpc_user'
+rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
+rabbitmq_admin_user: 'hutchman'
+rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
+rabbitmq_exchange: ''
+rabbitmq_logexchange: 'logs'
+rabbitmq_queuebase: 'rpc'
+
+rsyslog_user: syslog
+rsyslog_server: '10.0.2.2'
+rsyslog_port: 10514
+rsyslog_domains: [
+    '.{{ deployment }}',
+]
+
+#rsyslog_ignore_config:
+#rsyslog_consolidation_config:
+
+squidLogFile: '/var/log/squid.log'
+squidContainerName: 'squid-proxy'
+squidBasename: 'squid'
+
+# The following are defined in relation to the ansible-role-ca
+# self-signed certificate generation role. These are set to
+# the standard general directories for Debian and RedHat. This
+# allows one cert per host to be used for any service(s) that
+# use SSL, as well as adding local CA and host certs to the
+# SSL trust database. (Used for development.)
+
+# ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
+
+ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
+ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
+ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
+
+#sslCertDir: '/etc/nginx/ssl'
+#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+
+swarm:
+  service_delay_seconds: 30
+  services:
+    viz:
+      nets: []
+      ports: [
+        {
+          host: 9090,
+          client: 8080
+        },
+      ]
+      limit_cpu: 0.5
+      env_vars: [
+        {
+          name: 'PORT',
+          value: 9090
+        },
+      ]
+      constraints: [
+        'node.role == manager',
+      ]
+      mounts: [
+        '/var/run/docker.sock:/var/run/docker.sock',
+      ]
+      image_name: 'manomarks/visualizer'
+      replicas: 1
+
+# vim: ft=ansible :

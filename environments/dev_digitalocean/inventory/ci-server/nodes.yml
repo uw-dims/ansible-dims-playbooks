@@ -1,0 +1,188 @@
+---
+
+# Example playbook from geerlingguy/ansible-role-jenkins
+# - hosts: ci_server
+#   vars:
+#     jenkins_hostname: jenkins.devops.local
+#   roles:
+#     - ansible-role-jenkins
+
+ci_server:
+  vars:
+    devops_email_list: 'dittrich@u.washington.edu'
+    git_reposdir: '/opt/git'
+    git_authorized_keys:
+      - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGSvmiyX+S5GcV2aK9/6QXSnk9pHJrMC5+mBTJ6/IvgmZjX8dp3NrA9ibsnQvpYOkIIEAW8KMm9yQ+BA1qMCSLkY6ETZs92tL7umv+F6DZOqrGW4tXkEAb+U9Gf+FgFnUnhxJQVA0Jp/3p5fJ9VGbx09I2MG1nil+999cZtv4m61VFpt9qrtV3Psz/zDwrZfPRUhQ+5wLzMJEhqRmXyYAOQ1D7bXUs2FXXuhbM4ESR/gpfz4N0mUqFY9zxIE1zSzVznGizRdbQVks7wF6uJ2eywii/FRIbToWFJP+DBctnekEiK7u+Vm8Yzqq7q5pJ+nmpCi7SFSIQBgv4ZrwFmTsh DIMS key for dittrich'
+    git_mailing_list: '{{ devops_email_list }}'
+    git_announce_list: '{{ devops_email_list }}'
+    git_envelopesender: 'dims@{{ inventory_hostname }}'
+    git_emailprefix: '[Git]'
+    git_required_repos:
+      - name: 'prisem'
+        description: 'PRISEM RPC Utilities'
+        upstream: 'git@git.devops.develop:/opt/git/prisem.git'
+        post_receive_hooks:
+          - logamqp
+          - email
+          - jenkins
+          - jenkinsalldocs
+      - name: 'trident-ext-src'
+        description: ' package containing all Trident/Pitchfork dependancies.'
+        upstream: 'https://github.com/tridentli/trident-ext-src'
+        post_receive_hooks:
+          - logamqp
+          - email
+          - jenkins-trident
+      - name: 'trident'
+        description: 'Trident is a trusted and secure communication platform for enabling better communication between groups of trusted parties https://trident.li'
+        upstream: 'https://github.com/tridentli/trident'
+        post_receive_hooks:
+          - logamqp
+          - email
+          - jenkins-trident
+      - name: 'pitchfork'
+        description: 'Golang framework for secure communication platforms.'
+        upstream: 'https://github.com/tridentli/pitchfork'
+        post_receive_hooks:
+          - logamqp
+          - email
+          - jenkins-trident
+    jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
+    jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
+    jenkins_version: 2.60.3
+    jenkins_package_state: present
+    jenkins_connection_delay: 5
+    jenkins_connection_retries: 60
+    jenkins_home: /var/lib/jenkins
+    jenkins_hostname: localhost
+    jenkins_port: 8080
+    jenkins_ssh_port: 8022
+    jenkins_context_path: '/jenkins'
+    jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
+    jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
+    jenkins_labels:
+      - '{{ ansible_lsb.codename }}'
+      - '{{ ansible_architecture }}'
+      - '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
+    jenkins_plugins:
+      - git
+      - git-client
+      - git-parameter
+      - translation
+      - timestamper
+      - job-dsl
+      - build-name-setter
+      - credentials
+      - google-login
+      - ws-cleanup
+      - copyartifact
+      - matrix-project
+      - matrix-auth
+      - ssh-credentials
+      - ssh-slaves
+      - ssh-agent
+      - mailer
+      - junit
+      - shiningpanda
+      - blueocean
+      - docker-plugin
+      - pam-auth
+      - maven-plugin
+      - nodejs
+      - script-security
+      - ldap
+      - envinject
+      - external-monitor-job
+      - antisamy-markup-formatter
+      - publish-over-ssh
+      - token-macro
+      - ant
+      - postbuild-task
+      - javadoc
+      - scm-api
+      - parameterized-trigger
+    jenkins_url_prefix: "/jenkins"
+    jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
+    jenkins_plugin_updates_expiration: 86400
+    jenkins_plugin_timeout: 60
+
+    jenkins_admin_username: admin
+    jenkins_admin_email: 'dittrich@u.washington.edu'
+    jenkins_admin_password: "admin"
+    jenkins_admin_password_file: ""
+    jenkins_admin_token: "" # "07ce05c0b5209c43ce434231b2c90866"
+    jenkins_admin_token_file: ""
+
+    # For cli_config.yml and its templates
+    jenkins_admin_users:
+      - 'admin'
+
+    jenkins_authorized_keys:
+      - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzOjVtRJ/ultZHmOGGh6hMB8Z9bhj+HecrDc13AAVpB5y2lDdg+QaBSqx4JorWFObuORfvNxFbhBObhOyTwcyHaZgF7B74mveAW4Bae5BdupaG6A394LTPG6c5GCqOiXJzk7keYa3cRVkaQQdPKsKMRfVY86uHQTMpWL3jdng7Mdb/GQOifP21HZYpAH7BmOp/5rLfLwofLbhj1bhLoJWnGfzYPhFzmbGKnMP1vcbhqXd+zmgcjpn7ncPaqTsXuoZcdLv2jj9AANxl1yDdlYoRX1mvoTaokjCvdz85DDGrI2YQwVochsSvu6/SoeoZqzkG2Qp8KuUff4sv4H4cjXEt ansible@orange'
+      - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCmSPVxJ7/uEMDm0LssAhmPyyK6y+2StfBN1EC8cPgiuUKs18iYMxa6Ou+R4bO1dETbJSIT11dCSvIYWoYtvaEWZPfdA3ZnkrWXxyjlGL8XbjPW9G/O4/vLRqmNmQIKjvBbrDCL+/Jpz4iaKe7yXCjzulwOlwUueM6rv2TEKUOyHGVZY1irSbE/HypVHMeH0a98yI8SrQwlXCHWZJcIUgKTmRnvtnA7RdjDE+jfbc5wXimcKQs8nQycCmGWMkUJFELZR6Cz10fCzTxiuqWnzZSqMbMku/2SHbgwO45dtgsI4WzJzCCgQ5il8C7NMKrjuCSluuVC6YwrvwZ0FW0ZfkHL ansible-generated on orange'
+    jenkins_process_user: jenkins
+    jenkins_process_group: "{{ jenkins_process_user }}"
+
+    jenkins_init_changes:
+      - option: "JENKINS_ARGS"
+        value: "--prefix={{ jenkins_url_prefix }}"
+      - option: "{{ jenkins_java_options_env_var }}"
+        value: "{{ jenkins_java_options }}"
+
+    jenkins_job_params:
+      'build-rpc-prod':
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'master'
+      'build-rpc-develop':
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'develop'
+      'deploy-rpc-prod':
+        playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
+        private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'master'
+      'deploy-rpc-develop':
+        playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
+        private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
+        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_branch: 'develop'
+      'pitchfork':
+        project_url: 'https://github.com/tridentli/pitchfork'
+        repo_url: 'https://github.com/tridentli/pitchfork.git'
+        repo_branch: 'DEV_1.4.6'
+        repo_credentials: ''
+      'pitchfork-data':
+        project_url: 'https://github.com/tridentli/pitchfork'
+        repo_url: 'https://github.com/tridentli/pitchfork.git'
+        repo_branch: 'DEV_1.4.6'
+        repo_credentials: ''
+      'trident':
+        project_url: 'https://github.com/tridentli/trident'
+        #repo_url: 'https://github.com/tridentli/trident.git'
+        repo_url: '/opt/git/trident.git'
+        #repo_branch: 'DEV_1.4.6'
+        repo_branch: 'develop'
+        repo_credentials: ''
+      'trident-ext-src':
+        project_url: 'https://github.com/tridentli/trident-ext-src'
+        repo_url: 'https://github.com/tridentli/trident-ext-src.git'
+        repo_branch: 'master'
+        repo_credentials: ''
+  hosts:
+    'orange.devops.local':
+      nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
+      nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
+      nginx_source_hostname: '{{ inventory_hostname }}'
+      custom_hosts:
+        - '10.142.29.98  source.devops.develop'
+        - '10.142.29.115  eclipse.devops.develop'
+      cronjobs:
+        - name: 'source index'
+          weekday: '*'
+          hour: '*'
+          minute: '*'
+          user: 'jenkins'
+          job: "ls -l {{ dims }}/source | egrep -v '^total| index.txt' > {{ dims }}/source/index.txt"
+
+# vim: ft=ansible :

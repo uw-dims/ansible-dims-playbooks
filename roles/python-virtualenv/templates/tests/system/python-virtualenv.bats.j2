@@ -10,9 +10,11 @@ load helpers
     assert "Python {{ python_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/python --version 2>&1"
 }
 
+{% if dimscli_version is defined %}
 @test "[S][EV] {{ ansible_python_virtualenv }}/bin/dimscli version is {{ dimscli_version }}" {
     assert "dimscli {{ dimscli_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/dimscli --version 2>&1"
 }
+{% endif %}
 
 @test "[S][EV] {{ ansible_python_virtualenv }}/bin/ansible version is {{ dims_ansible_version }}" {
     assert "ansible {{ dims_ansible_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/ansible --version 2>&1 | head -n1"

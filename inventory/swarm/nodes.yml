@@ -6,9 +6,9 @@ swarm:
   hosts:
     'vmhost.devops.local':
     'red.devops.local':
+    'blue.devops.local':
     'yellow.devops.local':
     'orange.devops.local':
-    'blue14.devops.local':
     'purple.devops.local':
     'node01.devops.local':
     'node02.devops.local':
@@ -27,9 +27,9 @@ swarm:
       hosts:
         'vmhost.devops.local':
         'red.devops.local':
+        'blue.devops.local':
         'yellow.devops.local':
         'orange.devops.local':
-        'blue14.devops.local':
         'purple.devops.local':
 
 # vim: ft=ansible :

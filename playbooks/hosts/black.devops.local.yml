@@ -16,7 +16,6 @@
 
   roles:
     - { role: base }
-    - { role: dims-ci-utils }
     - { role: python-virtualenv, use_sphinx: true }
     - { role: docker }
     - { role: consul }

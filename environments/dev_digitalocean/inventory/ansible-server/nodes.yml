@@ -1,0 +1,16 @@
+---
+
+ansible_server:
+  vars:
+    ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
+    ansible_dims_playbooks_version: 'master'
+    ansible_accounts:
+      - ansible
+  hosts:
+    'orange.devops.local':
+      nginx_source_hostname: '{{ inventory_hostname }}'
+      ansible_accounts:
+        - jenkins
+        - ansible
+
+# vim: ft=ansible :

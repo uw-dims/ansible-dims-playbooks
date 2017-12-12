@@ -15,13 +15,13 @@
 
 - name: Bootstrapping '{{ host|default('bootstrap') }}'
   vars:
-   - playbooks_root: "{{ lookup('env', 'PBR') }}"
-   - _debug: False
+   - playbooks_root: '{{ lookup("env", "PBR") }}'
+   - _debug: false
   vars_files:
-   - "{{ playbooks_root }}/vars/global.yml"
-  hosts: "{{ host|default('bootstrap') }}" # override with '-e host=$host.fq.dn'
+   - '{{ playbooks_root }}/vars/global.yml'
+  hosts: '{{ host|default("bootstrap") }}' # override with '-e host=$host.fq.dn'
   become: yes
-  gather_facts: True
+  gather_facts: true
 
 # Everything from here on out will be stripped by dims.ansible-playbooks
 # in order to use this as a base for inserting roles (--role) or
@@ -31,7 +31,7 @@
 # @@dims.ansible-playbook@@
   pre_tasks:
     - name: Debugging
-      include: "{{ tasks_path }}/debug-dump-vars.yml"
+      include: '{{ tasks_path }}/debug-dump-vars.yml'
       when: _debug is defined and _debug|bool
       tags: [ debug ]
 

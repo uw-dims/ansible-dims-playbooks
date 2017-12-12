@@ -2,6 +2,24 @@
 
 # File: roles/base/tasks/main.yml
 
+- name: Define manage_dnsmasq
+  set_fact:
+    manage_dnsmasq: false
+  when: manage_dnsmasq is not defined
+  tags: [ always ]
+
+- name: Define manage_resolv_conf
+  set_fact:
+    manage_resolv_conf: false
+  when: manage_resolv_conf is not defined
+  tags: [ always ]
+
+- name: Define manage_interfaces
+  set_fact:
+    manage_interfaces: false
+  when: manage_interfaces is not defined
+  tags: [ always ]
+
 - fail: msg="Variable 'packages_install' is not defined.
     Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
   when: packages_install is not defined
@@ -99,7 +117,7 @@
         - hosts/
   become: yes
   notify: restart dnsmasq
-  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ]
+  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ] and manage_dnsmasq
   tags: [ base, hosts, config ]
 
 - name: Disable IPv6 in kernel on non-CoreOS
@@ -589,8 +607,13 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_resolv_conf
   tags: [ base, config, dns ]
+
+- name: Stat /etc/NetworkManager exists
+  stat:
+    path: '/etc/NetworkManager'
+  register: _nm_stat
 
 - name: Make appropriate NetworkManager configruation present
   template:
@@ -611,7 +634,9 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/NetworkManager/'
         - NetworkManager/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and
+        _nm_stat is defined and
+        _nm_stat.stat.exists
   ignore_errors: true
   tags: [ base, config ]
 
@@ -621,7 +646,7 @@
 # added "when" statement
 - name: Make DNS service using dnsmasq present (Debian)
   include: dnsmasq.yml
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_dnsmasq
   tags: [ base, packages ]
 
 # Handle the configuration of network interfaces in a manner that
@@ -650,7 +675,7 @@
         - network/
   become: yes
   ignore_errors: true
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_interfaces
   tags: [ base, config, interfaces ]
 
 # http://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/

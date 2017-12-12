@@ -5,14 +5,14 @@
 tcp_ports: [ 53, 2377, 4789, 7946, 9999 ]
 udp_ports: [ 53, 4789, 7946 ]
 
-eth1:
-  ip: "192.168.56.15"
-  auto_config: "true"
-eth2:
-  ip: "10.168.56.15"
-  auto_config: "false"
+#eth1:
+#  ip: "192.168.56.15"
+#  auto_config: "true"
+#eth2:
+#  ip: "10.168.56.15"
+#  auto_config: "false"
 
-iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
-installDesktop: ""
+#iso_checksum: "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff"  # debian-8.5.0-amd64-netinst.iso
+#installDesktop: ""
 
 # vim: ft=ansible :

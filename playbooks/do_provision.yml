@@ -1,0 +1,59 @@
+---
+
+# Note: This playbooks requires that the "dopy" module is installed using pip.
+# The ansible_python_interpreter setting ensures the version of Python with
+# the "dopy" package installed is the one used by Ansible for the "local"
+# connection.
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "python"
+
+  tasks:
+  - name: Ensure Droplet exists and is up
+    digital_ocean:
+      api_token: '{{ do_api_token }}'
+      state: present
+      command: droplet
+      name: '{{ item.name }}'
+      region_id: '{{ item.region }}'
+      size_id: '{{ item.size }}'
+      image_id: '{{ item.image_id }}'
+      ssh_key_ids:
+        # add your ssh key signature here
+        - '{{ item.ssh_key_id }}'
+      backups_enabled: '{{ item.backups_enabled }}'
+      #ipv6: yes
+      #user_data: null
+      # Need to turn off private networking to guarantee ip_address is public
+      #private_networking: yes
+      # Requried for idempotence/only one droplet creation
+      unique_name: yes
+    register: do
+    with_items:
+      - '{{ droplets }}'
+
+  - name: debug variable 'do'
+    debug: var=do
+
+  - name: Add droplets to inventory.
+    add_host:
+      name: "{{ item.droplet.ip_address }}"
+      groups: do
+    with_items:
+      - "{{ do.results }}"
+
+  - name: debug variable 'groups.do'
+    debug: var=groups.do
+
+- hosts: do
+  remote_user: root
+  gather_facts: false
+
+  tasks:
+  #- name: Wait for port 22 to become available.
+  #  local_action: "wait_for port=22 host={{ inventory_hostname }}"
+
+  - ping:

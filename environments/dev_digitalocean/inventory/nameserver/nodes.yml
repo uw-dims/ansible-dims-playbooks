@@ -1,0 +1,7 @@
+---
+
+nameserver:
+  hosts:
+    'red.devops.local':
+
+# vim: ft=ansible :

@@ -52,6 +52,13 @@
   set_fact:
     _tmpdir: '{{ mktemp_output.stdout }}'
 
+  # Note: The Trident /var/lib/trident/library/funcs.sh script has a function
+  # "portal_dump()" that does "pg_dump -a --inserts --column-inserts ...". There
+  # doesn't appear to be code that calls this, nor is there an inverse function
+  # "portal_restore()". Noting this here because the way backups are created here
+  # differs slightly (though a diff of the uncompressed output using both methods
+  # does not seem to show a difference.)
+
 - name: Create backup of postgresql database
   shell: >
     pg_dump

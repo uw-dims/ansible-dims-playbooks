@@ -1,0 +1,46 @@
+---
+
+# File: inventory/ca/nodes.yml
+
+# This inventory holds variables and hosts for handling self-signed
+# certificates for development of SSL-enabled services. A production
+# system should use a service like Letsencrypt for internet-facing
+# systems.
+
+ca_certs:
+  vars:
+    # For ansible-role-ca
+    #ca_rootca_password set in vault or inventory/private/nodes.yml
+    # Customization of certs
+    ca_certs_dir: '/usr/share/ca-certs'
+    ca_distribution_certs_dir: '{{ dims_private }}/files/certs'
+    ca_country: 'US'
+    ca_state: 'WA'
+    ca_locality: 'Seattle'
+    ca_organization: '{{ dims_domain }}'
+    ca_domain: '{{ dims_domain }}'
+    ca_organizationalunit: 'DIMS'
+    ca_commonname: '{{ dims_domain }}'
+    ca_email: 'dittrich@u.washington.edu'
+  hosts:
+    'red.devops.local':
+    'blue.devops.local':
+    'purple.devops.local':
+    'orange.devops.local':
+  children:
+    infra:
+      hosts:
+        'red.devops.local':
+          # Control of sub-tasks
+          ca_init: false
+          ca_certify_nodes: false
+          ca_wildcard: false
+          ca_fetch_keys: false
+          ca_distribute_keys: false
+    instances:
+      hosts:
+        'blue.devops.local':
+        'purple.devops.local':
+        'orange.devops.local':
+
+# vim: ft=ansible :

@@ -1,0 +1,66 @@
+variable "do_token" {}
+variable "name" { default = "do" }
+variable "domain" { default = "{{ dims_domain }}" }
+variable "datacenter" { default = "{{ dims_domain|default('dims') }}" }
+variable "ssh_fingerprint" { default = "{{ do_ssh_key_id }}" }
+variable "private_key_filename" { default = "~/.ssh/do" }
+variable "public_key" {}
+variable "private_key" {}
+
+provider "digitalocean" {
+  token = "${var.do_token}"
+}
+
+module "do-keypair" {
+  name = "${var.name}"
+  source = "./keypair"
+  public_key_filename = "~/.ssh/do.pub"
+}
+
+{% for d in do_droplets %}
+resource "digitalocean_droplet" "{{ d.name }}" {
+    image = "{{ d.image_id|default('debian-8-x64') }}"
+    #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
+    name = "{{ d.name }}.{{ dims_domain }}"
+    region = "{{ d.region|default("sfo1") }}"
+    size = "{{ d.size|default("512mb") }}"
+    private_networking = true
+    ssh_keys = [
+      "${var.ssh_fingerprint}"
+    ]
+    #user_data = "{\"role\":\"${var.role}\",\"dc\":\"${var.datacenter}\"}"
+    user_data = "{\"dc\":\"${var.datacenter}\"}"
+
+  connection {
+      user = "root"
+      type = "ssh"
+      private_key = "${file(var.private_key_filename)}"
+      host = "${self.ipv4_address}"
+      timeout = "2m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "export PATH=$PATH:/usr/bin",
+      "if which apt-get 2>&1 >/dev/null; then sudo apt-get update && sudo apt-get upgrade -y; fi",
+      "if which yum 2>&1 >/dev/null; then sudo yum update -y && sudo yum install python epel-release -y; fi",
+    ]
+  }
+
+  provisioner "file" {
+    source      = "../../files/common-scripts/keys.host.fingerprints.sh"
+    destination = "/tmp/keys.hosts.fingerprints.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/keys.hosts.fingerprints.sh",
+      "/tmp/keys.hosts.fingerprints.sh",
+    ]
+  }
+}
+output "{{ d.name }}-ip" {
+  value = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}"
+}
+
+{% endfor %}

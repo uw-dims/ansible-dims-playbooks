@@ -1,0 +1,20 @@
+---
+
+# File: inventory/swarm/nodes.yml
+
+swarm:
+  consul_server: '{{ inventory_hostname in groups.manager }}'
+  hosts:
+    'red.devops.local':
+    'blue.devops.local':
+    'orange.devops.local':
+    'purple.devops.local':
+#  children:
+#    manager:
+#      vars:
+#      hosts:
+#    worker:
+#      vars:
+#      hosts:
+
+# vim: ft=ansible :
