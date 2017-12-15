@@ -56,7 +56,7 @@ dims_dirs:
 # different path components with the users' names, which makes things more
 # complicated in shared code, or with the way we create Vagrants.
 #basedir: /srv/web/infra/ansible
-basedir: "{{ playbooks_root | default(lookup('env', 'PBR'), inventory_dir) }}"
+basedir: "{{ playbooks_root|default(lookup('env', 'PBR')) }}"
 # The private directory is handled differently than other DIMS directories.
 private: "{{ dims }}/private"
 bigfiles: "{{ basedir }}/bigfiles"
